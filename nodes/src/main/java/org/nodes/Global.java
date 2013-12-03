@@ -31,6 +31,15 @@ public class Global
 		return random;
 	}
 	
+	/**
+	 * Gives the RNG a random seed (based on a reasonable source of randomsness,
+	 * such as time). This makes the code non-deterministic and non-repeatable. 
+	 */
+	public static void randomSeed()
+	{
+		random = new Random();
+	}
+	
 	public static void setSeed(long seed)
 	{
 		random = new Random(seed);
