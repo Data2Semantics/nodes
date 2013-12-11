@@ -16,7 +16,7 @@ public class Dot {
 	
 	private static Pattern list = Pattern.compile(".*\\{(.*)\\}");
 	private static Pattern labeledLink = Pattern.compile("\\s*(.*)\\s*--\\s*(.*)\\s*\\[label=(.*)\\]");
-	private static Pattern unlabeledLink = Pattern.compile("\\s*(.*)\\s--\\*(.*)\\s*");	
+	private static Pattern unlabeledLink = Pattern.compile("\\s*(.*)\\s--\\s(.*)\\s*");	
 
 	public static UTGraph<String, String> read(String string)
 	{

@@ -66,7 +66,8 @@ public class ConnectionClusteringTest
 		
 		Graph<String> graph = RandomGraphs.preferentialAttachment(n, 3);
 		
-		// * get a list of nodes sorted by degree
+		// * Remove the top 10% of nodes, to break up the network
+		// ** get a list of nodes sorted by degree
 		List<Node<String>> nodes = new ArrayList<Node<String>>(graph.nodes());
 		Collections.sort(nodes, Collections.reverseOrder(new DegreeComparator<String>()));
 		for(int i : Series.series((int) (0.1 * n)))
@@ -102,9 +103,9 @@ public class ConnectionClusteringTest
 			{
 				double distance = fw.distance(node, other);
 				if(distance < Double.POSITIVE_INFINITY)
-					assert(clust.clusterOf(node.index()) == clust.clusterOf(other.index()));
+					assertEquals(clust.clusterOf(node.index()), clust.clusterOf(other.index()));
 				else
-					assert(clust.clusterOf(node.index()) != clust.clusterOf(other.index()));
+					assertTrue(clust.clusterOf(node.index()) != clust.clusterOf(other.index()));
 			}
 	}
 	

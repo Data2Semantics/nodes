@@ -1,0 +1,4 @@
+The neural network of C elegans with double edges merged and their weights summed
+
+source:
+	http://toreopsahl.com/datasets/#celegans

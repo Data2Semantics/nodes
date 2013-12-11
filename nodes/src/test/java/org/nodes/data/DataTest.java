@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import org.junit.Test;
 import org.nodes.UTGraph;
@@ -13,7 +14,8 @@ public class DataTest {
 	@Test
 	public void testReadString() 
 	{
-		File file = new File("/home/peter/Documents/datasets/graphs/ecoli/EC.dat");
+		URL url = this.getClass().getResource("/graphs/ecoli/EC.dat");
+		File file = new File(url.getFile());
 		
 		UTGraph<String, String> graph = null;
 		try {
@@ -29,7 +31,8 @@ public class DataTest {
 	@Test
 	public void testReadStringNeural() 
 	{
-		File file = new File("/home/peter/Documents/datasets/graphs/neural/celegans.txt");
+		URL url = this.getClass().getResource("/graphs/neural/celegans.txt");
+		File file = new File(url.getFile());
 		
 		UTGraph<String, String> graph = null;
 		try {

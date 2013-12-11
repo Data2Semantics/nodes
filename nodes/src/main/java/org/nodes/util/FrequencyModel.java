@@ -6,7 +6,6 @@ import static java.util.Collections.*;
 
 import org.nodes.Global;
 
-import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.*;
 
 public class FrequencyModel<T> {
@@ -298,6 +297,39 @@ public class FrequencyModel<T> {
 		return Math.log(probability(token));
 	}	
 	
+	
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if(! (obj instanceof FrequencyModel<?>))
+			return false;
+		
+		FrequencyModel<Object> that = (FrequencyModel<Object>) obj;
+		
+		// * Quick checks
+		if(this.total() != that.total())
+			return false;
+		if(this.distinct() != that.distinct())
+			return false;
+		
+		HashSet<Object> otherTokens = new HashSet<Object>(that.tokens());
+		for(T thisToken : this.tokens())
+		{
+			if(this.frequency(thisToken) != that.frequency(thisToken))
+				return false;
+			
+			otherTokens.remove(thisToken);
+		}
+		
+		if(! otherTokens.isEmpty())
+			return false;
+		
+		return true;
+
+	}
+
+
 	public static class Comparator<T> implements java.util.Comparator<T>
 	{
 		private FrequencyModel<T> model;

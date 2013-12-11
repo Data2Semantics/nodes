@@ -15,9 +15,13 @@ public class DotTest {
 	public void testRead() 
 	{
 		Global.randomSeed();
+		
 		UTGraph<String, String> graph = RandomGraphs.preferentialAttachment(30, 2);
 		
 		UTGraph<String, String> out = Dot.read(graph.toString());
+		
+		System.out.println(graph);
+		System.out.println(out);
 		
 		assertEquals(graph.size(), out.size());
 		assertEquals(graph.numLinks(), out.numLinks());

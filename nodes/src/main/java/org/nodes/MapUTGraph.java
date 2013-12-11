@@ -218,9 +218,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 			
 			for(MapUTLink link : toRemove)
 				link.remove();
-			
-			numEdges -= toRemove.size();
-			
+						
 			if(removed > 0)
 				modCount++;	
 		}

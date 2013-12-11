@@ -232,9 +232,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			
 			for(MapDTLink link : toRemove)
 				link.remove();
-			
-			numEdges -= toRemove.size();
-			
+						
 			if(removed > 0)
 				modCount++;	
 		}
@@ -619,6 +617,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			second.linksIn.get(tag).remove(this);
 			
 			// * check whether second should be removed from first.neighborsTo
+			// * Speed this up by maintaining a count in neighborsTo
 			boolean occurs = false;
 			for(T tag : first.linksOut.keySet())
 				for(MapDTLink link : first.linksOut.get(tag))
@@ -628,6 +627,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 				first.neighborsTo.remove(second);
 			
 			// * check whether first should be removed from second.neighborsFrom
+			// * Speed this up by maintaining a count in neighborsFrom
 			occurs = false;
 			for(T tag : second.linksIn.keySet())
 				for(MapDTLink link : second.linksIn.get(tag))
@@ -638,6 +638,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			
 			dead = true;
 			
+			numEdges--;
 			modCount ++;
 		}
 

@@ -11,6 +11,7 @@ import org.nodes.DLink;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.Graph;
+import org.nodes.LightDGraph;
 import org.nodes.Link;
 import org.nodes.UGraph;
 import org.nodes.ULink;
@@ -35,7 +36,7 @@ public class LinkGenerators
 
 		@Override
 		public Link<T> generate()
-		{
+		{	
 			int i = Global.random().nextInt(links.size());
 			return links.get(i);
 		}		

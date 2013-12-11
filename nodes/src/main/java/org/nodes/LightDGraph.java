@@ -630,7 +630,7 @@ public class LightDGraph<L> implements DGraph<L>
 	@Override
 	public Collection<? extends DLink<L>> links()
 	{
-		return new LinkList();
+		return new LinkCollection();
 	}
 	
 	/**
@@ -639,7 +639,7 @@ public class LightDGraph<L> implements DGraph<L>
 	 * @author Peter
 	 *
 	 */
-	private class LinkList extends AbstractCollection<DLink<L>>
+	private class LinkCollection extends AbstractCollection<DLink<L>>
 	{
 		@Override
 		public Iterator<DLink<L>> iterator()
@@ -885,30 +885,36 @@ public class LightDGraph<L> implements DGraph<L>
 		if(!(other instanceof DGraph<?>))
 			return false;
 		
-		DGraph<Object> otherGraph = (DGraph<Object>) other;
-		if(! otherGraph.level().equals(level()))
+		DGraph<Object> oth = (DGraph<Object>) other;
+		if(! oth.level().equals(level()))
 			return false;
 		
-		if(size() != otherGraph.size())
+		if(size() != oth.size())
 			return false;
 		
-		if(numLinks() != otherGraph.numLinks())
+		if(numLinks() != oth.numLinks())
 			return false;
 		
-		if(labels().size() != otherGraph.labels().size())
+		if(labels().size() != oth.labels().size())
 			return false;
 		
-		// * for all connected nodes
 		for(DNode<L> node : nodes())
 		{
-			if(! Functions.equals(node.label(), otherGraph.get(node.index()).label()))
+			DNode<Object> othNode = oth.get(node.index());
+			
+			if(! Functions.equals(node.label(), othNode.label()))
 				return false;
 			
+			FrequencyModel<Integer> outs = new FrequencyModel<Integer>(),
+			                        othOuts = new FrequencyModel<Integer>();
 			for(DNode<L> neighbor : node.out())
-			{
-				if(! otherGraph.get(node.index()).connected(otherGraph.get(neighbor.index())))
-					return false;
-			}
+				outs.add(neighbor.index());
+			
+			for(DNode<Object> othNeighbor : othNode.out())
+				othOuts.add(othNeighbor.index());
+			
+			if(! outs.equals(othOuts))
+				return false;
 		}
 		
 		return true;	

@@ -19,6 +19,7 @@ import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.Graph;
+import org.nodes.Graphs;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.TGraph;
@@ -36,6 +37,8 @@ import org.nodes.util.Series;
  * McKay.
  * 
  * TODO: Implement automorphism pruning
+ * TODO: Implement a separate refine for directed graphs. It should separate by
+ * in and out degree. Behavior is still correct, but slower.
  * 
  * @author Peter
  *
@@ -483,5 +486,12 @@ public class Nauty
 		}
 		
 		return buffer.toString();
+	}
+	
+	public static <L extends Comparable<L>> Graph<L> canonize(Graph<L> graph)
+	{
+		Order order = Nauty.order(graph, new Functions.NaturalComparator<L>());		
+		
+		return Graphs.reorder(graph, order);
 	}
 }

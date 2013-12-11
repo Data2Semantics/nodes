@@ -92,7 +92,12 @@ public class FloydWarshall<L> implements Distance<Node<L>>
 		int i = a.index();
 		int j = b.index();
 		
-		return distance(i, j);
+		
+		int d = distance(i, j);
+		
+		if(d >= Short.MAX_VALUE)
+			return Double.POSITIVE_INFINITY;
+		return d;
 	}
 	
 	/**
