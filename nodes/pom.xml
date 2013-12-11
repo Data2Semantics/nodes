@@ -95,4 +95,19 @@
      	<version>4.10</version>
      </dependency>
   </dependencies>
+	<!-- Where we deploy stuff so that people can use, for the time being in internal ducktape server -->
+	<distributionManagement>
+	   <repository>
+	       <id>ducktape-nexus</id>
+	       <name>Ducktape Nexus repository releases </name>
+	       <url>http://ducktape.wongiseng.com/nexus/content/repositories/releases</url>
+	   </repository>
+
+	   <snapshotRepository>
+	       <id>ducktape-nexus</id>
+	       <name>Ducktape Nexus repository internal releases</name>
+	       <url>http://ducktape.wongiseng.com/nexus/content/repositories/snapshots</url>
+       	   </snapshotRepository>
+	</distributionManagement>
+
 </project>
