@@ -756,7 +756,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 	public String toString()
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("graph {");
+		sb.append("digraph {");
 		
 		Set<MapDTNode> nodes = new HashSet<MapDTNode>(nodeList);
 		

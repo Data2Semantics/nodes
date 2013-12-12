@@ -1,8 +1,10 @@
 package org.nodes.data;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,11 +17,14 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.nodes.DGraph;
 import org.nodes.Graph;
+import org.nodes.Link;
 import org.nodes.MapDTGraph;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.TGraph;
+import org.nodes.TLink;
 import org.nodes.UTGraph;
 
 /**
@@ -261,48 +266,47 @@ public class GML
 		}
 	}
 	
-//	public static class LVertex extends Vertex<Integer>
-//	{
-//		public String label;
-//
-//		public LVertex(Integer id)
-//		{
-//			super(id);
-//		}
-//		
-//		public void setLabel(String label)
-//		{
-//			this.label = label;
-//		}
-//		
-//		public int id()
-//		{
-//			return super.getLabel();
-//		}
-//		
-//		public String label()
-//		{
-//			return label;
-//		}
-//
-//		@Override
-//		public int hashCode()
-//		{
-//			return id();
-//		}
-//
-//		@Override
-//		public boolean equals(Object obj)
-//		{
-//			if (this == obj)
-//				return true;
-//			if (getClass() != obj.getClass())
-//				return false;
-//			LVertex other = (LVertex) obj;
-//			if(other.id() != id())
-//				return false;
-//			
-//			return true;
-//		}
-//	}
+	public static <L> String toString(Graph<L> graph)
+	{
+		StringBuffer bf = new StringBuffer();
+		
+		bf.append("graph [ \n");
+		
+		bf.append("\tdirected " + ((graph instanceof DGraph<?>) ? 1 : 0)+"\n");
+		
+		// * Nodes
+		for(Node<L> node : graph.nodes())
+		{
+			bf.append("\tnode [ \n");
+			bf.append("\t\tid " + node.index()+"\n");
+			bf.append("\t\tlabel \"" + node.label()+"\"\n");
+			bf.append("\t]\n");
+		}
+		
+		// * Links
+		for(Link<L> link : graph.links())
+		{
+			bf.append("\tedge [ \n");
+			bf.append("\t\tsource " + link.first().index()+"\n");
+			bf.append("\t\ttarget " + link.second().index()+"\n");
+			if(link instanceof TLink<?,?>)
+				bf.append("\t\tlabel \"" + ((TLink<L, ?>)link).tag() + "\"\n");
+			bf.append("\t]\n");
+		}
+		
+		bf.append("]\n");
+		
+		return bf.toString();
+	}
+	
+	public static <L> void write(Graph<L> graph, File file)
+		throws IOException
+	{
+		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		
+		out.write(toString(graph));
+		
+		out.close();		
+	}
+
 }

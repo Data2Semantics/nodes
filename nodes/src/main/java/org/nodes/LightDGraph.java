@@ -778,7 +778,7 @@ public class LightDGraph<L> implements DGraph<L>
 	public String toString()
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("graph {");
+		sb.append("digraph {");
 		
 		Set<DNode<L>> nodes = new HashSet<DNode<L>>(nodes());
 		

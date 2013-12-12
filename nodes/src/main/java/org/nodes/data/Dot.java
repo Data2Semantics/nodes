@@ -1,6 +1,9 @@
 package org.nodes.data;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -8,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.nodes.Graph;
 import org.nodes.MapUTGraph;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
@@ -79,6 +83,16 @@ public class Dot {
 		map.put(name, node);
 		
 		return node;
+	}
+	
+	public static <L> void write(Graph<L> graph, File file)
+		throws IOException
+	{
+		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		
+		out.write(graph.toString());
+		
+		out.close();
 	}
 }
 
