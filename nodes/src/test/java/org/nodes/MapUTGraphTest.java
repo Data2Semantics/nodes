@@ -3,6 +3,8 @@ package org.nodes;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.nodes.random.RandomGraphs;
+import org.nodes.util.Functions;
 
 public class MapUTGraphTest
 {
@@ -84,9 +86,9 @@ public class MapUTGraphTest
 	@Test
 	public void testConnected()
 	{
-		DTGraph<String, Double> graph = new MapDTGraph<String, Double>();
+		UTGraph<String, Double> graph = new MapUTGraph<String, Double>();
 		
-		DTNode<String, Double> a = graph.add("a"),
+		UTNode<String, Double> a = graph.add("a"),
 		                       b = graph.add("b"),
 		                       c = graph.add("c");
 
@@ -95,7 +97,7 @@ public class MapUTGraphTest
 		
 		assertTrue(a.connected(b));
 		assertFalse(a.connected(a));
-		assertFalse(b.connected(a));
+		assertTrue(b.connected(a));
 		assertFalse(a.connected(c));
 		assertFalse(c.connected(a));
 		assertFalse(b.connected(c));
@@ -144,5 +146,17 @@ public class MapUTGraphTest
 		assertFalse(g1.equals(g2));
 	}
 	
-	
+	@Test
+	public void neighborTest()
+	{
+		Graph<String> graph = RandomGraphs.random(20, 0.2);
+		
+		Node<String> node = Functions.choose(graph.nodes());
+		
+		int degreeSum = 0;
+		for(Node<String> neighbor : node.neighbors())
+			degreeSum += node.links(neighbor).size();
+		
+		assertEquals(node.degree(), degreeSum);
+	}
 }

@@ -34,14 +34,30 @@ public interface Node<L>
 	 */
 	public void connect(Node<L> other);
 	
+	/**
+	 * Removes all links existing between this node and the given node.
+	 * 
+	 * For directed graphs, this removes links going in both directions.
+	 * 
+	 * @param other
+	 */
 	public void disconnect(Node<L> other);
 	
+	/**
+	 * Whether the current node is connected to the given node.
+	 * 
+	 * If the graph is directed, a connection in either direction will cause
+	 * true to be returned. 
+	 * 
+	 * @param other
+	 * @return
+	 */
 	public boolean connected(Node<L> other);
 	
 	/** 
-	 * Returns all links between this node and the given other node. Will only 
-	 * return links that cause this.connected(other) to be true. Ie, for directed
-	 * graphs, this method will only return links in one direction.
+	 * Returns all links between this node and the given other node. 
+	 * 
+	 * For directed graphs, this will return links in both directions.
 	 * 
 	 * @param other
 	 * @return

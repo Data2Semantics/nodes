@@ -285,7 +285,18 @@ public class LightDGraph<L> implements DGraph<L>
 		}
 
 		@Override
-		public boolean connected(Node<L> to)
+		public boolean connected(Node<L> other)
+		{
+			if(!(other instanceof DNode<?>))
+				return false;
+			
+			DNode<L> o = (DNode<L>) other;
+			
+			return this.connectedTo(o) || o.connectedTo(this);
+		}
+		
+		@Override
+		public boolean connectedTo(DNode<L> to)
 		{
 			int mine = index, his = to.index();
 			

@@ -6,7 +6,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.nodes.random.RandomGraphs;
 import org.nodes.util.FrequencyModel;
+import org.nodes.util.Functions;
 
 public class MapDTGraphTest
 {
@@ -98,12 +100,39 @@ public class MapDTGraphTest
 		a.connect(b, 0.5);
 		
 		assertTrue(a.connected(b));
+		assertTrue(a.connectedTo(b));
+		
 		assertFalse(a.connected(a));
-		assertFalse(b.connected(a));
+		assertFalse(a.connectedTo(a));
+
+		assertTrue(b.connected(a));
+		assertFalse(b.connectedTo(a));
+		
 		assertFalse(a.connected(c));
+		assertFalse(a.connectedTo(c));
+
 		assertFalse(c.connected(a));
+		assertFalse(c.connectedTo(a));
+		
 		assertFalse(b.connected(c));
+		assertFalse(b.connectedTo(c));
+		
 		assertFalse(c.connected(b));
+		assertFalse(c.connectedTo(b));
+
+	}
+	
+	@Test
+	public void testConnected2()
+	{
+		Graph<String> graph = RandomGraphs.randomDirected(20, 0.2);
+		
+		for(Node<String> node : graph.nodes())
+			for(Node<String> neighbor : node.neighbors())
+			{
+				assertTrue(node.connected(neighbor));
+				
+			}
 	}
 	
 	@Test
@@ -166,19 +195,13 @@ public class MapDTGraphTest
 	@Test
 	public void directionTest()
 	{
-		DGraph<String> graph = legsDirected();
+		DGraph<String> graph = legsDirected(); // a -> b -> c
 		
 		FrequencyModel<Boolean> counts = new FrequencyModel<Boolean>();
 		
 		for(DNode<String> current : graph.nodes())
-		{
-			System.out.println(current.neighbors());
 			for(DNode<String> neighbor : current.neighbors())
-			{
-				System.out.println(current + "->" + neighbor + " " + current.connected(neighbor));
-				counts.add(current.connected(neighbor));
-			}
-		}
+				counts.add(current.connectedTo(neighbor));
 		
 		assertEquals(0, (int)(counts.frequency(true) - counts.frequency(false)));
 	}
@@ -206,4 +229,49 @@ public class MapDTGraphTest
 		
 		assertTrue(set.contains(b));
 	}
+	
+	@Test
+	public void neighborTest()
+	{
+		Graph<String> graph = RandomGraphs.randomDirected(20, 0.2);
+		
+		Node<String> node = Functions.choose(graph.nodes());
+		
+		int degreeSum = 0;
+		for(Node<String> neighbor : node.neighbors())
+		{
+			degreeSum += node.links(neighbor).size();
+			System.out.println(degreeSum);
+		}
+		
+		assertEquals(node.degree(), degreeSum);
+	}
+	
+	@Test
+	public void neighborTestIn()
+	{
+		DGraph<String> graph = RandomGraphs.randomDirected(20, 0.2);
+		
+		DNode<String> node = Functions.choose(graph.nodes());
+		
+		int inDegreeSum = 0;
+		for(DNode<String> neighbor : node.neighbors())
+			inDegreeSum += node.linksIn(neighbor).size();
+		
+		assertEquals(node.inDegree(), inDegreeSum);
+	}	
+	
+	@Test
+	public void neighborTestOut()
+	{
+		DGraph<String> graph = RandomGraphs.randomDirected(20, 0.2);
+		
+		DNode<String> node = Functions.choose(graph.nodes());
+		
+		int outDegreeSum = 0;
+		for(DNode<String> neighbor : node.neighbors())
+			outDegreeSum += node.linksOut(neighbor).size();
+		
+		assertEquals(node.outDegree(), outDegreeSum);
+	}	
 }

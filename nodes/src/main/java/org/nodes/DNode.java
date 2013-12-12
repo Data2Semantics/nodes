@@ -48,6 +48,15 @@ public interface DNode<L> extends Node<L>
 	
 	public boolean connected(Node<L> to);
 	
+	/**
+	 * A directional version of {@link connected()}. Will return true, if and 
+	 * only if there exists a link from this node to the given node. 
+	 * 
+	 * @param to
+	 * @return
+	 */
+	public boolean connectedTo(DNode<L> to);
+	
 	public Collection<? extends DLink<L>> links(Node<L> other);
 	
 	/**

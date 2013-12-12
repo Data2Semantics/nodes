@@ -240,6 +240,16 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connected(Node<L> other)
 		{
+			if(!(other instanceof DNode<?>))
+				return false;
+			
+			DNode<L> o = (DNode<L>) other;
+			return this.connectedTo(o) || o.connectedTo(this);
+		}
+		
+		@Override
+		public boolean connectedTo(DNode<L> other)
+		{
 			return neighborsTo.contains(other);
 		}
 
@@ -390,11 +400,23 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connected(TNode<L, T> other, T tag)
 		{
+			if(!(other instanceof MapDTGraph<?, ?>.MapDTNode))
+				return false;
+			
+			MapDTNode o = (MapDTNode) other;
+			
+			return this.connectedTo(o, tag) || o.connectedTo(this, tag);
+		}
+		
+		@Override
+		public boolean connectedTo(TNode<L, T> other, T tag)
+		{
 			if(! linksOut.containsKey(tag))
 				return false;
 			
 			for(MapDTLink link : linksOut.get(tag))
-				if(link.second().equals(other));
+				if(link.to().equals(other))
+					return true;
 				
 			return false;
 		}
@@ -510,7 +532,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			List<MapDTLink> links = new LinkedList<MapDTLink>();
 			for(T tag : linksOut.keySet())
 				for(MapDTLink link : linksOut.get(tag))
-					if(link.second().equals(o))
+					if(link.to().equals(o))
 						links.add(link);
 			
 			return links;
@@ -530,7 +552,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			List<MapDTLink> links = new LinkedList<MapDTLink>();
 			for(T tag : linksIn.keySet())
 				for(MapDTLink link : linksIn.get(tag))
-					if(link.second().equals(o))
+					if(link.from().equals(o))
 						links.add(link);
 			
 			return links;
@@ -559,10 +581,11 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 				return Collections.emptyList(); 		
 			
 			List<DTLink<L, T>> links = new ArrayList<DTLink<L, T>>(degree());
-			links.addAll(linksOut( (DTNode<L, T>)other));
-			links.addAll(linksIn(  (DTNode<L, T>)other));
 			
-			return links();
+			links.addAll(linksOut( (DTNode<L, T>) other));
+			links.addAll(linksIn(  (DTNode<L, T>) other));
+			
+			return links;
 		}
 	}
 
@@ -768,7 +791,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 					return true;
 		return false;
 	}
-
+	
 	@Override
 	public Set<L> labels()
 	{

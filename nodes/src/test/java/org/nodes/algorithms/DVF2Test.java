@@ -156,7 +156,7 @@ public class DVF2Test
 			
 		for(String first : labels)
 			for(String second : labels)
-				if(a.node(first).connected(a.node(second)))
+				if(a.node(first).connectedTo(a.node(second)))
 					b.node(first).connect(b.node(second));
 				
 		System.out.println(a.size());

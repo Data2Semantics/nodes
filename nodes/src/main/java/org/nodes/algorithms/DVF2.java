@@ -255,7 +255,7 @@ public class DVF2<L>
 				// * check if the node that nn1 is matched to is a neighbour of n2
 				DNode<L> match = g2.get(core1.get(nn1i));
 				
-				if(! node2.connected(match))
+				if(! node2.connectedTo(match))
 					return false;
 				
 			} else if(t1.get(nn1i) != null)
@@ -274,7 +274,7 @@ public class DVF2<L>
 				//   n1
 				DNode<L> match = g1.get(core2.get(nn2i));
 				
-				if(! node1.connected(match))
+				if(! node1.connectedTo(match))
 					return false;
 				
 			} else if(t2.get(nn2i) != null)

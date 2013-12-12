@@ -472,7 +472,7 @@ public class Nauty
 				int rawIndex = neighbor.index(); // index in the original graph
 				int neighborIndex = order[rawIndex]; // index in the re-ordered graph
 				
-				if( (! directed) || current.connected(neighbor))
+				if( (! directed) || ((DNode<T>)current).connectedTo((DNode<T>)neighbor))
 					neighbors.add(neighborIndex);
 			}
 			

@@ -71,4 +71,14 @@ public interface DTNode<L, T> extends DNode<L>, TNode<L, T>
 	 * @return
 	 */
 	public int index();
+	
+	/**
+	 * Directed version of {@link TNode.connected(Node, Tag)}}
+	 * 
+	 * @param other
+	 * @param tag
+	 * @return
+	 */
+	public boolean connectedTo(TNode<L, T> other, T tag);
+
 }

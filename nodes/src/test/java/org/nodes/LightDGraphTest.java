@@ -95,12 +95,25 @@ public class LightDGraphTest
 		a.connect(c);
 		
 		assertTrue(a.connected(b));
+		assertTrue(a.connectedTo(b));
+		
 		assertFalse(a.connected(a));
-		assertFalse(b.connected(a));
+		assertFalse(a.connectedTo(a));
+
+		assertTrue(b.connected(a));
+		assertFalse(b.connectedTo(a));
+		
 		assertTrue(a.connected(c));
-		assertFalse(c.connected(a));
+		assertTrue(a.connectedTo(c));
+
+		assertTrue(c.connected(a));
+		assertFalse(c.connectedTo(a));
+		
 		assertFalse(b.connected(c));
+		assertFalse(b.connectedTo(c));
+		
 		assertFalse(c.connected(b));
+		assertFalse(c.connectedTo(b));
 	}
 	
 	@Test
