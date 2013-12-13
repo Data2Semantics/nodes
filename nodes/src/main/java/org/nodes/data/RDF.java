@@ -1,5 +1,7 @@
 package org.nodes.data;
 
+import static org.nodes.data.RDF.simplify;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +35,7 @@ public class RDF
 	{
 		RDFDataSet testSet = new RDFFileDataSet(file, RDFFormat.RDFXML);
 
-		List<Statement> triples = testSet.getFullGraph();	
+		List<Statement> triples = testSet.getStatements(null, null, null, false);	
 		
 		return createDirectedGraph(triples, null, linkWhitelist);
 	}
@@ -47,7 +49,7 @@ public class RDF
 	{
 		RDFDataSet testSet = new RDFFileDataSet(file, RDFFormat.TURTLE);
 
-		List<Statement> triples = testSet.getFullGraph();	
+		List<Statement> triples = testSet.getStatements(null, null, null, false);	
 		
 		return createDirectedGraph(triples, null, linkWhitelist);
 	}
@@ -103,7 +105,7 @@ public class RDF
 			String subject = statement.getSubject().toString(), 
 			       object = statement.getObject().toString(), 
 			       predicate = statement.getPredicate().toString();
-						
+									
 			node1 = graph.node(subject);
 			node2 = graph.node(object);
 		
@@ -134,6 +136,9 @@ public class RDF
 		return false;
 	}
 	
+	private static final int SIMPLIFY_MAX_LENGTH = 23;
+	private static final int SIMPLIFY_INCLUDE_TWO_URI_LEVELS = 4;
+	
 	/**
 	 * Simplifies an RDF URI to retain most of its information
 	 * @param string
@@ -144,12 +149,35 @@ public class RDF
 		if(string == null)
 			return null;
 		
-		if(! string.contains("/"))
-			return string;
+		String out;
+		if(string.contains("^^"))
+		{
+			String[] split = string.split("\\^\\^");
+			out = split[0];
+		} else if(string.contains("/"))
+		{
+				String[] split = string.split("/");
+				if(split.length > 3 && split[split.length - 1].length() < SIMPLIFY_INCLUDE_TWO_URI_LEVELS)
+					out = split[split.length - 2] + "/" + split[split.length - 1];
+				else
+					out = split[split.length - 1];
+		} else if(string.trim().startsWith("_"))
+		{
+			out = "_";
+		} else 
+		{
+			out = string;
+		}
 		
-		String[] split = string.split("/");
+		out = out.replace("\"", "");
+
+		if(out.length() > SIMPLIFY_MAX_LENGTH)
+		{
+			int half = (SIMPLIFY_MAX_LENGTH - 3) / 2;
+			out = out.substring(0, half) + "..." + out.substring(out.length()-half,out.length());
+		}
 		
-		return split[split.length - 1]; 
+		return out;
 	}
 	
 	public static DTGraph<String, String> simplify(DTGraph<String, String> graph)
@@ -161,7 +189,7 @@ public class RDF
 		
 		for(DTLink<String, String> link : graph.links())
 			out.get(link.first().index()).connect(out.get(link.second().index()), simplify(link.tag()));
-		
+	
 		return out;
 	}
 }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -319,8 +320,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		public void remove()
 		{	
 			// * Disconnect from the graph
-			
-			// * Copy the nodes over to avoid a concurrentmodificationexception
+			// ** Copy the nodes over to avoid a concurrentmodificationexception
 			List<MapDTNode> ns = new ArrayList<MapDTNode>(neighborsTo);
 			for(MapDTNode to: ns)
 				disconnect(to);
@@ -824,7 +824,6 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 	
 	private class LinkCollection extends AbstractCollection<MapDTLink>
 	{
-
 		@Override
 		public Iterator<MapDTLink> iterator()
 		{
@@ -839,6 +838,15 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		
 		private class LCIterator implements Iterator<MapDTLink>
 		{
+			
+			long graphModCount = MapDTGraph.this.modCount;
+
+			private void check()
+			{
+				if(MapDTGraph.this.modCount != graphModCount)
+					throw new ConcurrentModificationException("The graph was modified since this link iterator was created.");
+			}
+			
 			private static final int BUFFER_SIZE = 5;
 			private LinkedList<MapDTLink> buffer = new LinkedList<MapDTLink>();
 			private MapDTLink last = null;
@@ -855,14 +863,18 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			@Override
 			public boolean hasNext()
 			{
+				check();
 				buffer();
+				
 				return ! buffer.isEmpty();
 			}
 
 			@Override
 			public MapDTLink next()
 			{
+				check();
 				buffer();
+				
 				last = buffer.poll();
 				return last;
 			}

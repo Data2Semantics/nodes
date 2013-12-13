@@ -26,6 +26,7 @@ import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
 import org.nodes.UTGraph;
+import org.openrdf.query.parser.sparql.StringEscapesProcessor;
 
 /**
  * Methods for reading graph in GML format.
@@ -279,7 +280,7 @@ public class GML
 		{
 			bf.append("\tnode [ \n");
 			bf.append("\t\tid " + node.index()+"\n");
-			bf.append("\t\tlabel \"" + node.label()+"\"\n");
+			bf.append("\t\tlabel \"" + esc(node.label().toString()) + "\"\n");
 			bf.append("\t]\n");
 		}
 		
@@ -290,13 +291,20 @@ public class GML
 			bf.append("\t\tsource " + link.first().index()+"\n");
 			bf.append("\t\ttarget " + link.second().index()+"\n");
 			if(link instanceof TLink<?,?>)
-				bf.append("\t\tlabel \"" + ((TLink<L, ?>)link).tag() + "\"\n");
+				bf.append("\t\tlabel \"" + esc(((TLink<L, ?>)link).tag().toString()) + "\"\n");
 			bf.append("\t]\n");
 		}
 		
 		bf.append("]\n");
 		
 		return bf.toString();
+	}
+	
+	private static String esc(String in)
+	{
+		String out = in.replace("\"", "\\\"");
+		out = out.replace("\n", "");
+		return out;
 	}
 	
 	public static <L> void write(Graph<L> graph, File file)

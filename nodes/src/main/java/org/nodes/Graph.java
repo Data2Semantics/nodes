@@ -61,6 +61,12 @@ public interface Graph<L>
 	
 	public List<? extends Node<L>> nodes();
 	
+	/**
+	 * Returns a collection of links currently in the graph. Note that 
+	 * modifying the graph while iterating over its links can cause undefined 
+	 * behavior.
+	 * @return
+	 */
 	public Collection<? extends Link<L>> links();
 	
 	/**

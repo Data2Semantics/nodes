@@ -34,6 +34,12 @@ public class MaxObserver<T>
 		elements = new ArrayList<T>(k + 1);
 	}
 	
+	public void observe(Collection<? extends T> elements)
+	{
+		for(T element : elements)
+			observe(element);
+	}
+	
 	public void observe(T element)
 	{
 		// * The buffer isn't full yet 
