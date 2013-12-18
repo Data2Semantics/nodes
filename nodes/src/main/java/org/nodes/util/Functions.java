@@ -8,6 +8,7 @@ import static org.apache.commons.math3.util.ArithmeticUtils.binomialCoefficientL
 import static org.nodes.util.Series.series;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -593,4 +594,19 @@ public class Functions
 	        return first.compareTo(second);
 	    }
     }
+
+
+	/** 
+	 * Returns true if the String matches one or more of the patterns in the list.
+	 * @param string
+	 * @param patterns
+	 * @return
+	 */
+	public static boolean matches(String string, List<Pattern> patterns)
+	{
+		for(Pattern pattern : patterns)
+			if(pattern.matcher(string).matches())
+				return true;
+		return false;
+	}
 }

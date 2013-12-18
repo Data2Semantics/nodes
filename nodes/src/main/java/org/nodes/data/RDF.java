@@ -15,6 +15,7 @@ import org.nodes.DTLink;
 import org.nodes.DTNode;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
+import org.nodes.util.Functions;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
 
@@ -87,15 +88,15 @@ public class RDF
 			
 			if(vWhiteList != null)
 			{
-				if(! matches(statement.getObject().toString(), vertexWhiteList))
+				if(! Functions.matches(statement.getObject().toString(), vertexWhiteList))
 					continue;
-				if(! matches(statement.getSubject().toString(), vertexWhiteList))
+				if(! Functions.matches(statement.getSubject().toString(), vertexWhiteList))
 					continue;
 			}
 			
 			if(eWhiteList != null)
 			{
-				if(! matches(statement.getPredicate().toString(), edgeWhiteList))
+				if(! Functions.matches(statement.getPredicate().toString(), edgeWhiteList))
 				{
 // 					Global.log().info("Filtered predicate: " + statement.getPredicate().toString());
 					continue;
@@ -120,20 +121,6 @@ public class RDF
 		}	
 		
 		return graph;
-	}
-	
-	/** TODO move this to a proper Utility class/package
-	 * Returns true if the String matches one or more of the patterns in the list.
-	 * @param string
-	 * @param patterns
-	 * @return
-	 */
-	public static boolean matches(String string, List<Pattern> patterns)
-	{
-		for(Pattern pattern : patterns)
-			if(pattern.matcher(string).matches())
-				return true;
-		return false;
 	}
 	
 	private static final int SIMPLIFY_MAX_LENGTH = 23;
