@@ -596,6 +596,14 @@ public class Functions
     }
 
 
+    /**
+     * Describes the direction of a link with respect to a node.
+     * 
+     * @author Peter
+     */
+	public static enum Dir {IN, OUT, SELF}
+
+
 	/** 
 	 * Returns true if the String matches one or more of the patterns in the list.
 	 * @param string

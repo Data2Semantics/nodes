@@ -29,6 +29,11 @@ public final class Order
 		
 	}
 	
+	/**
+	 * 
+	 * @param values Mapping. The indices of this list are the old indices. The
+	 *  values at those indices are the new indices. 
+	 */
 	public Order(List<Integer> values)
 	{
 		master = new ArrayList<Integer>(values);

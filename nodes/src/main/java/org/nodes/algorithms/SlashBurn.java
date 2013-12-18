@@ -1,6 +1,7 @@
 package org.nodes.algorithms;
 
 import static org.nodes.util.Series.series;
+import static org.nodes.util.Functions.Dir;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import org.nodes.DTGraph;
+import org.nodes.DTLink;
+import org.nodes.DTNode;
 import org.nodes.Global;
 import org.nodes.DegreeComparator;
 import org.nodes.DegreeIndexComparator;
@@ -18,7 +22,10 @@ import org.nodes.clustering.ConnectionClusterer.ConnectionClustering;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.BitString;
+import org.nodes.util.Functions;
 import org.nodes.util.MaxObserver;
+import org.nodes.util.Order;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 /**
@@ -39,7 +46,14 @@ public class SlashBurn<N>
 	private ConnectionClustering<N> clust = null;
 	private ClusterSizeComparator comp = new ClusterSizeComparator();
 
-	public SlashBurn(Graph<N> graph, int k )
+	private Comparator<Node<N>> centralityComparator;
+
+	public SlashBurn(Graph<N> graph, int k)
+	{
+		this(graph, k, new DegreeComparator<N>());
+	}
+	
+	public SlashBurn(Graph<N> graph, int k, Comparator<Node<N>> centralityComparator )
 	{
 		this.graph = graph;
 		this.mask = BitString.ones(graph.size());
@@ -48,6 +62,8 @@ public class SlashBurn<N>
 		this.tail = new LinkedList<Integer>();
 		
 		this.k = k;
+		this.centralityComparator = centralityComparator;
+		
 		
 		clust = new ConnectionClustering<N>(graph, mask);
 		lastGCCSize = clust.clusterSize(clust.largestClusterIndex());
@@ -62,7 +78,8 @@ public class SlashBurn<N>
 		return mask;
 	}
 	
-	public List<Integer> order()
+	@Deprecated
+	public List<Integer> orderInts()
 	{
 
 		List<Integer> fin = new ArrayList<Integer>(graph.size());
@@ -81,19 +98,44 @@ public class SlashBurn<N>
 		for(int nodeIndex : tail)
 			fin.set(nodeIndex, c++);
 		
-		System.out.println("head: "   + head.size());
-		System.out.println("mask: "   + mask.numOnes());
-		System.out.println("tail: "   + tail.size());
-		
 		return fin;
 	}
 	
-	public void iterate()
+	public Order order()
 	{
-		Comparator<Node<N>> comp = new DegreeComparator<N>();
+		List<Integer> fin = new ArrayList<Integer>(graph.size());
 		
+		for(int i : Series.series(graph.size()))
+			fin.add(null);
+
+		int c = 0;
+		for(int nodeIndex : head)
+			fin.set(nodeIndex, c++);
+			
+		for(int nodeIndex : Series.series(graph.size()))
+			if(mask.get(nodeIndex))
+				fin.set(nodeIndex, c++);
+
+		for(int nodeIndex : tail)
+			fin.set(nodeIndex, c++);
+		
+		return new Order(fin);
+	}
+	
+	public int headSize()
+	{
+		return head.size();
+	}
+	
+	public int tailSize()
+	{
+		return tail.size();
+	}
+	
+	public void iterate()
+	{		
 		// * Find the hubs
-		MaxObserver<Node<N>> observer = new MaxObserver<Node<N>>(k, comp);	
+		MaxObserver<Node<N>> observer = new MaxObserver<Node<N>>(k, centralityComparator);	
 		for(int i : clust.largestCluster())
 			observer.observe(graph.nodes().get(i));
 		
@@ -113,7 +155,6 @@ public class SlashBurn<N>
 		prependNonGCCClusters(tail);
 
 		assert(head.size() + tail.size() + mask.numOnes() == graph.size());
-		System.out.println(head.size() + tail.size() + mask.numOnes());
 		
 		iterations ++;
 	}
@@ -203,5 +244,132 @@ public class SlashBurn<N>
 				if(clust.clusterOf(i) != null)
 					throw new RuntimeException();
 			}
+	}
+
+	public static <L, T> List<DTNode<L, T>> getHubs(DTGraph<L, T> graph, int k, boolean useSignatures)
+	{
+		return getHubs(graph, k, -1, useSignatures);
+	}
+	
+	/**
+	 * Returns the hubs in a given graph, according to a run of the slashburn algorithm.
+	 * 
+	 * @param graph
+	 * @param k The number of hubs to slash per iteration 
+	 * @param iterations The maximum number of iteration (the algorithm may finish earlier)
+	 * @param useSignatures A signature is a combination if direction and tag for a given link
+	 * 		If true, the degree of a node is the size of the largest wet of links with the same 
+	 * 		signature. If false, the basic degree is used. 
+	 * @return
+	 */
+	public static <L, T> List<DTNode<L, T>> getHubs(DTGraph<L, T> graph, int k, int iterations,  boolean useSignatures)
+	{
+		Comparator<Node<L>> comp = useSignatures ? 
+				new SignatureCompWrapper<L, T>() : new DegreeComparator<L>();
+				
+		SlashBurn<L> sb = new SlashBurn<L>(graph, k, comp);
+		
+		int i = 0;
+		while(!sb.done() && (i < iterations || iterations == -1) )
+		{
+			sb.iterate();
+			i++;
+		}
+				
+		List<DTNode<L, T>> hubs = new ArrayList<DTNode<L,T>>(sb.headSize());
+		Order order = sb.order();
+				
+		for(int newIndex : series(sb.headSize()))
+			hubs.add(graph.get(order.originalIndex(newIndex)));
+		
+		return hubs;
+	}
+	
+	/**
+	 * The prime signature of a node in a directed, tagged graph is the combination 
+	 * of 'in/out' and a tag which occurs most frequently among all links connected
+	 * to the node.
+	 * 
+	 * @param node
+	 * @return A pair
+	 */
+	public static <L, T> Pair<Dir, T> primeSignature(DTNode<L, T> node)
+	{
+		FrequencyModel<Pair<Dir, T>> frequencies = new FrequencyModel<Pair<Dir,T>>();
+		
+		for(DTLink<L, T> link : node.links())
+		{
+			// * Ignore self links
+			if(link.from().equals(link.to()))
+				continue;
+			
+			Dir dir = link.from().equals(node) ? Dir.OUT : Dir.IN;
+			frequencies.add(new Pair<Dir, T>(dir, link.tag()));
+		}
+		
+		return frequencies.maxToken();
+	}
+	
+	/**
+	 * @param node
+	 * @return
+	 */
+	public static <L, T> int primeDegree(DTNode<L, T> node)
+	{
+		FrequencyModel<Pair<Dir, T>> frequencies = new FrequencyModel<Pair<Dir,T>>();
+		
+		for(DTLink<L, T> link : node.links())
+		{
+			// * Ignore self links
+			if(link.from().equals(link.to()))
+				continue;
+			
+			Dir dir = link.from().equals(node) ? Dir.OUT : Dir.IN;
+			frequencies.add(new Pair<Dir, T>(dir, link.tag()));
+		}
+		
+		return (int)frequencies.frequency(frequencies.maxToken());
+	}
+	
+	/**
+	 * Compares nodes based on degree, filtered by tag and direction. When using this
+	 * comparator, the low degree nodes are place below the high degree nodes.
+	 * 
+	 * @author Peter
+	 *
+	 * @param <L>
+	 * @param <T>
+	 */
+	public static class SignatureComparator<L, T> implements Comparator<DTNode<L, T>>
+	{
+
+		@Override
+		public int compare(DTNode<L, T> first, DTNode<L, T> second)
+		{
+			int firstFreq = primeDegree(first), secondFreq = primeDegree(second);
+			
+			return Double.compare(firstFreq, secondFreq);
+		}
+		
+	}
+	
+	/**
+	 * To resolve casting issues
+	 */
+	private static class SignatureCompWrapper<L, T> implements Comparator<Node<L>>
+	{
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public int compare(Node<L> first, Node<L> second)
+		{
+			DTNode<L, T> f = (DTNode<L, T>)first;
+			DTNode<L, T> s = (DTNode<L, T>)second;
+			
+			int firstFreq = primeDegree(f), secondFreq = primeDegree(s);
+			
+			return Double.compare(firstFreq, secondFreq);
+		}
+		
 	}
 }
