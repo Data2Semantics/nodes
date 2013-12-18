@@ -51,4 +51,10 @@ public interface UTNode<L, T> extends UNode<L>, TNode<L, T>
 	 */
 	public int index();
 	
+	public UTLink<L, T> connect(Node<L> to);
+	
+	public UTLink<L, T> connect(TNode<L, T> other, T tag);
+
+
+	
 }

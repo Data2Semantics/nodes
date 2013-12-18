@@ -25,4 +25,7 @@ public interface UNode<L> extends Node<L>
 	 * @return
 	 */
 	public UGraph<L> graph();
+	
+	public ULink<L> connect(Node<L> to);
+
 }

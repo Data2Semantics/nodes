@@ -250,7 +250,7 @@ public class LightDGraph<L> implements DGraph<L>
 		}
 
 		@Override
-		public void connect(Node<L> to)
+		public DLink<L> connect(Node<L> to)
 		{
 			check();
 			int fromIndex = index, toIndex = to.index();
@@ -263,6 +263,8 @@ public class LightDGraph<L> implements DGraph<L>
 			
 			modCount++;			
 			numLinks++;
+			
+			return new LightDLink(index(), to.index());
 		}
 
 		@Override

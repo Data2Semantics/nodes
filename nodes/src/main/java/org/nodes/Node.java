@@ -32,7 +32,7 @@ public interface Node<L>
 	 *  
 	 * @param other
 	 */
-	public void connect(Node<L> other);
+	public Link<L> connect(Node<L> other);
 	
 	/**
 	 * Removes all links existing between this node and the given node.

@@ -169,18 +169,18 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public void connect(Node<L> other)
+		public MapDTLink connect(Node<L> other)
 		{
 			if(MapDTGraph.this != other.graph())
 				throw new IllegalArgumentException("Can only connect nodes that belong to the same graph.");
 			
 			// - This cast is safe because we know the node belongs to this 
 			//   graph, so it was made by this graph, so it's a MapDTNode
-			connect((TNode<L, T>)other, null);
+			return connect((TNode<L, T>)other, null);
 		}
 
 		@Override
-		public void connect(TNode<L, T> other, T tag)
+		public MapDTLink connect(TNode<L, T> other, T tag)
 		{
 			if(this.graph().hashCode() != other.graph().hashCode())
 				throw new IllegalArgumentException("Can only connect to nodes from the same graph (arguments: this="+this+", other="+other+")");
@@ -208,6 +208,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			
 			numEdges++;
 			modCount++;
+			
+			return link;
 		}
 
 		@Override

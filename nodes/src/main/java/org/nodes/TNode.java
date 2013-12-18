@@ -31,7 +31,10 @@ public interface TNode<L, T> extends Node<L>
 	 * @param other
 	 */
 	
-	public void connect(TNode<L, T> other, T tag);
+	public TLink<L, T> connect(TNode<L, T> other, T tag);
+	
+	public TLink<L, T> connect(Node<L> to);
+
 	
 	/**
 	 * Check whether this node is connected to another, with a given tag on the 

@@ -42,7 +42,7 @@ public interface DNode<L> extends Node<L>
 	 *  
 	 * @param other
 	 */
-	public void connect(Node<L> to);
+	public DLink<L> connect(Node<L> to);
 	
 	public void disconnect(Node<L> other);
 	

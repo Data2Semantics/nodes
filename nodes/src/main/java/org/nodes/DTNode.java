@@ -80,5 +80,8 @@ public interface DTNode<L, T> extends DNode<L>, TNode<L, T>
 	 * @return
 	 */
 	public boolean connectedTo(TNode<L, T> other, T tag);
-
+	
+	public DTLink<L, T> connect(Node<L> to);
+	
+	public DTLink<L, T> connect(TNode<L, T> other, T tag);
 }
