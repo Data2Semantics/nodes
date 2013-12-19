@@ -1,30 +1,32 @@
 package org.nodes.util;
 
+import java.io.Serializable;
+
 /**
  * Simple semi-immutable pair to store two objects
  *
- * To sort these with a comparator, a specific comparator for
- * the two datatypes is needed.
  */
-public class Pair<A, B>
+public class Pair<A, B> implements Serializable
 {
-	A one;
-	B two;
+	private static final long serialVersionUID = -6354218720393781405L;
+
+	private A first;
+	private B second;
 
 	public Pair(A one, B two)
 	{
-		this.one = one;
-		this.two = two;
+		this.first = one;
+		this.second = two;
 	}
 
 	public A first()
 	{
-		return one;
+		return first;
 	}
 
 	public B second()
 	{
-		return two;
+		return second;
 	}
 
 	public boolean equals(Object obj)
@@ -34,8 +36,8 @@ public class Pair<A, B>
 			Pair<?, ?> pair2 = (Pair) obj;
 			
 			return (
-				one == null ? pair2.one == null : one.equals(pair2.one) && 
-				two == null ? pair2.two == null : two.equals(pair2.two)
+				first == null ? pair2.first == null : first.equals(pair2.first) && 
+				second == null ? pair2.second == null : second.equals(pair2.second)
 				);
 		}
 
@@ -52,14 +54,14 @@ public class Pair<A, B>
 	{
 		int hashCode = 1;
 		
-		hashCode = 31*hashCode + (one==null ? 0 : one.hashCode());
-		hashCode = 31*hashCode + (two==null ? 0 : two.hashCode());
+		hashCode = 31*hashCode + (first==null ? 0 : first.hashCode());
+		hashCode = 31*hashCode + (second==null ? 0 : second.hashCode());
 		
 		return hashCode;
 	}
 
 	public String toString()
 	{
-		return "[" + one + ", " + two + "]";
+		return "[" + first + ", " + second + "]";
 	}
 }
