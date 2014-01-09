@@ -1,5 +1,7 @@
 package org.nodes.data;
 
+import static org.nodes.util.Functions.toString;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,6 +28,7 @@ import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
 import org.nodes.UTGraph;
+import org.nodes.util.Functions;
 import org.openrdf.query.parser.sparql.StringEscapesProcessor;
 
 /**
@@ -291,7 +294,7 @@ public class GML
 			bf.append("\t\tsource " + link.first().index()+"\n");
 			bf.append("\t\ttarget " + link.second().index()+"\n");
 			if(link instanceof TLink<?,?>)
-				bf.append("\t\tlabel \"" + esc(((TLink<L, ?>)link).tag().toString()) + "\"\n");
+				bf.append("\t\tlabel \"" + esc( Functions.toString( ((TLink<L, ?>)link).tag() )) + "\"\n");
 			bf.append("\t]\n");
 		}
 		

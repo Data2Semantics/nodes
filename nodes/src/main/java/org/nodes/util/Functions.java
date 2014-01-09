@@ -328,6 +328,14 @@ public class Functions
 		return a.equals(b);
 	}
 	
+	public static String toString(Object o)
+	{
+		if(o == null)
+			return "null";
+		
+		return o.toString();
+	}
+	
 	/**
 	 * Simple random choice from a collection
 	 * 

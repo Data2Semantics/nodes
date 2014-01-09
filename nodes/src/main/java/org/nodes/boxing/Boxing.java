@@ -15,7 +15,7 @@ import org.nodes.algorithms.FloydWarshall;
 import org.nodes.util.Series;
 
 /**
- * Static utility methods related to boxing algorithms
+ * A clustering of a graph into boxes. 
  * 
  * @author Peter
  *
@@ -143,7 +143,7 @@ public class Boxing<L> extends AbstractList<Set<Node<L>>>
 		
 		return post;
 	}
-	
+		
 	/**
 	 * Whether box i and box j are connected. Ie. there is at least one link 
 	 * between a member of i and a member of j.
