@@ -36,7 +36,7 @@ public class InstanceHelper
 	 * @param instanceSize
 	 * @param maxDepth
 	 */
-	public InstanceHelper(DTGraph<String, String> graph, Classified<Node<String>> instances, int instanceSize, int maxDepth)
+	public InstanceHelper(DTGraph<String, String> graph, Classified<? extends Node<String>> instances, int instanceSize, int maxDepth)
 	{
 		this.graph = graph;
 		this.instanceSize = instanceSize;
@@ -78,12 +78,7 @@ public class InstanceHelper
 		for(Number number : classes)
 			clss.add((int)(number.doubleValue()));
 		
-		// Dirty, dirty trick
-		Object object = instanceNodes;
-		@SuppressWarnings("unchecked")
-		List<Node<String>> casted = (List<Node<String>>)object; 
-		
-		InstanceHelper helper = new InstanceHelper(dataset, Classification.combine(casted, clss), instanceSize, maxDepth);
+		InstanceHelper helper = new InstanceHelper(dataset, Classification.combine(instanceNodes, clss), instanceSize, maxDepth);
 		
 		List<DTGraph<String, String>> instances = new ArrayList<DTGraph<String,String>>();
 

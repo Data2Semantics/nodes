@@ -25,7 +25,7 @@ import org.nodes.util.Series;
 
 public class HubAvoidance implements Scorer
 {
-	private List<Node<String>> instances;
+	private List<? extends Node<String>> instances;
 	
 	private List<FrequencyModel<Node<String>>> counts;
 	
@@ -40,7 +40,7 @@ public class HubAvoidance implements Scorer
 	 */
 	public HubAvoidance(
 			DTGraph<String, String> graph,
-			List<Node<String>> instances, 
+			List<? extends Node<String>> instances, 
 			int maxDepth)
 	{
 		this.instances = instances;

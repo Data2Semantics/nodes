@@ -33,7 +33,7 @@ import org.nodes.util.Series;
  */
 public class InformedAvoidance implements Scorer
 {
-	private List<Node<String>> instances;
+	private List<? extends Node<String>> instances;
 	
 	// * Marginal counts
 	// 		The outer lists collects a frequencymodel for each depth d
@@ -58,7 +58,7 @@ public class InformedAvoidance implements Scorer
 	 */
 	public InformedAvoidance(
 			DTGraph<String, String> graph,
-			Classified<Node<String>> instances, 
+			Classified<? extends Node<String>> instances, 
 			int maxDepth)
 	{
 		this.instances = instances;
