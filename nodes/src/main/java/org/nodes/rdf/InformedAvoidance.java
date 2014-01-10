@@ -131,25 +131,61 @@ public class InformedAvoidance implements Scorer
 		count(depth + 1, core, cls);
 	}
 		
-	private class EntropyComp implements Comparator<Node<String>>
+	private class InformedComp implements Comparator<DTNode<String, String>>
 	{
 		private int depth;
 		
-		public EntropyComp(int depth)
+		public InformedComp(int depth)
 		{
 			this.depth = depth;
 		}
 
 		@Override
-		public int compare(Node<String> first, Node<String> second)
+		public int compare(DTNode<String, String> first, DTNode<String, String> second)
 		{
 			return Double.compare(classEntropy(first, depth), classEntropy(second, depth));
 		}
 	}
-
-	public Comparator<Node<String>> entropyComparator(int depth)
+	
+	private class UninformedComp implements Comparator<DTNode<String, String>>
 	{
-		return new EntropyComp(depth);
+		private int depth;
+		
+		public UninformedComp(int depth)
+		{
+			this.depth = depth;
+		}
+
+		@Override
+		public int compare(DTNode<String, String> first, DTNode<String, String> second)
+		{
+			return Double.compare(p(first, depth), p(second, depth));
+		}
+	}
+
+	public Comparator<DTNode<String, String>> informedComparator(int depth)
+	{
+		return new InformedComp(depth);
+	}
+	
+	public Comparator<DTNode<String, String>> uninformedComparator(int depth)
+	{
+		return new UninformedComp(depth);
+	}
+	
+	/**
+	 * Non-Viable nodes should be filtered out of any list of potential nodes to 
+	 * consider for processing
+	 *  
+	 * @param node
+	 * @return
+	 */
+	public boolean viableHub(Node<String> node, int depth, int numInstances)
+	{
+		if(counts.get(depth).frequency(node) < numInstances)
+			return false;
+		
+		return true;
 	}
 	
 	/**

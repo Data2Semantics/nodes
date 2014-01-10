@@ -1,6 +1,7 @@
 package org.nodes.rdf;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.nodes.DTGraph;
@@ -107,6 +108,5 @@ public class InstanceHelper
 		
 		return Classification.combine(instances, clss);
 	}
-	
 	
 }
