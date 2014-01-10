@@ -1,10 +1,13 @@
 package org.nodes.rdf;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
+import org.nodes.Subgraph;
+import org.nodes.classification.Classification;
 import org.nodes.classification.Classified;
 
 /**
@@ -14,6 +17,9 @@ import org.nodes.classification.Classified;
  */
 public class InstanceHelper
 {
+	
+	public static enum Method {INFORMED, UNINFORMED, DEPTH};
+	
 	private DTGraph<String, String> graph;
 	private int instanceSize, maxDepth;
 	
@@ -58,7 +64,49 @@ public class InstanceHelper
 		return haSearch.instance(instanceNode);
 	}	
 
+	/**
+	 * 
+	 * @param dataset
+	 * @param instances
+	 * @param classes List of number that represent classes. Casting the result of doubleValue() to int should retain the correct value.
+	 * @return
+	 */
+	public static Classified<DTGraph<String, String>> getInstances(DTGraph<String, String> dataset, List<DTNode<String, String>> instanceNodes, List<? extends Number> classes, Method method, int instanceSize, int maxDepth)
+	{
+		List<Integer> clss = new ArrayList<Integer>(classes.size());
+		for(Number number : classes)
+			clss.add((int)(number.doubleValue()));
+		
+		// Dirty, dirty trick
+		Object object = instanceNodes;
+		@SuppressWarnings("unchecked")
+		List<Node<String>> casted = (List<Node<String>>)object; 
+		
+		InstanceHelper helper = new InstanceHelper(dataset, Classification.combine(casted, clss), instanceSize, maxDepth);
+		
+		List<DTGraph<String, String>> instances = new ArrayList<DTGraph<String,String>>();
 
+		for(DTNode<String, String> instanceNode : instanceNodes)
+		{
+			List<DTNode<String, String>> instance = null;
+			switch (method)
+			{
+			case DEPTH:
+				instance = helper.instanceByDepth(instanceNode); 
+				break;
+			case INFORMED:
+				instance = helper.instanceInformed(instanceNode);
+				break;
+			case UNINFORMED:
+				instance = helper.instanceUninformed(instanceNode);
+				break;
+			}
+			
+			instances.add(Subgraph.dtSubgraph(dataset, instance));
+		}
+		
+		return Classification.combine(instances, clss);
+	}
 	
 	
 }

@@ -56,6 +56,8 @@ public class Classification
 	
 	public static <P> Classified<P> combine(List<P> data, List<Integer> classes)
 	{
+		if(data.size() != classes.size())
+			throw new IllegalArgumentException("Data size ("+data.size()+") and lass vector size ("+classes.size()+") should be the same");
 		return new Combination<P>(data, classes);
 	}
 	
