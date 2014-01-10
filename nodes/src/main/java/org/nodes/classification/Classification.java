@@ -343,6 +343,8 @@ public class Classification
 		public void setClass(int i, int cls)
 		{
 			classes.set(i, cls);
+			if(cls > maxClass)
+				maxClass = cls;
 		}
 	}
 	

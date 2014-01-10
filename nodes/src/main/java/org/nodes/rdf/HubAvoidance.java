@@ -23,15 +23,13 @@ import org.nodes.util.FrequencyModel;
 import org.nodes.util.MaxObserver;
 import org.nodes.util.Series;
 
-public class HubAvoidance implements Instances
+public class HubAvoidance implements Scorer
 {
-	private DTGraph<String, String> graph;
 	private List<Node<String>> instances;
-
-	private int maxDepth, instanceSize, beamWidth;
 	
 	private List<FrequencyModel<Node<String>>> counts;
 	
+	private int maxDepth;
 	
 	/**
 	 * 
@@ -43,18 +41,10 @@ public class HubAvoidance implements Instances
 	public HubAvoidance(
 			DTGraph<String, String> graph,
 			List<Node<String>> instances, 
-			int maxDepth, 
-			int instanceSize,
-			int beamWidth)
+			int maxDepth)
 	{
-		super();
-		this.graph = graph;
 		this.instances = instances;
 		this.maxDepth = maxDepth;
-		this.instanceSize = instanceSize;
-		this.beamWidth = beamWidth;
-		
-		int numInstances = instances.size();
 		
 		counts = new ArrayList<FrequencyModel<Node<String>>>(maxDepth + 1);
 		
@@ -158,221 +148,10 @@ public class HubAvoidance implements Instances
 		double q = 1.0 - p;
 		return - (p * log2(p) + q * log2(q));
 	}
-	
+
 	@Override
-	public List<DTNode<String, String>> instance(Node<String> instanceNode)
+	public double score(Node<String> node, int depth)
 	{
-		if(graph != instanceNode.graph())
-			throw new IllegalArgumentException("This Instance extractor was created with a diffeent graph than the given node belongs to.");
-			
-		return new Search((DTNode<String, String>)instanceNode).result();
+		return bintropy(node, depth);
 	}
-	
-	/**
-	 * We wrap the search process in an object to ensure thread safety
-	 * @author Peter
-	 *
-	 */
-	private class Search
-	{
-		private State root;
-		private MaxObserver<State> mo = new MaxObserver<State>(1);
-		
-		private LinkedList<State> buffer = new LinkedList<State>();
-		
-		public Search(DTNode<String, String> node)
-		{
-			root = new State(new LinkedHashSet<Token>(), new Token(node, 0));
-			buffer.add(root);
-			
-			while(! buffer.isEmpty())
-			{
-				State current = buffer.pop();
-				mo.observe(current);
-				
-				for(State child : current)
-					buffer.add(child);	
-				
-				Collections.sort(buffer, reverseOrder()); // sort with largest first
-				
-				// * Trim buffer back to beam width
-				while(buffer.size() > beamWidth)
-					buffer.pollLast();
-				}
-		}
-		
-		public List<DTNode<String, String>> result()
-		{
-			State best = mo.elements().get(0);
-			
-			List<DTNode<String, String>> nodes = 
-					new ArrayList<DTNode<String,String>>(best.selection().size());
-			
-			for(Token token : best.selection())
-			{
-				System.out.println("     " + p(token.node(), token.depth()) + " " + token.node());
-				nodes.add(token.node());
-			}
-				
-			return nodes;
-		}
-	}
-	
-	private class State implements Iterable<State>, Comparable<State>
-	{
-		Set<Token> selection;
-		Set<Node<String>> nodes = new LinkedHashSet<Node<String>>();
-		
-		public State(Set<Token> parentSelection, Token addition)
-		{
-			selection = new LinkedHashSet<Token>(parentSelection);
-			selection.add(addition);
-			
-			for(Token token : selection)
-				nodes.add(token.node());
-		}
-		
-		
-		public double score()
-		{	
-			double score = 0.0;
-			
-			for(Token token : selection)
-				score += token.score();
-			
-			return score;
-		}
-		
-		public Iterator<State> iterator()
-		{
-			if(selection.size() >= instanceSize)
-			{
-				List<HubAvoidance.State> empty = new ArrayList<HubAvoidance.State>();
-				return empty.iterator();
-			}
-			
-			return new SIterator();
-		}
-		
-		/**
-		 * Iterators over all child states of this states
-		 * 
-		 * @author Peter
-		 */
-		private class SIterator implements Iterator<State> 
-		{
-			private static final int BUFFER_SIZE = 5;
-			
-			private Deque<State> stateBuffer = new LinkedList<State>();
-			
-			private Deque<Token> currentTokenBuffer = new LinkedList<Token>();
-			private Deque<Token> nextTokenBuffer = new LinkedList<Token>();
-			
-			public SIterator()
-			{
-				// * Buffer all tokens that can be used to generate child states
-				for(Token token : selection)
-					if(token.depth() < maxDepth)
-						currentTokenBuffer.add(token);
-			}
-			
-			@Override
-			public boolean hasNext()
-			{
-				buffer();
-				return ! stateBuffer.isEmpty();
-			}
-
-			@Override
-			public State next()
-			{
-				buffer();
-				return stateBuffer.pop();
-			}
-
-			@Override
-			public void remove()
-			{
-				throw new UnsupportedOperationException();
-			}
-			
-			@SuppressWarnings("unchecked")
-			private void buffer()
-			{
-				while(stateBuffer.size() < BUFFER_SIZE)
-				{
-					nodeBuffer();
-					if(nextTokenBuffer.isEmpty())
-						return;
-					
-					stateBuffer.add(new State(selection, nextTokenBuffer.pop()));
-				}
-			}
-
-			private void nodeBuffer()
-			{
-				while(nextTokenBuffer.size() < BUFFER_SIZE)
-				{
-					if(currentTokenBuffer.isEmpty())
-						return;
-					
-					Token currentToken = currentTokenBuffer.pop();
-					for(DTNode<String, String> node : currentToken.node().neighbors())
-						if(! nodes.contains(node))
-							nextTokenBuffer.add(new Token(node, currentToken.depth() + 1));
-				}
-			}
-			
-		}
-
-		@Override
-		public int compareTo(State o)
-		{
-			return Double.compare(this.score(), o.score());
-		}
-		
-		public Set<Token> selection()
-		{
-			return selection;
-		}
-		
-		public Set<Node<String>> nodes()
-		{
-			return nodes;
-		}
-		
-	}
-	
-	/**
-	 * Wrapper class for node and depth
-	 * @author Peter
-	 *
-	 */
-	private class Token
-	{
-		private DTNode<String, String> node;
-		private int depth;
-		
-		public Token(DTNode<String, String> node, int depth)
-		{
-			this.node = node;
-			this.depth = depth;
-		}
-
-		public DTNode<String, String> node()
-		{
-			return node;
-		}
-
-		public int depth()
-		{
-			return depth;
-		}
-		
-		public double score()
-		{
-			return bintropy(node, depth);
-		}
-	}
-	
 }

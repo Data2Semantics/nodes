@@ -20,6 +20,11 @@ public interface Classified<P> extends List<P>
 
 	public int cls(int i);
 	
+	/**
+	 * The class vector. The element at index i in the returned vector is the 
+	 * class of the element at index i in this list.
+	 * @return
+	 */
 	public List<Integer> classes();
 	
 	public int numClasses();	
@@ -34,7 +39,6 @@ public interface Classified<P> extends List<P>
 	
 	public boolean add(int index, P item, int cls);
 
-	
 	public boolean addAll(Collection<? extends P> c, int cls);
 	
 	public boolean addAll(int index, Collection<? extends P> c, int cls);
