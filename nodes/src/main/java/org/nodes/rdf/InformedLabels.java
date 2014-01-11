@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.nodes.DTGraph;
+import org.nodes.DTLink;
 import org.nodes.DTNode;
 import org.nodes.Node;
 import org.nodes.classification.Classified;
@@ -119,19 +120,20 @@ public class InformedLabels implements Scorer
 					shell.add(neighbor);
 		
 		core.addAll(shell);
-				
-		List<FrequencyModel<Node<String>>> cns;
-		
+					
 		for(Node<String> node : core)
 		{
-			counts.get(depth).add(node.label()); // marginal over all classes
-			classCounts.get(cls).get(depth).add(node.label()); // conditional by class
+			for(String label : labels((DTNode<String, String>) node))
+			{
+				counts.get(depth).add(label); // marginal over all classes
+				classCounts.get(cls).get(depth).add(label); // conditional by class
+			}
 		}
 		
 		count(depth + 1, core, cls);
 	}
 		
-	private class InformedComp implements Comparator<DTNode<String, String>>
+	private class InformedComp implements Comparator<String>
 	{
 		private int depth;
 		
@@ -141,13 +143,13 @@ public class InformedLabels implements Scorer
 		}
 
 		@Override
-		public int compare(DTNode<String, String> first, DTNode<String, String> second)
+		public int compare(String first, String second)
 		{
-			return Double.compare(classEntropy(first.label(), depth), classEntropy(second.label(), depth));
+			return Double.compare(classEntropy(first, depth), classEntropy(second, depth));
 		}
 	}
 	
-	private class UninformedComp implements Comparator<DTNode<String, String>>
+	private class UninformedComp implements Comparator<String>
 	{
 		private int depth;
 		
@@ -157,20 +159,36 @@ public class InformedLabels implements Scorer
 		}
 
 		@Override
-		public int compare(DTNode<String, String> first, DTNode<String, String> second)
+		public int compare(String first, String second)
 		{
-			return Double.compare(p(first.label(), depth), p(second.label(), depth));
+			return Double.compare(bintropy(first, depth), bintropy(second, depth));
 		}
 	}
 
-	public Comparator<DTNode<String, String>> informedComparator(int depth)
+	public Comparator<String> informedComparator(int depth)
 	{
 		return new InformedComp(depth);
 	}
 	
-	public Comparator<DTNode<String, String>> uninformedComparator(int depth)
+	public Comparator<String> uninformedComparator(int depth)
 	{
 		return new UninformedComp(depth);
+	}
+	
+	private double bintropy(String node, int depth)
+	{
+		double p = p(node, depth);
+		
+		return bintropy(p);
+	}
+	
+	private static double bintropy(double p)
+	{
+		if(p == 0.0 || p == 1.0)
+			return 0.0;
+		
+		double q = 1.0 - p;
+		return - (p * log2(p) + q * log2(q));
 	}
 	
 	/**
@@ -268,4 +286,63 @@ public class InformedLabels implements Scorer
 	{
 		return - classEntropy(node.label(), depth);
 	}
+	
+	
+	/**
+	 * All the labels this node could take.
+	 * 
+	 * @param node
+	 * @return
+	 */
+	public List<String> labels(DTNode<String, String> node)
+	{
+		List<String> labels = new ArrayList<String>(node.degree());
+		labels.add(node.label());
+		
+		for(DTLink<String, String> link : node.linksOut())
+		{
+			if(link.to().equals(link.from()))
+				continue;
+			
+			String label = "out: ";
+			label += link.tag() + " ";
+			label += link.other(node) + " ";
+			
+			labels.add(label);
+		}
+
+		for(DTLink<String, String> link : node.linksIn())
+		{
+			if(link.to().equals(link.from()))
+				continue;
+
+			String label = "in: ";
+			label += link.tag() + " ";
+			label += link.other(node);
+			
+			labels.add(label);
+		}
+
+		return labels;
+	}
+	
+	public String chooseLabelInformed(DTNode<String, String> node, int depth)
+	{
+		return choose(labels(node), Collections.reverseOrder(informedComparator(depth)));
+	}
+	
+	public String chooseLabelUninformed(DTNode<String, String> node, int depth)
+	{		
+		return choose(labels(node), uninformedComparator(depth));
+	}
+	
+	public String choose(List<String> labels, Comparator<String> comp)
+	{
+		MaxObserver<String> mo = new MaxObserver<String>(1, comp);
+		
+		mo.observe(labels);
+		
+		return mo.elements().get(0);
+	}
+
 }
