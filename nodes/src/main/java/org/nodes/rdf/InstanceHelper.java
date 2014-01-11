@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
@@ -28,7 +29,8 @@ public class InstanceHelper
 	private HubAvoidance ha;
 	
 	private Instances iaSearch, haSearch, depthSearch;
-	
+	private Instances iaSearchDirected, haSearchDirected, depthSearchDirected;
+
 	/**
 	 * 
 	 * @param graph The graph. Note that this graph should have the target relations removed.
@@ -48,21 +50,40 @@ public class InstanceHelper
 		iaSearch = new FlatInstances(graph, instanceSize, maxDepth, ia);
 		haSearch = new FlatInstances(graph, instanceSize, maxDepth, ha);
 		depthSearch = new FlatInstances(graph, instanceSize, maxDepth, new DepthScorer());
+		
+		iaSearchDirected = new FlatInstances(graph, instanceSize, maxDepth, ia, true);
+		haSearchDirected = new FlatInstances(graph, instanceSize, maxDepth, ha, true);
+		depthSearchDirected = new FlatInstances(graph, instanceSize, maxDepth, new DepthScorer(), true);
 	}
 	
-	public List<DTNode<String, String>> instanceByDepth(Node<String> instanceNode)
+	public List<DTNode<String, String>> instanceByDepth(DNode<String> instanceNode)
 	{
-		return depthSearch.instance(instanceNode);
+		return instanceByDepth(instanceNode, false);
 	}
 	
-	public List<DTNode<String, String>> instanceInformed(Node<String> instanceNode)
+	public List<DTNode<String, String>> instanceInformed(DNode<String> instanceNode)
 	{
-		return iaSearch.instance(instanceNode);
+		return instanceInformed(instanceNode, false);
 	}
 	
-	public List<DTNode<String, String>> instanceUninformed(Node<String> instanceNode)
+	public List<DTNode<String, String>> instanceUninformed(DNode<String> instanceNode)
 	{
-		return haSearch.instance(instanceNode);
+		return instanceUninformed(instanceNode, false);
+	}
+	
+	public List<DTNode<String, String>> instanceByDepth(DNode<String> instanceNode, boolean directed)
+	{
+		return directed ? depthSearchDirected.instance(instanceNode) : depthSearch.instance(instanceNode);
+	}
+	
+	public List<DTNode<String, String>> instanceInformed(DNode<String> instanceNode, boolean directed)
+	{
+		return directed ? iaSearchDirected.instance(instanceNode) : iaSearch.instance(instanceNode);
+	}
+	
+	public List<DTNode<String, String>> instanceUninformed(DNode<String> instanceNode, boolean directed)
+	{
+		return directed ? haSearchDirected.instance(instanceNode) : haSearch.instance(instanceNode);
 	}	
 
 	/**
@@ -73,6 +94,12 @@ public class InstanceHelper
 	 * @return
 	 */
 	public static Classified<DTGraph<String, String>> getInstances(DTGraph<String, String> dataset, List<DTNode<String, String>> instanceNodes, List<? extends Number> classes, Method method, int instanceSize, int maxDepth)
+	{
+		return getInstances(dataset, instanceNodes, classes, method, instanceSize, maxDepth);
+		
+	}
+	
+	public static Classified<DTGraph<String, String>> getInstances(DTGraph<String, String> dataset, List<DTNode<String, String>> instanceNodes, List<? extends Number> classes, Method method, int instanceSize, int maxDepth, boolean directed)
 	{
 		List<Integer> clss = new ArrayList<Integer>(classes.size());
 		for(Number number : classes)

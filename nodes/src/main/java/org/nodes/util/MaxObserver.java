@@ -76,7 +76,13 @@ public class MaxObserver<T>
 	 */
 	public List<T> elements()
 	{
-		Collections.sort(elements, Collections.reverseOrder(wrap));
+		return elements(true);
+	}
+	
+	public List<T> elements(boolean sorted)
+	{
+		if(sorted)
+			Collections.sort(elements, Collections.reverseOrder(wrap));
 		return Collections.unmodifiableList(elements);
 	}
 	

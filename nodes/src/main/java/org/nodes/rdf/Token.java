@@ -1,5 +1,6 @@
 package org.nodes.rdf;
 
+import org.nodes.DNode;
 import org.nodes.DTNode;
 import org.nodes.Node;
 
@@ -11,16 +12,16 @@ import org.nodes.Node;
  */
 public class Token
 {
-	private Node<String> node;
+	private DNode<String> node;
 	private int depth;
 	
-	public Token(Node<String> node, int depth)
+	public Token(DNode<String> node, int depth)
 	{
 		this.node = node;
 		this.depth = depth;
 	}
 
-	public Node<String> node()
+	public DNode<String> node()
 	{
 		return node;
 	}

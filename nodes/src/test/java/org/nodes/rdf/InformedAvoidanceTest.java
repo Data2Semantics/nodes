@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.nodes.util.Series.series;
 
 import org.junit.Test;
+import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
@@ -128,7 +129,7 @@ public class InformedAvoidanceTest
 		for(Node<String> node : graph.nodes())
 			System.out.println(node + " " + c(node, ia, instances) + ia.classEntropy(node, 1));
 		
-		System.out.println(si.instance(c));
+		System.out.println(si.instance((DNode<String>)c));
 	}
 	
 	public String c(Node<String> node, InformedAvoidance ia, Classified<Node<String>> instances)

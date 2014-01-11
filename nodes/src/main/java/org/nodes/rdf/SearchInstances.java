@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
@@ -40,7 +41,7 @@ public class SearchInstances implements Instances
 	}
 
 	@Override
-	public List<DTNode<String, String>> instance(Node<String> instanceNode)
+	public List<DTNode<String, String>> instance(DNode<String> instanceNode)
 	{
 		if(graph != instanceNode.graph())
 			throw new IllegalArgumentException("This Instance extractor was created with a diffeent graph than the given node belongs to.");
@@ -203,7 +204,7 @@ public class SearchInstances implements Instances
 					Token currentToken = currentTokenBuffer.pop();
 					for(Node<String> node : currentToken.node().neighbors())
 						if(! nodes.contains(node))
-							nextTokenBuffer.add(new Token(node, currentToken.depth() + 1));
+							nextTokenBuffer.add(new Token((DNode<String>)node, currentToken.depth() + 1));
 				}
 			}
 			

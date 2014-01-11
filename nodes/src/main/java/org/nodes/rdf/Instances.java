@@ -2,6 +2,7 @@ package org.nodes.rdf;
 
 import java.util.List;
 
+import org.nodes.DNode;
 import org.nodes.DTNode;
 import org.nodes.Node;
 
@@ -20,6 +21,6 @@ public interface Instances
 	 * @param instanceNode
 	 * @return
 	 */
-	public List<DTNode<String, String>> instance(Node<String> instanceNode);
+	public List<DTNode<String, String>> instance(DNode<String> instanceNode);
 
 }
