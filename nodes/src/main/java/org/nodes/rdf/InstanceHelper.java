@@ -95,7 +95,7 @@ public class InstanceHelper
 	 */
 	public static Classified<DTGraph<String, String>> getInstances(DTGraph<String, String> dataset, List<DTNode<String, String>> instanceNodes, List<? extends Number> classes, Method method, int instanceSize, int maxDepth)
 	{
-		return getInstances(dataset, instanceNodes, classes, method, instanceSize, maxDepth);
+		return getInstances(dataset, instanceNodes, classes, method, instanceSize, maxDepth, false);
 		
 	}
 	
@@ -115,13 +115,13 @@ public class InstanceHelper
 			switch (method)
 			{
 			case DEPTH:
-				instance = helper.instanceByDepth(instanceNode); 
+				instance = helper.instanceByDepth(instanceNode, directed); 
 				break;
 			case INFORMED:
-				instance = helper.instanceInformed(instanceNode);
+				instance = helper.instanceInformed(instanceNode, directed);
 				break;
 			case UNINFORMED:
-				instance = helper.instanceUninformed(instanceNode);
+				instance = helper.instanceUninformed(instanceNode, directed);
 				break;
 			}
 			
