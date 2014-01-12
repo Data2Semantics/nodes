@@ -316,7 +316,7 @@ public class InformedLabels implements Scorer
 			if(link.to().equals(link.from()))
 				continue;
 
-			String label = "in: ";
+			String label = " in: ";
 			label += link.tag() + " ";
 			label += link.other(node);
 			
