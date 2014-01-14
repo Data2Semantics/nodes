@@ -1,7 +1,7 @@
 #Nodes
 =====
 
-Node is a general purpose graph library. It focuses on simple creation and traversal of graphs with general objects on their nodes and links. Nodes is a work in progress, it should not be considered production-ready in general, though certain aspects may be well-tested.
+Nodes is a general purpose graph library. It focuses on simple creation and traversal of graphs with general objects on their nodes and links. Nodes is a work in progress, it should not be considered production-ready in general, though certain aspects may be well-tested.
 
 ## Installation
 
@@ -80,4 +80,4 @@ For feedback please use the issues on github, or if that's not an option, send a
 
 Nodes is produced with funding from the Dutch national research program [COMMIT](http://commit-nl.nl/).
 
-[![Commit logo](http://www.delaat.net/logos/raw/logo-COMMIT.jpg)]]
+[!Commit logo(http://www.delaat.net/logos/raw/logo-COMMIT.jpg)]]
