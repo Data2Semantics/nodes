@@ -78,4 +78,6 @@ For feedback please use the issues on github, or if that's not an option, send a
 
 ## Acknowledgements
 
-Nodes was produced within the Dutch national research program [COMMIT](http://commit-nl.nl/).
+Nodes is produced with funding from the Dutch national research program [COMMIT](http://commit-nl.nl/).
+
+[![Commit logo](http://www.delaat.net/logos/raw/logo-COMMIT.jpg)]
