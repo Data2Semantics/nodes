@@ -49,11 +49,25 @@ There are currently three main implementations available:
 Some final things to note:
 * Every graph object has an implicit sorting over its nodes. Since this is true for any graph representation in the memory of a computer, we've decided to make this sorting explicit by giving nodes a fixed index in the list of nodes.
 * Labels and Tags should be immutable objects with solid equals() and hashcode() implementations (treat a graph like a HashSet). Modifying label or tag object so that its hashcode is changed may mess things up (depending on which graph implementation is chosen).
+* Labels and tags do not have to be unique, but if a graph has unique labels, there are some methods to make life easier.
 
 ### Examples
 
-## Advanced
+Creating a graph:
+```java
+// We're using a DTGraph, but we don't care about the specifics
+Graph<String> graph = new MapDTGraph<String, String>();
+		
+Node<String>  a = graph.add("a"),
+                         b = graph.add("b"),
+                         c = graph.add("c");
 
+a.connect(c);
+graph.node("a").connect(graph.node("b"));
+
+System.out.println(graph);
+// result (toString prints DOT format): digraph {a -> c; a -> b}
+```
 ## Feedback
 
 For feedback please use the issues on github, or if that's not an option, send an email to nodes * peterbloem * nl, replacing the asterisks with an at symbol and a period respectively.
