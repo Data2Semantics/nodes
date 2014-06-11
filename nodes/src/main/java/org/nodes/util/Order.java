@@ -82,4 +82,21 @@ public final class Order
 	{
 		return master.size();
 	}
+	
+	/**
+	 * Returns a (shallow) copy of the given list with the elements re-ordered 
+	 * by this ordering.
+	 * 
+	 * @param original
+	 * @return
+	 */
+	public <L> List<L> apply(List<L> original)
+	{
+		List<L> out = new ArrayList<L>(original.size());
+		
+		for(int newIndex : Series.series(original.size()))
+			out.add(original.get(originalIndex(newIndex)));
+		
+		return out;
+	}
 }

@@ -5,11 +5,23 @@ import static java.lang.Math.floor;
 import static org.nodes.util.Series.series;
 
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.nodes.DGraph;
 import org.nodes.DLink;
@@ -25,35 +37,47 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.batik.util.XMLResourceDescriptor;
+import org.apache.batik.bridge.BridgeContext;
+import org.apache.batik.bridge.DocumentLoader;
+import org.apache.batik.bridge.GVTBuilder;
+import org.apache.batik.bridge.UserAgent;
+import org.apache.batik.bridge.UserAgentAdapter;
 import org.apache.batik.dom.GenericDOMImplementation;
+import org.apache.batik.dom.svg.SAXSVGDocumentFactory;
 import org.apache.batik.dom.svg.SVGDOMImplementation;
+import org.apache.batik.gvt.GraphicsNode;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Element;
+import org.w3c.dom.svg.SVGDocument;
 
 
 public class Draw
 {
 	private static final String ns = SVGDOMImplementation.SVG_NAMESPACE_URI;
 	
-	public static <L> BufferedImage draw(Graph<L> graph, int width, int height)
+	public static <L> BufferedImage draw(Graph<L> graph, int width)
 	{
-		return draw(graph, new CircleLayout<L>(graph), width, height);
+		return draw(graph, new CircleLayout<L>(graph), width);
 	
 	}
 	
-	public static <L> BufferedImage draw(Graph<L> graph, Layout<L> layout, int width, int height)
+	public static <L> BufferedImage draw(Graph<L> graph, Layout<L> layout, int width)
 	{
-		Document svg = svg(graph, layout);
-		
+		SVGDocument svg = svg(graph, layout);
+		return draw(svg, width);
+	}
+	
+	public static <L> BufferedImage draw(SVGDocument svg, int width)
+	{
 		BufferedImageTranscoder t = new BufferedImageTranscoder();
 		
 	    t.addTranscodingHint(PNGTranscoder.KEY_WIDTH,  (float) width);
-	    t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) height);
+	    // t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) height);
 	    
 	   // t.addTranscodingHint(PNGTranscoder.KEY_,  (float) width);
-
 	
 	    TranscoderInput input = new TranscoderInput(svg);
 	    try
@@ -72,11 +96,31 @@ public class Draw
 		return svg(graph, new CircleLayout<L>(graph));
 	}	
 	
-	public static <L> Document svg(Graph<L> graph, Layout<L> layout)
+	public static <L> void write(Document svg, File file)
+		throws IOException
+	{
+		 try
+		 {
+			  // Use a Transformer for output
+			  TransformerFactory tFactory =
+			    TransformerFactory.newInstance();
+			  Transformer transformer = tFactory.newTransformer();
+	
+			  DOMSource source = new DOMSource(svg);
+			  StreamResult result = new StreamResult(new FileOutputStream(file));
+		
+				transformer.transform(source, result);
+		} catch (TransformerException e)
+		{
+			throw new RuntimeException(e);
+		} 
+	}
+	
+	public static <L> SVGDocument svg(Graph<L> graph, Layout<L> layout)
 	{
 		// * Set up an SVG generator
 		DOMImplementation impl = SVGDOMImplementation.getDOMImplementation();
-		Document doc = impl.createDocument(ns, "svg", null);
+		SVGDocument doc = (SVGDocument) impl.createDocument(ns, "svg", null);
 
 		Element canvas = doc.getDocumentElement();
 		canvas.setAttributeNS(null, "width", "2.0");

@@ -18,6 +18,11 @@ public interface DNode<L> extends Node<L>
 	
 	public Collection<? extends DLink<L>> linksOut();	
 	
+	/**
+	 * Returns all link from this node to 'other'.
+	 * @param other
+	 * @return
+	 */
 	public Collection<? extends DLink<L>> linksOut(DNode<L> other);
 	
 	public Collection<? extends DNode<L>> out(L label);	

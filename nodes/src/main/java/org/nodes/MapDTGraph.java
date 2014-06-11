@@ -86,6 +86,28 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		return copy;
 	}
 	
+	/**
+	 * Returns a copy of the input. All tags are null.
+	 * @param graph
+	 * @return
+	 */
+	public static <L> MapDTGraph<L, Object> copy(DGraph<L> graph)
+	{	
+		MapDTGraph<L, Object> copy = new MapDTGraph<L, Object>();
+		for(DNode<L> node : graph.nodes())
+			copy.add(node.label());
+
+		for(DLink<L> link : graph.links())
+		{
+			int i = link.first().index(), 
+			    j = link.second().index();
+			
+			copy.nodes().get(i).connect(copy.nodes().get(j), null);
+		}
+		
+		return copy;
+	}
+	
 	private class MapDTNode implements DTNode<L, T>
 	{
 		private Map<T, List<MapDTLink>> linksOut = new LinkedHashMap<T, List<MapDTLink>>();

@@ -330,7 +330,117 @@ public class Graphs
 		return graph;
 	}
 	
+	/**
+	 * A graph based on the example graph in the paper by Jonyer, Holder and Cook, directed version.
+	 * 
+	 * @return
+	 */
+	public static DTGraph<String, String> jbcDirected()
+	{
+		DTGraph<String, String> graph = new MapDTGraph<String, String>();
 
+		// * triangle 1
+		DTNode<String, String> t1a = graph.add("a"),
+		                       t1b = graph.add("b"),
+		                       t1c = graph.add("c");
+		t1a.connect(t1b);
+		t1b.connect(t1c);
+		t1c.connect(t1a);
+		
+		// * triangle 2
+		DTNode<String, String> t2a = graph.add("a"),
+                               t2b = graph.add("b"),
+                               t2d = graph.add("d");
+		
+		t2a.connect(t2b);
+		t2b.connect(t2d);
+		t2d.connect(t2a);
+
+		// * triangle 3
+		DTNode<String, String> t3a = graph.add("a"),
+                               t3b = graph.add("b"),
+                               t3e = graph.add("e");
+		
+		t3a.connect(t3b);
+		t3b.connect(t3e);
+		t3e.connect(t3a);	
+		
+		// * triangle 4
+		DTNode<String, String> t4a = graph.add("a"),
+                               t4b = graph.add("b"),
+                               t4f = graph.add("f");
+
+		t4a.connect(t4b);
+		t4b.connect(t4f);
+		t4f.connect(t4a);	
+		
+		// * square 1
+		DTNode<String, String> s1x = graph.add("x"),
+                               s1y = graph.add("y"),
+                               s1z = graph.add("z"),
+                               s1q = graph.add("q");
+
+		s1x.connect(s1y);
+		s1y.connect(s1q);
+		s1q.connect(s1z);	
+		s1z.connect(s1x);	
+			
+		// * square 2
+		DTNode<String, String> s2x = graph.add("x"),
+                               s2y = graph.add("y"),
+                               s2z = graph.add("z"),
+                               s2q = graph.add("q");
+
+		s2x.connect(s2y);
+		s2y.connect(s2q);
+		s2q.connect(s2z);	
+		s2z.connect(s2x);	
+		
+		// * square 3
+		DTNode<String, String> s3x = graph.add("x"),                   
+                               s3y = graph.add("y"),                   
+                               s3z = graph.add("z"),                   
+                               s3q = graph.add("q");                   
+                                                        
+		s3x.connect(s3y);                                              
+		s3y.connect(s3q);                                                  
+		s3q.connect(s3z);	                                               
+		s3z.connect(s3x);	                                               
+
+		// * square 4
+		DTNode<String, String> s4x = graph.add("x"),                   
+                               s4y = graph.add("y"),                   
+                               s4z = graph.add("z"),                   
+                               s4q = graph.add("q");                   
+                                             
+		s4x.connect(s4y);                                              
+		s4y.connect(s4q);                                              
+		s4q.connect(s4z);	                                           
+		s4z.connect(s4x);			
+		
+		// rest
+		DTNode<String, String> k = graph.add("k"),                   
+		                       r = graph.add("r"); 
+		
+		t1a.connect(t2a);
+		t2a.connect(t3a);
+		t3a.connect(t4a);
+		
+		t1c.connect(s1y);
+		t4f.connect(s4y);
+		
+		t2d.connect(k);
+		k.connect(r);
+		
+		s1y.connect(s2x);
+		s2y.connect(r);
+		s3x.connect(r);
+		s3y.connect(s4x);
+		
+		return graph;
+	}
+	
+	
 	public static UTGraph<String, String> single(String label)
 	{
 		UTGraph<String, String> graph = new MapUTGraph<String, String>();

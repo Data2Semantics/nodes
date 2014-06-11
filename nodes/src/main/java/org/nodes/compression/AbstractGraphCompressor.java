@@ -82,6 +82,7 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 	 * Computes a self-delimiting encoding of this graph
 	 * 
 	 * @param graph
+	 * 
 	 */
 	public abstract double structureBits(Graph<N> graph, List<Integer> order);
 

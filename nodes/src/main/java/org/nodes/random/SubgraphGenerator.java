@@ -4,6 +4,7 @@ import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,20 +35,33 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 	
 	private Graph<L> graph;
 	private LinkGenerator<L> links;
+	private Set<Node<L>> toAvoid;
 	
 	
 	public SubgraphGenerator(Graph<L> graph, int n)
 	{
+		this(graph, n, new ArrayList<Node<L>>());
+	}
+	
+	public SubgraphGenerator(Graph<L> graph, int n, Collection<? extends Node<L>> toAvoid)
+	{
 		this.n = n;
 		this.graph = graph;
+		this.toAvoid = new HashSet<Node<L>>(toAvoid);
 		
 		links = new LinkGenerator<L>(graph);
 	}
 	
 	public SubgraphGenerator(Graph<L> graph, Generator<Integer> ints)
 	{
+		this(graph, ints, new ArrayList<Node<L>>());
+	}
+
+	public SubgraphGenerator(Graph<L> graph, Generator<Integer> ints, Collection<? extends Node<L>> toAvoid)
+	{
 		this.graph = graph;
 		this.ints = ints;
+		this.toAvoid = new HashSet<Node<L>>(toAvoid);
 		
 		links = new LinkGenerator<L>(graph);
 	}
@@ -56,6 +70,10 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 	@Override
 	public SubgraphGenerator<L>.Result generate()
 	{
+		// * We generate a selection of nodes by starting with a random link and
+		//   growing it into a subgraph one additional random link at a time.
+		//   All links connected to the current subgraph are candidates for 
+		//   expansion.
 		int depth = n != -1 ? n : ints.generate();
 				
 		Set<Node<L>> nodes = new LinkedHashSet<Node<L>>(depth);
@@ -70,15 +88,25 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 			linksChosen.clear();
 			linksCandidates.clear();
 		
-			Link<L> link = links.generate();
+			
+			Link<L> link = links.generate();			
+			while(avoid(link))
+				link = links.generate();
+			
 			linksCandidates.add(null);
-				
+							
 			while(! success && ! linksCandidates.isEmpty())
 			{
 				linksChosen.add(link);
 				
 				for(Node<L> node : link.nodes())
 					nodes.add(node);
+				
+				for(Node<L> node : nodes)
+					if(toAvoid.contains(node))
+					{
+						System.out.println("D:" + node);
+					}
 				
 				if(nodes.size() == depth)
 				{
@@ -91,7 +119,8 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 					for(Node<L> node : linkChosen.nodes())
 						for(Link<L> linkCandidate : node.links())
 							if(! linksChosen.contains(linkCandidate))
-								linksCandidates.add(linkCandidate);
+								if(! avoid(linkCandidate))
+									linksCandidates.add(linkCandidate);
 				
 				if(! linksCandidates.isEmpty() )
 					link = Functions.choose(linksCandidates);
@@ -101,6 +130,16 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 		return new Result(
 				new ArrayList<Node<L>>(nodes), 
 				new ArrayList<Link<L>>(linksChosen));
+	}
+	
+	private boolean avoid(Link<L> link)
+	{
+		if(toAvoid.contains(link.first()))
+			return true;
+		if(toAvoid.contains(link.second()))
+			return true;
+
+		return false;
 	}
 	
 	public class Result 
@@ -117,7 +156,10 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 			
 			indices = new ArrayList<Integer>(nodes.size());
 			for(Node<L> node : nodes)
+			{
 				indices.add(node.index());
+				// System.out.println(toAvoid.contains(node) + "++ " + node.degree());
+			}
 			
 			calculateProbability();
 		}
@@ -182,6 +224,12 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 			return Math.pow(2.0, -logProbability());
 		}
 		
+		/**
+		 * 
+		 * @return
+		 * @deprecated This can have unintended consequences. Please use the 
+		 * {@link Subgraph} class
+		 */
 		public Graph<L> subgraph()
 		{
 			return Subgraph.subgraph(graph, nodes);

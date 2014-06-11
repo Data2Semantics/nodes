@@ -21,6 +21,15 @@ public class Functions
 {
 	
 	/**
+	 *  2 log
+	 */
+	public static double log2(double x)
+	{
+		return Math.log10(x) / Math.log10(2.0);
+	}
+
+	
+	/**
 	 * The cost of storing the given value in prefix coding
 	 * 
 	 * @param bits
@@ -216,5 +225,6 @@ public class Functions
 		
 		return new Pair<Integer, Integer>(i, j);
 	}
+
 }
 

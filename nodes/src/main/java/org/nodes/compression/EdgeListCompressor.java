@@ -32,7 +32,7 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public double undirected(Graph<N> graph, List<Integer> order)
 	{
-		
+		System.out.println("aaa " + graph.size());
 		FrequencyModel<Node<N>> model = new FrequencyModel<Node<N>>();
 		
 		double bits = 0;
@@ -56,8 +56,7 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		}
 		
 		int l = graph.numLinks();
-		Global.log().info("source model entropy = "+model.entropy()+", logFact per line = "+logFactorial(l, 2.0)/(double)l+", log l = " + (Math.log(l) - 1)/Math.log(2.0));
-		
+		// Global.log().info("source model entropy = "+model.entropy()+", logFact per line = "+logFactorial(l, 2.0)/(double)l+", log l = " + (Math.log(l) - 1)/Math.log(2.0));
 		
 		return bits - logFactorial(graph.numLinks(), 2.0);
 	}	
@@ -93,7 +92,7 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		bits -= logFactorial(graph.numLinks(), 2.0);
 		
 		int l = graph.numLinks();
-		Global.log().info("source model entropy = "+source.entropy()+", target model entropy = "+target.entropy()+", logFact per line = "+logFactorial(l, 2.0)/(double)l+", log l = " + (Math.log(l) - 1)/Math.log(2.0));
+		// Global.log().info("source model entropy = "+source.entropy()+", target model entropy = "+target.entropy()+", logFact per line = "+logFactorial(l, 2.0)/(double)l+", log l = " + (Math.log(l) - 1)/Math.log(2.0));
 		
 		return bits;
 	}	

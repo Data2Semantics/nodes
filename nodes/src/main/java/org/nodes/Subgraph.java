@@ -106,9 +106,8 @@ public class Subgraph
 		
 		for(int i : series(nodes.size()))
 			for(int j : series(nodes.size()))
-				for(DLink<L> link : list.get(i).links(list.get(j)))
+				for(DLink<L> link : list.get(i).linksOut(list.get(j)))
 					out.get(i).connect(out.get(j));
-
 		
 		return out;
 	}

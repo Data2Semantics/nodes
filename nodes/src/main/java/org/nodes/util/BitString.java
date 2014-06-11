@@ -10,6 +10,9 @@ import org.nodes.Global;
  * 
  * We use the correspondence 1=true and 0=false between bits and boolean values.
  * 
+ * Note that a BitString cannot contain null elements. Adding them will cause a 
+ * runtime exception to be thrown.
+ * 
  * @author peter
  *
  */
@@ -35,6 +38,15 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 	{
 		int byteSize = (int)Math.ceil(capacity/8.0);
 		array = new byte[byteSize];
+	}
+	
+	/**
+	 * Creates an empty britstring, to be filled by static methods.
+	 * 
+	 * @param empty
+	 */
+	private BitString(Object empty)
+	{
 	}
 	
 	/**
@@ -65,6 +77,9 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 	
 	@Override
 	public boolean add(Boolean bit) {
+		if(bit == null)
+			throw new IllegalArgumentException("BitString cannot contain null elements");
+		
 		ensureCapacity(maxIndex + 1);
 		maxIndex++;		
 		set(maxIndex, bit);
@@ -87,6 +102,9 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 	@Override
 	public Boolean set(int index, Boolean bit) 
 	{
+		if(bit == null)
+			throw new IllegalArgumentException("BitString cannot contain null elements");
+		
 		checkIndex(index);
 		
 		int whichByte = index/8,
@@ -231,6 +249,46 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 		return 0;
 	}
 	
+	/**
+	 * Increments this bitstring to the next in the canonical ordering. If this 
+	 * bitstring consists of all 1s, all elements are set to 0 and one 0 is 
+	 * added. The bit at index zero is taken as the least significant bit.
+	 * 
+	 * @return
+	 */
+	public void increment()
+	{
+		next(0);
+	}
+	
+	private void next(int index)
+	{
+		if(index >= size())
+		{
+			add(false);
+			zeroBack(size() - 1);
+		} else if(! get(index))
+		{
+			set(index, true);
+			zeroBack(index - 1);
+		} else 
+			next(index + 1);
+	}
+	
+	/**
+	 * Sets index and everything below to zero.
+	 * @param index
+	 */
+	private void zeroBack(int index)
+	{ 
+		if(index < 0)
+			return;
+		
+		set(index, false);
+		
+		zeroBack(index - 1);
+	}
+	
 	public static byte mask(int index)
 	{
 		switch (index) {
@@ -312,6 +370,16 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 		return out;
 	}		
 	
+	public static BitString random(int size, int ones)
+	{
+		BitString out = BitString.zeros(size);
+		
+		for(int i : Functions.sample(ones, size))
+			out.set(i, true);
+		
+		return out;
+	}		
+	
 	public static String toString(byte b)
 	{
 		char[] ch = new char[8];
@@ -339,4 +407,81 @@ public class BitString extends AbstractList<Boolean> implements Serializable
 		
 		return out;
 	}
+	
+	/**
+	 * Returns a collection containing all bitstrings of the given size
+	 * (generated on the fly)
+	 * 
+	 * @param size
+	 * @return
+	 */
+	public static Collection<BitString> all(int size)
+	{
+		return new BSCollection(size);
+	}
+	
+	
+	private static class BSCollection extends AbstractCollection<BitString>
+	{
+		private int numBits;
+
+		
+		public BSCollection(int numBits)
+		{
+			this.numBits = numBits;
+		}
+
+		@Override
+		public Iterator<BitString> iterator()
+		{
+			return new BSIterator();
+		}
+
+		@Override
+		public int size()
+		{
+			return (int) Math.pow(2, numBits);
+		}
+		
+		private class BSIterator implements Iterator<BitString>
+		{
+			BitString next = BitString.zeros(numBits);
+			
+			@Override
+			public boolean hasNext()
+			{
+				return next.size() == numBits;
+			}
+
+			@Override
+			public BitString next()
+			{
+				if(! hasNext())
+					throw new NoSuchElementException();
+				
+				BitString out = copy(next);
+				
+				next.increment();
+				
+				return out;
+			}
+
+			@Override
+			public void remove()
+			{
+				throw new UnsupportedOperationException();
+			}
+		}
+		
+	}
+	
+	public static BitString copy(BitString in)
+	{
+		BitString copy = new BitString(null);
+		copy.array = in.array.clone();
+		copy.maxIndex = in.maxIndex;
+		
+		return copy;
+	}
 }
+

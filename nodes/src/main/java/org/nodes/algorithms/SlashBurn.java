@@ -45,6 +45,8 @@ public class SlashBurn<N>
 	
 	private ConnectionClustering<N> clust = null;
 	private ClusterSizeComparator comp = new ClusterSizeComparator();
+	
+	private List<List<Integer>> islands = null;
 
 	private Comparator<Node<N>> centralityComparator;
 
@@ -53,7 +55,24 @@ public class SlashBurn<N>
 		this(graph, k, new DegreeComparator<N>());
 	}
 	
-	public SlashBurn(Graph<N> graph, int k, Comparator<Node<N>> centralityComparator )
+	public SlashBurn(Graph<N> graph, int k, List<List<Integer>> islands)
+	{
+		this(graph, k, new DegreeComparator<N>(), islands);
+	}
+	
+	public SlashBurn(Graph<N> graph, int k, Comparator<Node<N>> centralityComparator)
+	{
+		this(graph, k, centralityComparator, null);
+	}
+	
+	/**
+	 * 
+	 * @param graph
+	 * @param k
+	 * @param centralityComparator
+	 * @param islands A list to which the islands (non-greatest component clusters) are added
+	 */
+	public SlashBurn(Graph<N> graph, int k, Comparator<Node<N>> centralityComparator, List<List<Integer>> islands)
 	{
 		this.graph = graph;
 		this.mask = BitString.ones(graph.size());
@@ -64,6 +83,7 @@ public class SlashBurn<N>
 		this.k = k;
 		this.centralityComparator = centralityComparator;
 		
+		this.islands = islands;
 		
 		clust = new ConnectionClustering<N>(graph, mask);
 		lastGCCSize = clust.clusterSize(clust.largestClusterIndex());
@@ -173,9 +193,11 @@ public class SlashBurn<N>
 		// * for each cluster (except the largest)
 		for(int cluster : clusters.subList(0, clusters.size()))
 		{	
-//			List<Integer> nodes = new ArrayList<Integer>(clust.clusterSize(cluster));
-//			for(int i : clust.cluster(cluster))
-//				nodes.add(i);
+			if(islands != null)
+			{
+				List<Integer> clusterIndices = new ArrayList<Integer>(clust.cluster(cluster));
+				islands.add(clusterIndices);
+			}
 			
 			// * Sort each cluster first
 			//  Collections.sort(nodes, new DegreeIndexComparator(graph));

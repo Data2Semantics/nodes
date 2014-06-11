@@ -94,6 +94,11 @@
      	<artifactId>junit</artifactId>
      	<version>4.10</version>
      </dependency>
+     <dependency>
+     	<groupId>org.gephi</groupId>
+     	<artifactId>gephi-toolkit</artifactId>
+     	<version>0.8.2</version>
+     </dependency>
   </dependencies>
 	<!-- Where we deploy stuff so that people can use, for the time being in internal ducktape server -->
 	<distributionManagement>
@@ -110,4 +115,17 @@
        	   </snapshotRepository>
 	</distributionManagement>
 
+   <repositories>
+      <repository>
+         <id>gephi-snapshots</id>
+         <name>Gephi Snapshots</name>
+         <url>http://nexus.gephi.org/nexus/content/repositories/snapshots/</url>
+      </repository>
+      <repository>
+         <id>gephi-releases</id>
+         <name>Gephi Releases</name>
+         <url>http://nexus.gephi.org/nexus/content/repositories/releases/</url>
+      </repository>
+   </repositories>
+   
 </project>

@@ -18,7 +18,7 @@ public class DotTest {
 		
 		UTGraph<String, String> graph = RandomGraphs.preferentialAttachment(30, 2);
 		
-		UTGraph<String, String> out = Dot.read(graph.toString());
+		UTGraph<String, String> out = Dot.readUT(graph.toString());
 		
 		System.out.println(graph);
 		System.out.println(out);

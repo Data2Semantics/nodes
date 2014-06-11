@@ -53,6 +53,8 @@ public class LightDGraph<L> implements DGraph<L>
 	private int hash;
 	private Long hashMod = null;
 	
+	private boolean sorted = false;
+	
 	public LightDGraph()
 	{
 		this(16);
@@ -131,6 +133,8 @@ public class LightDGraph<L> implements DGraph<L>
 			dead = true;
 			modCount++;
 			nodeModCount++;
+			
+			sorted = false;
 		}
 
 		private void check()
@@ -264,6 +268,8 @@ public class LightDGraph<L> implements DGraph<L>
 			modCount++;			
 			numLinks++;
 			
+			sorted = false;
+			
 			return new LightDLink(index(), to.index());
 		}
 
@@ -284,6 +290,8 @@ public class LightDGraph<L> implements DGraph<L>
 
 			numLinks -= numLinks;			
 			modCount++;
+			
+			sorted = false;
 		}
 
 		@Override
@@ -373,7 +381,7 @@ public class LightDGraph<L> implements DGraph<L>
 		
 		public String toString()
 		{
-			return index() + (label() == null ? "" : "_" + label());
+			return label() == null ? ("n"+index()) : label().toString();
 		}
 
 		@Override
@@ -497,6 +505,8 @@ public class LightDGraph<L> implements DGraph<L>
 			
 			modCount++;
 			dead = true;
+			
+			sorted = false;
 		}
 
 		@Override
@@ -737,6 +747,7 @@ public class LightDGraph<L> implements DGraph<L>
 		in.add(new ArrayList<Integer>(NEIGHBOR_CAPACITY));
 		out.add(new ArrayList<Integer>(NEIGHBOR_CAPACITY));
 		
+		sorted = false;
 		return new LightDNode(in.size() - 1);
 	}
 
@@ -784,12 +795,9 @@ public class LightDGraph<L> implements DGraph<L>
 		
 		Set<DNode<L>> nodes = new HashSet<DNode<L>>(nodes());
 		
-		boolean first = true;
 		for(DLink<L> link : links())
 		{
-			if(first) 
-				first = false;
-			else 
+			if(sb.length() != 9) 
 				sb.append("; ");
 			
 			sb.append(link);
@@ -840,11 +848,16 @@ public class LightDGraph<L> implements DGraph<L>
 	 */
 	public void sort()
 	{
+		if(sorted)
+			return;
+		
 		for(int i : Series.series(in.size()))
 			Collections.sort(in.get(i));
 		
 		for(int i : Series.series(out.size()))
 			Collections.sort(out.get(i));
+		
+		sorted = true;
 	}
 	
 	
@@ -884,10 +897,10 @@ public class LightDGraph<L> implements DGraph<L>
 		hash = 1;
 		sort();
 		
-		for(int i : Series.series(in.size()) )
+		for(int i : Series.series(size()))
 		{
 		    hash = 31 * hash + (labels.get(i) == null ? 0 : labels.get(i).hashCode());
-		    hash = 31 * hash + (in.get(i) == null ? 0 : in.get(i).hashCode());
+		   //  hash = 31 * hash + (in.get(i) == null ? 0 : in.get(i).hashCode());
 		}
 		
 		return hash;
@@ -930,7 +943,7 @@ public class LightDGraph<L> implements DGraph<L>
 				return false;
 		}
 		
-		return true;	
+		return true;
 		
 	}
 
