@@ -209,7 +209,7 @@ public class LightDGraph<L> implements DGraph<L>
 			check();
 			List<Integer> indices = new ArrayList<Integer>(outDegree());
 			
-			for(int i : in.get(this.index))
+			for(int i : out.get(this.index))
 					indices.add(i);
 			
 			return new NodeList(indices);
