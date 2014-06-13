@@ -55,6 +55,7 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 		// * Labels
 		double labelBits = 0;
 		OnlineModel<N> labelModel = new OnlineModel<N>(); 
+		
 		labelModel.symbols(graph.labels());
 		
 		for(Node<N> node : graph.nodes())
@@ -73,7 +74,7 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 			for(TLink<?, ?> link : tgraph.links())
 				tagBits += - Functions.log2(tagModel.observe(link.tag()));
 		}
-		
+				
 		return structureBits + labelBits + tagBits;
 	}
 
