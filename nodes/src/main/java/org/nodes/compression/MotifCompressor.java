@@ -230,12 +230,13 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 	public static double sizeSymbols(DGraph<String> graph, String symbol,
 			DGraph<String> sub, List<List<Integer>> occurrences)
 	{
+		int numLabels = graph.labels().size();
+		
 		// * Store the graph, and the subgraph and the wiring
 		double bits = sizeFast(graph, sub, occurrences);
 
 		// * Now to store the mapping from symbol to terminal for each
-		// occurrence
-		// of a symbol
+		//   occurrence of a symbol
 		// - Find the number of terminals per symbol
 		List<Set<String>> terminalSets = new ArrayList<Set<String>>();
 		List<Integer> indices = new ArrayList<Integer>();
@@ -264,8 +265,10 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			int index = indices.get(i);
 			int n = terminalSets.size();
 
-			bits += prefix(n);
-
+			// - store pointers to the relevant labels
+			bits += prefix(terminalSets.size());
+			bits += -log2(numLabels) *  terminalSets.size();
+				
 			OnlineModel<String> model = new OnlineModel<String>();
 			model.symbols(terminalSets.get(i));
 

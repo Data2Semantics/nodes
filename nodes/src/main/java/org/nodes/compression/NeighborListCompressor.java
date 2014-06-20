@@ -17,6 +17,17 @@ import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
 import org.nodes.util.Series;
 
+
+/**
+ * 
+ * * Why does the neighborlist compressor suddenly work better?
+ * * We should figure out storing labels and label subests properly
+ * * We should include 
+ *  
+ * @author Peter
+ *
+ * @param <N>
+ */
 public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 {
 
