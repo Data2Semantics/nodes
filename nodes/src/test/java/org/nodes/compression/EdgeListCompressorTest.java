@@ -36,7 +36,7 @@ public class EdgeListCompressorTest
 				prefix(3) + prefix(3)
 				- log2(1.0/9) + - log2(1.0/25) - log2(1.0/49)
 				- 2.58496250072, 
-				comp.directed(data, series(3)), 0.001);		
+				comp.directed(data), 0.001);		
 	}
 	
 	@Test

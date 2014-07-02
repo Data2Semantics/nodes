@@ -2,7 +2,10 @@ package org.nodes.compression;
 
 import static org.nodes.util.Series.series;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.nodes.Graph;
 import org.nodes.Graphs;
@@ -10,14 +13,26 @@ import org.nodes.LightDGraph;
 import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
+import org.nodes.util.GZIPCompressor;
 import org.nodes.util.OnlineModel;
 import org.nodes.util.Compressor;
-import org.nodes.util.Functions;
 import org.nodes.util.Series;
 
 public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
-{
+{	
+	public static boolean storeLabels = true;
+	
+	public AbstractGraphCompressor()
+	{
+		
+	}
+	
+	public AbstractGraphCompressor(boolean storeLabels)
+	{
+		this.storeLabels = storeLabels;
+	}
 
+	
 	@Override
 	public double compressedSize(Object... objects)
 	{
@@ -54,23 +69,32 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 		
 		// * Labels
 		double labelBits = 0;
-		OnlineModel<N> labelModel = new OnlineModel<N>(); 
+
+		// ** Label set
+		List<N> labelSet = new ArrayList<N>(graph.labels());
 		
-		labelModel.symbols(graph.labels());
+		GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
+		labelBits += compressor.compressedSize(labelSet);
 		
+		// ** Label sequence
+		OnlineModel<N> labelModel = new OnlineModel<N>(labelSet); 
+				
 		for(Node<N> node : graph.nodes())
 			labelBits += - Functions.log2(labelModel.observe(node.label()));
 				
 		// * Tags
-		
-		double tagBits = 0;
+		double tagBits = 1; // one bit to signal whether or not there are tags following
+	
 		if(graph instanceof TGraph<?, ?>)
 		{
 			TGraph<?, ?> tgraph = (TGraph<?, ?>)graph;
-			OnlineModel<Object> tagModel = new OnlineModel<Object>();
-			
-			tagModel.add(tgraph.tags());
-			
+			// ** Tag set
+			List<?> tagSet = new ArrayList<Object>(tgraph.tags());
+			tagBits += compressor.compressedSize(tagSet);
+						
+			// ** Tag sequence
+			OnlineModel<Object> tagModel = new OnlineModel<Object>(  (Collection<Object>) tgraph.tags());
+						
 			for(TLink<?, ?> link : tgraph.links())
 				tagBits += - Functions.log2(tagModel.observe(link.tag()));
 		}

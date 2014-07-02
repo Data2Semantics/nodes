@@ -24,27 +24,28 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 	@Override
 	public double structureBits(Graph<N> graph, List<Integer> order)
 	{
+		// -- We ignore the order, since this method returns the same value for 
+		//    all orderings
+		
 		if(graph instanceof UGraph<?>)
-			return undirected((UGraph<N>) graph, order);
+			return undirected((UGraph<N>) graph);
 		
 		if(graph instanceof DGraph<?>)
-			return directed((DGraph<N>) graph, order);
+			return directed((DGraph<N>) graph);
 		
 		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");
 	}
 	
-	public double undirected(Graph<N> graph, List<Integer> order)
+	public static <N> double undirected(Graph<N> graph)
 	{
 		System.out.println("aaa " + graph.size());
-		OnlineModel<Integer> model = new OnlineModel<Integer>();
+		OnlineModel<Integer> model = new OnlineModel<Integer>(Series.series(graph.size()));
 		
 		double bits = 0;
 		
 		bits += prefix(graph.size());
 		bits += prefix(graph.numLinks());
-		
-		model.symbols(Series.series(graph.size()));
-				
+						
 		for(Link<N> link : graph.links())
 		{
 			double p = model.observe(link.first().index()) * model.observe(link.second().index());
@@ -57,28 +58,22 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		return bits - logFactorial(graph.numLinks(), 2.0);
 	}	
 	
-	public double directed(Graph<N> graph, List<Integer> order)
+	public static <N> double directed(DGraph<N> graph)
 	{
-		
-		OnlineModel<Integer> source = new OnlineModel<Integer>();
-		OnlineModel<Integer> target = new OnlineModel<Integer>();
-
+		OnlineModel<Integer> source = new OnlineModel<Integer>(series(graph.size()));
+		OnlineModel<Integer> target = new OnlineModel<Integer>(series(graph.size()));
 		
 		double bits = 0;
 		
 		bits += prefix(graph.size());
 		bits += prefix(graph.numLinks());
-				
-		source.symbols(series(graph.size()));
-		target.symbols(series(graph.size()));
-		
-				
+
 		for(Link<N> link : graph.links())
 		{
 			double p = 
 				source.observe(link.first().index()) * 
 				target.observe(link.second().index());
-						
+									
 			bits += -log2(p);
 		}
 		

@@ -6,6 +6,8 @@ import static org.nodes.compression.Functions.toc;
 import static org.nodes.util.Functions.logFactorial;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -29,12 +31,22 @@ import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
+import org.nodes.util.GZIPCompressor;
 import org.nodes.util.OnlineModel;
 import org.nodes.util.Series;
 
+/**
+ * 
+ * @author Peter
+ *
+ */
 public class MotifCompressor extends AbstractGraphCompressor<String>
 {
 	public static final String MOTIF_SYMBOL = "|M|";
+
+	
+	private int samples;
+	private int minSize, maxSize;
 
 	public MotifCompressor()
 	{
@@ -47,35 +59,117 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return -1.0;
 	}
 
-	public static double size(DGraph<String> graph, DGraph<String> sub,
-			List<List<Integer>> occurrences, Compressor<Graph<String>> comp)
+	public static double size(
+			DGraph<String> graph, DGraph<String> sub,
+			List<List<Integer>> occurrences, 
+			Compressor<Graph<String>> comp)
 	{
 		List<Integer> wiring = new ArrayList<Integer>();
+		
 		DGraph<String> copy = subbedGraph(graph, sub, occurrences, wiring);
 
-		double graphsBits = comp.compressedSize(sub); // TODO: we are slightly
-														// cheating on the label
-														// bits here.
-		graphsBits += comp.compressedSize(copy);
-		return graphsBits + wiringBits(wiring);
+		double graphsBits = 0.0;
+		
+		graphsBits += labelSets(graph);
+		graphsBits += motifSize(graph, sub);
+		graphsBits += silhouetteSize(graph, copy);
+		
+		return labelSets(graph) + graphsBits + wiringBits(wiring);
+	}
+	
+	/**
+	 * The cost of storing the motif
+	 * 
+	 * @param graph
+	 * @param sub
+	 * @return
+	 */
+	public static double motifSize(
+			DGraph<String> graph, DGraph<String> sub)
+	{
+		double bits = 0.0;
+		
+		// * Store the structure
+		bits += EdgeListCompressor.directed(graph); 
+		
+		// * Store the labels
+		OnlineModel<String> model = new OnlineModel<String>(graph.labels());
+		
+		for(DNode<String> node : sub.nodes())
+			bits += - Functions.log2(model.observe(node.label())) ;
+		
+		return bits;
+	}
+	
+	public static double silhouetteSize(
+			DGraph<String> graph, DGraph<String> subbed)
+	{
+		double bits = 0.0;
+		
+		// * Store the structure
+		bits += EdgeListCompressor.directed(graph); 
+		
+		// * Store the labels
+		OnlineModel<String> model = new OnlineModel<String>(graph.labels());
+		model.add(MOTIF_SYMBOL, 0.0);
+		
+		for(DNode<String> node : subbed.nodes())
+			bits += - Functions.log2(model.observe(node.label())) ;
+		
+		return bits;
+	}
+	
+	/**
+	 * Bits required to store all labels once.
+	 * 
+	 * @param graph
+	 * @return
+	 */
+	public static double labelSets(
+			DGraph<String> graph)
+	{
+		// * Labels
+		double labelBits = 0;
+
+		// ** Label set
+		List<String> labelSet = new ArrayList<String>(graph.labels());
+		
+		GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
+		labelBits += compressor.compressedSize(labelSet);
+		
+		// * Tags
+		double tagBits = 0;
+	
+		if(graph instanceof TGraph<?, ?>)
+		{
+			TGraph<?, ?> tgraph = (TGraph<?, ?>)graph;
+			// ** Tag set
+			List<?> tagSet = new ArrayList<Object>(tgraph.tags());
+			tagBits += compressor.compressedSize(tagSet);
+		}
+				
+		return labelBits + tagBits;
 	}
 
 	/**
-	 * Computes the size quickly, with explicitly creating a subbed graph.
+	 * Computes the size quickly, without explicitly creating a subbed graph.
 	 * 
 	 * @param graph
 	 * @param sub
 	 * @param occurrences
 	 * @return
 	 */
-	public static double sizeFast(DGraph<String> graph, DGraph<String> sub,
+	public static double sizeFast(
+			DGraph<String> graph, 
+			DGraph<String> sub,
 			List<List<Integer>> occurrences)
 	{
 		double bits = 0;
 
+		bits += labelSets(graph);
+		
 		// * Store the motif
-		Compressor<Graph<String>> comp = new EdgeListCompressor<String>();
-		bits += comp.compressedSize(sub);
+		bits += motifSize(graph, sub);
 
 		// * Store the subbed graph
 
@@ -95,8 +189,8 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			}
 		}
 
-		OnlineModel<Integer> source = new OnlineModel<Integer>();
-		OnlineModel<Integer> target = new OnlineModel<Integer>();
+		OnlineModel<Integer> source = new OnlineModel<Integer>(Collections.EMPTY_LIST);
+		OnlineModel<Integer> target = new OnlineModel<Integer>(Collections.EMPTY_LIST);
 
 		// - observe all symbols
 
@@ -134,10 +228,7 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		OnlineModel<Object> tagModel = null;
 		double tagBits = 0.0;
 		if (graph instanceof TGraph<?, ?>)
-		{
-			tagModel = new OnlineModel<Object>();
-			tagModel.add(((TGraph<?, ?>) graph).tags());
-		}
+			tagModel = new OnlineModel<Object>( (Collection<Object>) ((TGraph<?, ?>) graph).tags() );
 
 		for (Link<String> link : graph.links())
 		{
@@ -165,14 +256,14 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		}
 
 		bits -= logFactorial(subbedNumLinks, 2.0);
-
-		// - Subbed graph, rest of the bits (as done by AbstractGraphCompressor)
+		// -- Structure is now stored
+		// - Subbed graph, bits for the label sequences (as done by AbstractGraphCompressor)
 
 		// -- Labels
 		double labelBits = 0;
-		OnlineModel<String> labelModel = new OnlineModel<String>();
-
-		labelModel.add(MOTIF_SYMBOL, 0.0);
+		
+		OnlineModel<String> labelModel = new OnlineModel<String>(graph.labels());
+		labelModel.addToken(MOTIF_SYMBOL);
 
 		for (Node<String> node : graph.nodes())
 			if (inOccurrence.get(node.index()) == null)
@@ -185,10 +276,9 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 
 		// * Record the wiring information
 
-		OnlineModel<Integer> om = new OnlineModel<Integer>();
-		om.symbols(Series.series(sub.size()));
-
-		double wiringBits = 0;
+		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(sub.size()));
+		
+		double wiringBits = 0.0;
 
 		for (List<Integer> occurrence : occurrences)
 		{
@@ -201,11 +291,9 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 				for (DNode<String> neighbor : graph.get(index).neighbors())
 					if (!occSet.contains(neighbor.index()))
 					{
-						for (DLink<String> link : graph.get(index).linksOut(
-								neighbor))
+						for (DLink<String> link : graph.get(index).linksOut(neighbor))
 							wiringBits += -log2(om.observe(indexWithin));
-						for (DLink<String> link : graph.get(index).linksIn(
-								neighbor))
+						for (DLink<String> link : graph.get(index).linksIn(neighbor))
 							wiringBits += -log2(om.observe(indexWithin));
 					}
 
@@ -218,81 +306,13 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return bits;
 	}
 
-	/**
-	 * Calculates the compressed size for a motif with variable nodes
-	 * 
-	 * @param graph
-	 * @param sub
-	 * @param occurrences
-	 * @param comp
-	 * @return
-	 */
-	public static double sizeSymbols(DGraph<String> graph, String symbol,
-			DGraph<String> sub, List<List<Integer>> occurrences)
-	{
-		int numLabels = graph.labels().size();
-		
-		// * Store the graph, and the subgraph and the wiring
-		double bits = sizeFast(graph, sub, occurrences);
-
-		// * Now to store the mapping from symbol to terminal for each
-		//   occurrence of a symbol
-		// - Find the number of terminals per symbol
-		List<Set<String>> terminalSets = new ArrayList<Set<String>>();
-		List<Integer> indices = new ArrayList<Integer>();
-
-		for (Node<String> node : sub.nodes())
-			if (symbol.equals(node.label()))
-			{
-				int index = node.index();
-				indices.add(index);
-
-				Set<String> set = new HashSet<String>();
-
-				for (List<Integer> occurrence : occurrences)
-				{
-					Node<String> occNode = graph.get(occurrence.get(index));
-					set.add(occNode.label());
-				}
-
-				terminalSets.add(set);
-			}
-
-		// Per index of a symbol node in the motif we use a KT model to store
-		// the sequence of terminals
-		for (int i : Series.series(indices.size()))
-		{
-			int index = indices.get(i);
-			int n = terminalSets.size();
-
-			// - store pointers to the relevant labels
-			bits += prefix(terminalSets.size());
-			bits += -log2(numLabels) *  terminalSets.size();
-				
-			OnlineModel<String> model = new OnlineModel<String>();
-			model.symbols(terminalSets.get(i));
-
-			for (List<Integer> occurrence : occurrences)
-			{
-				String label = graph.get(occurrence.get(index)).label();
-				bits -= Functions.log2(model.observe(label));
-			}
-		}
-
-		// * The string terminals aren't stored.
-
-		return bits;
-
-	}
-
 	public static double wiringBits(List<Integer> wiring)
 	{
 		int max = Integer.MIN_VALUE;
 		for (int i : wiring)
 			max = Math.max(max, i);
 
-		OnlineModel<Integer> om = new OnlineModel<Integer>();
-		om.symbols(Series.series(max + 1));
+		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(max + 1));
 
 		double bits = 0.0;
 		for (int wire : wiring)
@@ -363,91 +383,6 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			}
 			i++;
 		}
-
-		return copy;
-	}
-
-	/**
-	 * Substitute multiple motifs
-	 * 
-	 * @param inputGraph
-	 * @param subs
-	 * @param occurrencesMap
-	 * @param wiring
-	 * @return
-	 */
-	public static DGraph<String> subbedGraphMulti(DGraph<String> inputGraph,
-			List<DGraph<String>> subs,
-			Map<DGraph<String>, List<List<Integer>>> occurrencesMap,
-			List<Integer> wiring)
-	{
-		int numSymbols = 0;
-		DGraph<String> copy = MapDTGraph.copy(inputGraph);
-
-		Set<Node<String>> toRemove = new LinkedHashSet<Node<String>>();
-
-		for (DGraph<String> sub : subs)
-		{
-
-			String symbol = MOTIF_SYMBOL + (numSymbols++);
-			List<List<Integer>> occurrences = occurrencesMap.get(sub);
-
-			// * Translate the occurrences from integers to nodes (in the copy)
-			List<List<DNode<String>>> occ = new ArrayList<List<DNode<String>>>(
-					occurrences.size());
-			for (List<Integer> occurrence : occurrences)
-			{
-				List<DNode<String>> nodes = new ArrayList<DNode<String>>(
-						occurrence.size());
-				for (int index : occurrence)
-					nodes.add(copy.get(index));
-				occ.add(nodes);
-			}
-
-			int totalOcc = occ.size(), i = 0;
-			// * For each occurrence of the motif on the graph
-			for (List<DNode<String>> nodes : occ)
-			{
-				// if(i % 100 == 0)
-				// Global.log().info("Multi: starting " + i + " of "+ totalOcc +
-				// " occurrences ("+String.format("%.2f", ((100.0 *
-				// i)/totalOcc))+"%). ");
-
-				if (alive(nodes, toRemove)) // -- make sure none of the nodes of
-											// the occurrence
-											// been removed. If two occurrences
-											// overlap,
-											// only the first gets replaced.
-				{
-					// * Wire a new symbol node into the graph to represent the
-					// occurrence
-					DNode<String> newNode = copy.add(symbol);
-
-					int indexInSubgraph = 0;
-					for (DNode<String> node : nodes)
-					{
-						for (DNode<String> neighbor : node.neighbors())
-							if (!nodes.contains(neighbor))
-							{
-								for (DLink<String> link : node
-										.linksOut(neighbor))
-									newNode.connect(neighbor);
-								for (DLink<String> link : node
-										.linksIn(neighbor))
-									neighbor.connect(newNode);
-
-								wiring.add(indexInSubgraph);
-							}
-
-						indexInSubgraph++;
-					}
-				}
-				i++;
-			}
-		}
-
-		for (Node<String> node : toRemove)
-			node.remove();
 
 		return copy;
 	}
