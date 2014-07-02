@@ -237,8 +237,6 @@ public class MotifVar
 		
 		OnlineModel<String> labelModel = new OnlineModel<String>(graph.labels());
 		labelModel.addToken(MOTIF_SYMBOL);
-
-		System.out.println(labelModel.tokens());
 		
 		for (Node<String> node : graph.nodes())
 			if (inOccurrence.get(node.index()) == null)
