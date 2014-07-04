@@ -41,7 +41,7 @@ public class MotifVarTest
 		
 		DNode<String> a = motif.add("a"),
 		              b = motif.add("b"),
-		              v = motif.add(MotifVar.VARIABLE_SYMBOL);
+		              v = motif.add(MotifVarTags.VARIABLE_SYMBOL);
 		
 		a.connect(b);
 		b.connect(v);
