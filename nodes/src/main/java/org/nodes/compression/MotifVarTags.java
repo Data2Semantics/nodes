@@ -489,7 +489,7 @@ public class MotifVarTags
 		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(motif.size()));
 
 		double bits = 0.0;
-		
+
 		for(List<Integer> occurrence : occurrences)
 		{
 			Set<Integer> occurrenceNodes = new HashSet<Integer>(occurrence);
@@ -510,7 +510,23 @@ public class MotifVarTags
 			
 			}
 		}
-
+		
+//		for(DTLink<String, String> link : graph.links())
+//		{
+//			int from = link.from().index();
+//			int to = link.to().index();
+//			
+//			if(inOccurrence.get(from) != null)
+//			{
+//				
+//			}
+//			
+//			if(inOccurrence.get(to) != null)
+//			{
+//				
+//			}
+//		}
+		
 		return bits;
 	}
 

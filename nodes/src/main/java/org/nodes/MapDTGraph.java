@@ -144,7 +144,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<MapDTNode> neighbors()
 		{
-			LinkedHashSet<MapDTNode> set = new LinkedHashSet<MapDTNode>();
+			List<MapDTNode> set = new ArrayList<MapDTNode>();
 			set.addAll(neighborsTo);
 			set.addAll(neighborsFrom);
 			
