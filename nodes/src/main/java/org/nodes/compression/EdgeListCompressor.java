@@ -38,7 +38,6 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public static <N> double undirected(Graph<N> graph)
 	{
-		System.out.println("aaa " + graph.size());
 		OnlineModel<Integer> model = new OnlineModel<Integer>(Series.series(graph.size()));
 		
 		double bits = 0;

@@ -45,9 +45,6 @@ public class Functions
 
 	public static int prefix(int value, int d)
 	{
-		if (value < 0)
-			System.out.println(value + " " + d);
-
 		if (d == 0)
 			return 2 * length(value) + 1;
 
