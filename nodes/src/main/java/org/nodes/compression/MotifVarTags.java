@@ -15,6 +15,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.nodes.DGraph;
 import org.nodes.DLink;
@@ -63,15 +65,29 @@ public class MotifVarTags
 	private int replacedNodes = 0;
 	private int numLabels;
 	
+	private boolean specifySubstitutions;
+	
+	/**
+	 * 
+	 * @param graph
+	 * @param motif
+	 * @param occurrences
+	 * @param specifySubstitutions If true, the encoding encodes the substitutions
+	 *  by first encoding the set of symbols used (with uniform encoding) and
+	 *  then using a KT estimator with that alphabet. If false, a KT estimator is 
+	 *  used directly with the set of tags or labels as an alphabet. 
+	 */
 	public MotifVarTags(
 			DTGraph<String, String> graph, 
 			DTGraph<String, String> motif,
-			List<List<Integer>> occurrences)
+			List<List<Integer>> occurrences,
+			boolean specifySubstitutions)
 	{
 		super();
 		this.graph = graph;
 		this.motif = motif;
 		this.occurrences = occurrences;
+		this.specifySubstitutions = specifySubstitutions;
 
 		inOccurrence = new ArrayList<Integer>(graph.size());
 		for(int i : series(graph.size()))
@@ -100,6 +116,7 @@ public class MotifVarTags
 		bits += silhouetteLabels();
 		
 		bits += labelSubstitutions();
+		bits += tagSubstitutions();
 		bits += wiring();
 				
 		return bits;
@@ -121,14 +138,15 @@ public class MotifVarTags
 		
 		// * Store the labels
 		OnlineModel<String> labelModel = new OnlineModel<String>(graph.labels());
-		labelModel.add(VARIABLE_SYMBOL, 0.0);
+		labelModel.addToken(VARIABLE_SYMBOL);
 		
 		for(DNode<String> node : motif.nodes())
 			bits += - Functions.log2(labelModel.observe(node.label()));
 		
 		// * Store the tags
+		
 		OnlineModel<String> tagModel = new OnlineModel<String>(graph.tags());
-		tagModel.add(VARIABLE_SYMBOL, 0.0);
+		tagModel.addToken(VARIABLE_SYMBOL);
 		
 		for(DTLink<String, String> link : motif.links())
 			bits += - Functions.log2(tagModel.observe(link.tag()));
@@ -314,12 +332,18 @@ public class MotifVarTags
 		{
 			Set<String> terminals = terminalSets.get(i);
 
-			// - Store the set of terminals
-			bits += prefix(terminals.size());
-			bits += log2(numLabels) * terminals.size();
+			if(specifySubstitutions)
+			{
+				// - Store the set of terminals
+				bits += prefix(terminals.size());
+				bits += log2(numLabels) * terminals.size();
+			}
 			
 			// - Store the sequence of terminals
-			OnlineModel<String> model = new OnlineModel<String>(terminals);
+			OnlineModel<String> model = 
+					specifySubstitutions ? 
+					new OnlineModel<String>(terminals) :
+					new OnlineModel<String>(graph.labels());	
 			
 			int index = indices.get(i);
 			for (List<Integer> occurrence : occurrences)
@@ -397,12 +421,20 @@ public class MotifVarTags
 		{
 			// Store the set of symbols
 			Set<String> set = new LinkedHashSet<String>(sequence);
-			bits += prefix(set.size());
-			bits += set.size() * log2(graph.tags().size());
+			
+			if(specifySubstitutions)
+			{
+				bits += prefix(set.size());
+				bits += set.size() * log2(graph.tags().size());
+			}
 			
 			// Store the sequence
 			// We know the length of sequence already
-			OnlineModel<String> model = new OnlineModel<String>(set);
+			OnlineModel<String> model = 
+					specifySubstitutions ?
+					new OnlineModel<String>(set) :
+					new OnlineModel<String>(graph.tags());
+			
 			for(String symbol : sequence)
 				bits += - log2(model.observe(symbol));
 		}
@@ -533,12 +565,32 @@ public class MotifVarTags
 	/**
 	 * Creates the actual graph with ocurrences replaced by symbol nodes. Note
 	 * that this operation is not necessary to compute the code length.
+	 * 
+	 * The symbol nodes in the returned graph are indexed. The method will first
+	 * check for the next available index, and use that for the symbol nodes in 
+	 * the returned graph.
 	 *  
 	 * @param wiring An empty list to which this method will add the wiring info
 	 * @return
 	 */
 	public DTGraph<String, String> subbedGraph(List<Integer> wiring)
 	{
+		// * Check for the next available index
+		int index = -1;
+		for(Node<String> node : graph.nodes())
+		{
+			String label = node.label();
+			Matcher matcher = Pattern.compile(Pattern.quote(MOTIF_SYMBOL) + "_(.*)").matcher(label);
+			
+			if(matcher.matches())
+			{
+				System.out.println(label);
+				index = Math.max(index, Integer.parseInt(matcher.group(1)));
+			}
+		}
+		
+		index++;
+		
 		DTGraph<String, String> copy = MapDTGraph.copy(graph);
 
 		// * Translate the occurrences from integers to nodes (in the copy)
@@ -548,8 +600,8 @@ public class MotifVarTags
 		{
 			List<DNode<String>> nodes = new ArrayList<DNode<String>>(
 					occurrence.size());
-			for (int index : occurrence)
-				nodes.add(copy.get(index));
+			for (int i : occurrence)
+				nodes.add(copy.get(i));
 			occ.add(nodes);
 		}
 
@@ -565,7 +617,7 @@ public class MotifVarTags
 			{
 				// * Wire a new symbol node into the graph to represent the
 				// occurrence
-				DNode<String> newNode = copy.add(MOTIF_SYMBOL);
+				DNode<String> newNode = copy.add(MOTIF_SYMBOL+"_"+index);
 
 				int indexInSubgraph = 0;
 				for (DNode<String> node : nodes)
@@ -618,5 +670,10 @@ public class MotifVarTags
 				return false;
 
 		return true;
+	}
+	
+	public DTGraph<String, String> motifGraph()
+	{
+		return motif;
 	}
 }

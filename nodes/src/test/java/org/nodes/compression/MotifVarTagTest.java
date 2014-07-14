@@ -64,7 +64,7 @@ public class MotifVarTagTest
 			asList(0, 1, 5),
 			asList(3, 2, 4));
 		
-		MotifVarTags mv = new MotifVarTags(graph, motif, occurrences);
+		MotifVarTags mv = new MotifVarTags(graph, motif, occurrences, true);
 		
 		double motifExpected = 0.0;
 		
