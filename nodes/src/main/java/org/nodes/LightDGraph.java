@@ -26,7 +26,7 @@ import org.nodes.util.Series;
  * This graph uses non-persistent objects for nodes and links. This means that 
  * these objects become invalid if the graph is edited in such a way that its 
  * node indices change. If a node or link object belonging to this graph is 
- * accessed afetr such a change, an exception will be thrown   
+ * accessed after such a change, an exception will be thrown   
  * 
  * @author Peter
  *
@@ -288,7 +288,7 @@ public class LightDGraph<L> implements DGraph<L>
 			while(in.get(mine).remove((Integer)his));
 			while(in.get(his).remove((Integer)mine));
 
-			numLinks -= numLinks;			
+			numLinks -= links;			
 			modCount++;
 			
 			sorted = false;
@@ -381,18 +381,18 @@ public class LightDGraph<L> implements DGraph<L>
 		
 		public String toString()
 		{
-			return label() == null ? ("n"+index()) : label().toString();
+			return label() == null ? ("n"+index()) : label().toString() + "_" +index();
 		}
 
 		@Override
 		public List<DLink<L>> links()
 		{
-			List<DLink<L>> list = new ArrayList<DLink<L>>(outDegree());
+			List<DLink<L>> list = new ArrayList<DLink<L>>(degree());
 			for(int neighbor : out.get(index))
 				list.add(new LightDLink(index, neighbor));
 			
-			for(int neighbor : out.get(index))
-				if(neighbor != index)
+			for(int neighbor : in.get(index))
+				if(neighbor != index) // no double reflexive links
 					list.add(new LightDLink(neighbor, index));	
 			
 			return list;
@@ -421,14 +421,19 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public Collection<? extends DLink<L>> links(Node<L> other)
 		{
-			List<DLink<L>> links = new ArrayList<DLink<L>>();
+			List<DLink<L>> list = new ArrayList<DLink<L>>();
 			
-			// From this to that
-			for(int i : out.get(index()))
-				if(i == other.index())
-					links.add(new LightDLink(index(), i));
+			int o = other.index();
+			for(int neighbor : out.get(index))
+				if(neighbor == o)
+					list.add(new LightDLink(index, neighbor));
 			
-			return links;
+			o = other.index();
+			for(int neighbor : in.get(index))
+				if(index != o && neighbor == 0) // no double reflexive
+					list.add(new LightDLink(neighbor, index));
+			
+			return list;
 		}
 
 		@Override

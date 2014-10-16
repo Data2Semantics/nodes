@@ -23,7 +23,7 @@ public interface DTGraph<L, T> extends DGraph<L>, TGraph<L, T>
 	 */
 	public DTNode<L, T> node(L label);
 	
-	public Set<? extends DTNode<L, T>> nodes(L label);
+	public Collection<? extends DTNode<L, T>> nodes(L label);
 	
 	public List<? extends DTNode<L, T>> nodes();
 	
