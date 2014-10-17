@@ -534,7 +534,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			if (getClass() != obj.getClass())
 				return false;
 			LightDTNode other = (LightDTNode) obj;
-			if (!getOuterType().equals(other.getOuterType()))
+			if (getOuterType() != other.getOuterType()) // They don't come from the same graph object (checking for graph equality here is really, really, really slow)
 				return false;
 			if (dead != other.dead)
 				return false;
@@ -843,7 +843,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			if (getClass() != obj.getClass())
 				return false;
 			LightDTLink other = (LightDTLink) obj;
-			if (!getOuterType().equals(other.getOuterType()))
+			if (getOuterType() != other.getOuterType()) // They don't come from the same graph object (checking for graph equality here is really, really, really slow)
 				return false;
 			if (dead != other.dead)
 				return false;
@@ -1016,6 +1016,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		return a.equals(b);
 	}
 
+	///*
 	public boolean equals(Object other)
 	{	
 		if(!(other instanceof DTGraph<?,?>))
@@ -1062,6 +1063,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		}
 		return true;
 	}
+	//*/
 
 	/**
 	 * Returns a representation of the graph in Dot language format.

@@ -126,7 +126,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		private Integer labelId = null;
 		private Long labelIdMod;
 		private int index;
-
+				
 		public MapDTNode(L label)
 		{
 			this.label = label;
