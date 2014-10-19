@@ -144,7 +144,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<MapDTNode> neighbors()
 		{
-			List<MapDTNode> set = new ArrayList<MapDTNode>();
+			Set<MapDTNode> set = new LinkedHashSet<MapDTNode>();
 			set.addAll(neighborsTo);
 			set.addAll(neighborsFrom);
 			
@@ -254,9 +254,19 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 					if(link.second().equals(mdtOther))
 						toRemove.add(link);
 			}
+			/*
+			for(T tag : linksIn.keySet())
+			{
+				for(MapDTLink link : linksIn.get(tag))
+					if(link.first().equals(mdtOther))
+						toRemove.add(link);
+			}
+			*/
 			
-			for(MapDTLink link : toRemove)
+			for(MapDTLink link : toRemove) {
 				link.remove();
+				removed++;
+			}
 						
 			if(removed > 0)
 				modCount++;	
