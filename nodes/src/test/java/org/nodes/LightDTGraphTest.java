@@ -4,26 +4,26 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class LightDGraphTest
+public class LightDTGraphTest
 {
 
 
 	@Test
 	public void testMapDTGraph()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		DTGraph<String,String> graph = new LightDTGraph<String,String>();
 	}
 
 	@Test
 	public void testToString()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		DTGraph<String,String> graph = new LightDTGraph<String,String>();
 		
-		DNode<String> a = graph.add("a"),
-		              b = graph.add("b");
+		DTNode<String,String> a = graph.add("a"),
+		              		  b = graph.add("b");
 		graph.add("c");
 	
-		a.connect(b);
+		a.connect(b, "1");
 		
 		System.out.println(graph);
 	}
@@ -31,18 +31,18 @@ public class LightDGraphTest
 	@Test
 	public void starTest()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		DTGraph<String,String> graph = new LightDTGraph<String,String>();
 		
-		DNode<String> a = graph.add(null),
+		DTNode<String,String> a = graph.add(null),
 		              b = graph.add(null),
 		              c = graph.add(null),
 		              d = graph.add(null),
 		              e = graph.add(null);
 	
-		b.connect(a);
-		c.connect(a);
-		d.connect(a);
-		e.connect(a);
+		b.connect(a, "1");
+		c.connect(a, "1");
+		d.connect(a, "1");
+		e.connect(a, "1");
 		
 		System.out.println(graph);
 		
@@ -58,7 +58,7 @@ public class LightDGraphTest
 	@Test
 	public void testRemove()
 	{
-		DTGraph<String, Double> graph = new MapDTGraph<String, Double>();
+		DTGraph<String, Double> graph = new LightDTGraph<String, Double>();
 		
 		DTNode<String, Double> a = graph.add(null),
 		                       b = graph.add(null),
@@ -66,12 +66,12 @@ public class LightDGraphTest
 		                       d = graph.add(null),
 		                       e = graph.add(null);
 	
-		b.connect(a);
-		c.connect(a);
-		d.connect(a);
-		e.connect(a);
+		b.connect(a, 1.0);
+		c.connect(a, 2.0);
+		d.connect(a, 3.0);
+		e.connect(a, 4.0);
 		
-		System.out.println(graph.numLinks() + " " + graph.size());
+		//System.out.println(graph.numLinks() + " " + graph.size());
 		
 		assertEquals(4, graph.numLinks());
 		assertEquals(5, graph.size());
@@ -85,14 +85,14 @@ public class LightDGraphTest
 	@Test
 	public void testConnected()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		DTGraph<String,String> graph = new LightDTGraph<String,String>();
 		
-		DNode<String> a = graph.add(null),
+		DTNode<String,String> a = graph.add(null),
 		              b = graph.add(null),
 		              c = graph.add(null);
 	
-		a.connect(b);
-		a.connect(c);
+		a.connect(b, null);
+		a.connect(c, null);
 		
 		assertTrue(a.connected(b));
 		assertTrue(a.connectedTo(b));
@@ -119,16 +119,16 @@ public class LightDGraphTest
 	@Test
 	public void testLinks()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		DTGraph<String,String> graph = new LightDTGraph<String,String>();
 		
-		DNode<String> a = graph.add(null),
+		DTNode<String,String> a = graph.add(null),
 		              b = graph.add(null),
 		              c = graph.add(null);
 	
-		a.connect(b);
+		a.connect(b, null);
 		
-		a.connect(c);
-		a.connect(c);
+		a.connect(c, null);
+		a.connect(c, null);
 		
 		assertEquals(0, a.links(a).size());
 		assertEquals(1, a.links(b).size());
@@ -140,21 +140,21 @@ public class LightDGraphTest
 	@Test
 	public void testEquals()
 	{
-		DGraph<String> g1 = new LightDGraph<String>();
+		DTGraph<String,String> g1 = new LightDTGraph<String,String>();
 		g1.add("a");
 		g1.add("b");
 		g1.add("c");
 		
-		g1.node("a").connect(g1.node("b"));
-		g1.node("b").connect(g1.node("c"));
+		g1.node("a").connect(g1.node("b"), "1");
+		g1.node("b").connect(g1.node("c"), "2");
 		
-		DGraph<String> g2 = new LightDGraph<String>();
+		DTGraph<String,String> g2 = new LightDTGraph<String,String>();
 		g2.add("a");
 		g2.add("b");
 		g2.add("c");
 		 
-		g2.node("a").connect(g2.node("b"));                    
-		g2.node("b").connect(g2.node("c"));		
+		g2.node("a").connect(g2.node("b"), "1");                    
+		g2.node("b").connect(g2.node("c"), "2");		
          
 		assertTrue(g1.equals(g2));
 		
@@ -168,7 +168,7 @@ public class LightDGraphTest
 	{
 		DGraph<String> g1 = new LightDGraph<String>();
 		
-		DTGraph<String, String> g2 = new MapDTGraph<String, String>();
+		DTGraph<String, String> g2 = new LightDTGraph<String, String>();
 		
 		assertFalse(g1.equals(g2));
 		assertFalse(g2.equals(g1));	

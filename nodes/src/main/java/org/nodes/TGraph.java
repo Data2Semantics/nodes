@@ -23,7 +23,7 @@ public interface TGraph<L, T> extends Graph<L>
 	 */
 	public TNode<L, T> node(L label);
 	
-	public Set<? extends TNode<L, T>> nodes(L label);
+	public Collection<? extends TNode<L, T>> nodes(L label);
 	
 	public List<? extends TNode<L, T>> nodes();
 	
