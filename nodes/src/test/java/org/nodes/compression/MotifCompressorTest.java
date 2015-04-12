@@ -6,6 +6,7 @@ import static org.nodes.compression.Functions.tic;
 import static org.nodes.compression.Functions.toc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -19,6 +20,7 @@ import org.nodes.DNode;
 import org.nodes.DegreeComparator;
 import org.nodes.Graphs;
 import org.nodes.Link;
+import org.nodes.MapDTGraph;
 import org.nodes.Subgraph;
 import org.nodes.algorithms.Nauty;
 import org.nodes.random.SubgraphGenerator;
@@ -33,7 +35,6 @@ public class MotifCompressorTest
 	public void fastVsSlow()
 	{
 		boolean correct = true;
-		// DGraph<String> data = Graphs.jbcDirected();
 		DGraph<String> data = org.nodes.random.RandomGraphs.preferentialAttachmentDirected(10000, 3);
 		
 		FrequencyModel<DGraph<String>> fm = new FrequencyModel<DGraph<String>>();
@@ -90,13 +91,14 @@ public class MotifCompressorTest
 		DGraph<String> max = fm.maxToken();
 		System.out.println(max);
 		
+		System.out.println("number of occurrences " + occurrences.size());
 		
 		int repeats = 1;
 		tic();
 		
 		double bitsSlow = -1.0;
 		for(int i : Series.series(repeats))
-			bitsSlow = MotifCompressor.size(data, max, occurrences.get(max), new EdgeListCompressor<String>()); 
+			bitsSlow = MotifCompressor.size(data, max, occurrences.get(max), false, new EdgeListCompressor<String>(false));
 		
 		System.out.println("Bits slow : " + bitsSlow + ". Time taken " + toc() + " seconds.");
 		
@@ -107,7 +109,10 @@ public class MotifCompressorTest
 			bitsFast = MotifCompressor.sizeFast(data, max, occurrences.get(max)); 
 		
 		System.out.println("Bits fast : " + bitsFast + ". Time taken " + toc() + " seconds.");
-
+		
+		List<List<Integer>> empty = Collections.emptyList();
+		bitsFast = MotifCompressor.sizeFast(data, max, empty); 
+		System.out.println("Bits no occurrences: " + bitsFast + ".");
 	}
 	
 	@Test
@@ -124,5 +129,47 @@ public class MotifCompressorTest
 	}
 
 	
-	
+	@Test
+	public void subgraph()
+	{
+		DGraph<String> data = new MapDTGraph<String, String>();
+
+		DNode<String> a = data.add("a");
+		DNode<String> b = data.add("b");
+		DNode<String> c = data.add("c");
+		DNode<String> d = data.add("d");
+		DNode<String> e = data.add("e");
+		DNode<String> f = data.add("f");
+
+		b.connect(a);
+		b.connect(c);
+		a.connect(c);
+		
+		c.connect(d);
+		
+		d.connect(e);
+		d.connect(f);
+		f.connect(e);
+		
+		DGraph<String> sub = new MapDTGraph<String, String>();
+		DNode<String> x = sub.add("x");
+		DNode<String> y = sub.add("y");
+		DNode<String> z = sub.add("z");
+		
+		x.connect(y);
+		x.connect(z);
+		y.connect(z);
+		
+		List<List<Integer>> occurrences = new ArrayList<List<Integer>>(2);
+		
+		occurrences.add(Arrays.asList(1, 0, 2));
+		occurrences.add(Arrays.asList(3, 5, 4));
+		
+		List<List<Integer>> wiring = new ArrayList<List<Integer>>(2);
+		
+		DGraph<String> subbed = MotifCompressor.subbedGraph(data, sub, occurrences, wiring);
+		
+		System.out.println(wiring);
+		System.out.println(subbed);
+	}
 }

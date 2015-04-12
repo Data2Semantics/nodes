@@ -19,7 +19,7 @@ import org.nodes.UTGraph;
 import org.nodes.UTLink;
 
 /**
- * A linkgenerator prodcuees a random link from a given graph
+ * A linkgenerator produces a random link from a given graph
  * @author Peter
  *
  */

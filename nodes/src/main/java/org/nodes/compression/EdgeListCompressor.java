@@ -20,6 +20,15 @@ import org.nodes.util.Series;
 
 public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 {
+	public EdgeListCompressor()
+	{	
+		super(true);
+	}
+	
+	public EdgeListCompressor(boolean storeLabels)
+	{	
+		super(storeLabels);
+	}
 
 	@Override
 	public double structureBits(Graph<N> graph, List<Integer> order)

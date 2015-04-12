@@ -348,6 +348,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			List<MapDTNode> ns = new ArrayList<MapDTNode>(neighborsTo);
 			for(MapDTNode to: ns)
 				disconnect(to);
+			
 			ns = new ArrayList<MapDTNode>(neighborsFrom);
 			for(MapDTNode from : ns)
 				from.disconnect(this);
@@ -686,7 +687,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			dead = true;
 			
 			numEdges--;
-			modCount ++;
+			modCount++;
 		}
 
 		@Override
@@ -989,7 +990,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		// * for all connected nodes
 		for(DTNode<L, T> node : nodes())
 		{
-			if(! node.label().equals(otherGraph.get(node.index()).label()))
+			if(! Functions.equals(node.label(), otherGraph.get(node.index()).label()))
 				return false;
 			
 			for(DTNode<L, T> neighbor : node.neighbors())

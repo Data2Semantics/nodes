@@ -23,9 +23,7 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 	public static boolean storeLabels = true;
 	
 	public AbstractGraphCompressor()
-	{
-		
-	}
+	{}
 	
 	public AbstractGraphCompressor(boolean storeLabels)
 	{
@@ -69,36 +67,38 @@ public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 		
 		// * Labels
 		double labelBits = 0;
+		double tagBits = 0;
 
-		// ** Label set
-		List<N> labelSet = new ArrayList<N>(graph.labels());
-		
-		GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
-		labelBits += compressor.compressedSize(labelSet);
-		
-		// ** Label sequence
-		OnlineModel<N> labelModel = new OnlineModel<N>(labelSet); 
-				
-		for(Node<N> node : graph.nodes())
-			labelBits += - Functions.log2(labelModel.observe(node.label()));
-				
-		// * Tags
-		double tagBits = 1; // one bit to signal whether or not there are tags following
-	
-		if(graph instanceof TGraph<?, ?>)
+		if(storeLabels)
 		{
-			TGraph<?, ?> tgraph = (TGraph<?, ?>)graph;
-			// ** Tag set
-			List<?> tagSet = new ArrayList<Object>(tgraph.tags());
-			tagBits += compressor.compressedSize(tagSet);
-						
-			// ** Tag sequence
-			OnlineModel<Object> tagModel = new OnlineModel<Object>(  (Collection<Object>) tgraph.tags());
-						
-			for(TLink<?, ?> link : tgraph.links())
-				tagBits += - Functions.log2(tagModel.observe(link.tag()));
+			// ** Label set
+			List<N> labelSet = new ArrayList<N>(graph.labels());
+			
+			GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
+			labelBits += compressor.compressedSize(labelSet);
+			
+			// ** Label sequence
+			OnlineModel<N> labelModel = new OnlineModel<N>(labelSet); 
+					
+			for(Node<N> node : graph.nodes())
+				labelBits += - Functions.log2(labelModel.observe(node.label()));
+					
+			// * Tags
+			tagBits = 1;
+			if(graph instanceof TGraph<?, ?>)
+			{
+				TGraph<?, ?> tgraph = (TGraph<?, ?>)graph;
+				// ** Tag set
+				List<?> tagSet = new ArrayList<Object>(tgraph.tags());
+				tagBits += compressor.compressedSize(tagSet);
+							
+				// ** Tag sequence
+				OnlineModel<Object> tagModel = new OnlineModel<Object>(  (Collection<Object>) tgraph.tags());
+							
+				for(TLink<?, ?> link : tgraph.links())
+					tagBits += - Functions.log2(tagModel.observe(link.tag()));
+			}
 		}
-				
 		return structureBits + labelBits + tagBits;
 	}
 

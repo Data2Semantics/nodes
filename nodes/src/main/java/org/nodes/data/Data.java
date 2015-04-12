@@ -24,6 +24,7 @@ public class Data {
 	/**
 	 * Reads a file in edge-list representation into a string-labeled undirected 
 	 * graph
+	 * 
 	 * @param file
 	 * @return
 	 * @throws IOException
@@ -113,7 +114,7 @@ public class Data {
 		 {
 			line = reader.readLine();
 			i++;
-			
+
 			if(line == null)
 				continue;
 			if(line.trim().isEmpty())
@@ -158,6 +159,7 @@ public class Data {
 			
 			nodeA.connect(nodeB);
 			
+
 		} while(line != null);
 		
 		System.out.println("\nFinished. Read " + graph.numLinks() + "edges");
@@ -166,10 +168,10 @@ public class Data {
 	
 	/**
 	 * Reads a file in edge-list representation into a string-labeled directed 
-	 * graph
+	 * graph. 
 	 * 
 	 * @param file
-	 * @return
+	 * @return 
 	 * @throws IOException
 	 */
 	public static DGraph<String> edgeListDirectedUnlabeled(File file, boolean clean)
@@ -185,7 +187,7 @@ public class Data {
 		 {
 			line = reader.readLine();
 			i++;
-			
+		
 			if(line == null)
 				continue;
 			if(line.trim().isEmpty())
@@ -214,14 +216,9 @@ public class Data {
 						
 			ensure(graph, Math.max(a, b));
 			
-			DNode<String> nodeA = graph.nodes().get(a);
-			if(nodeA == null)
-				nodeA = graph.nodes().get(a);
-			
-			DNode<String> nodeB = graph.nodes().get(b);
-			if(nodeB == null)
-				nodeB = graph.nodes().get(b);
-			
+			DNode<String> nodeA = graph.get(a);
+			DNode<String> nodeB = graph.get(b);
+
 			nodeA.connect(nodeB);
 			
 			int links = graph.numLinks();

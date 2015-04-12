@@ -4,6 +4,7 @@ import static org.nodes.compression.Functions.log2;
 import static org.nodes.compression.Functions.prefix;
 import static org.nodes.compression.Functions.toc;
 import static org.nodes.util.Functions.logFactorial;
+import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,22 +60,50 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return -1.0;
 	}
 
+	/**
+	 * 
+	 * @param graph
+	 * @param sub
+	 * @param occurrences
+	 * @param storeLabels Whether to explicitly store the node labels. If false, a 
+	 * distinguishing code will still be stored for each node, but the actual string
+	 * will not be recoverable. If the nodes should also not be distinguishable by 
+	 * label, the graph should be blanked first.
+	 * @param comp
+	 * @return
+	 */
 	public static double size(
 			DGraph<String> graph, DGraph<String> sub,
-			List<List<Integer>> occurrences, 
+			List<List<Integer>> occurrences, boolean storeLabels,
 			Compressor<Graph<String>> comp)
 	{
-		List<Integer> wiring = new ArrayList<Integer>();
+		List<List<Integer>> wiring = new ArrayList<List<Integer>>();
 		
 		DGraph<String> copy = subbedGraph(graph, sub, occurrences, wiring);
 
 		double graphsBits = 0.0;
 		
-		graphsBits += labelSets(graph);
-		graphsBits += motifSize(graph, sub);
-		graphsBits += silhouetteSize(graph, copy);
+		if(storeLabels)
+		{
+			double labels = labelSets(graph); 
+			System.out.println("***     labels: " + labels);
+			graphsBits += labels;
+		}
 		
-		return labelSets(graph) + graphsBits + wiringBits(wiring);
+		double motif = motifSize(graph, sub);
+		graphsBits += motif;
+		
+		double silhouette = silhouetteSize(graph, copy);
+		graphsBits += silhouette;
+		
+		double wiringBits = wiringBits(wiring, sub);
+		graphsBits += wiringBits;
+		
+		System.out.println("***      motif: " + motif);
+		System.out.println("*** silhouette: " + silhouette);
+		System.out.println("***     wiring: " + wiringBits);
+
+		return labelSets(graph) + graphsBits;
 	}
 	
 	/**
@@ -90,7 +119,7 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		double bits = 0.0;
 		
 		// * Store the structure
-		bits += EdgeListCompressor.directed(graph); 
+		bits += EdgeListCompressor.directed(sub); 
 		
 		// * Store the labels
 		OnlineModel<String> model = new OnlineModel<String>(graph.labels());
@@ -101,13 +130,20 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return bits;
 	}
 	
+	/**
+	 * TODO: pass only labels, not the graph
+	 * 
+	 * @param graph
+	 * @param subbed
+	 * @return
+	 */
 	public static double silhouetteSize(
 			DGraph<String> graph, DGraph<String> subbed)
 	{
 		double bits = 0.0;
 		
 		// * Store the structure
-		bits += EdgeListCompressor.directed(graph); 
+		bits += EdgeListCompressor.directed(subbed); 
 		
 		// * Store the labels
 		OnlineModel<String> model = new OnlineModel<String>(graph.labels());
@@ -306,84 +342,94 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return bits;
 	}
 
-	public static double wiringBits(List<Integer> wiring)
+	public static double wiringBits(List<List<Integer>> wiring, Graph<String> sub)
 	{
-		int max = Integer.MIN_VALUE;
-		for (int i : wiring)
-			max = Math.max(max, i);
-
-		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(max + 1));
+		// TODO: Add reset
+		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(sub.size()));
 
 		double bits = 0.0;
-		for (int wire : wiring)
-			bits += -log2(om.observe(wire));
+		for(List<Integer> motif : wiring)
+			for (int wire : motif)
+				bits += -log2(om.observe(wire));
 
 		return bits;
 	}
 
-	public static DGraph<String> subbedGraph(DGraph<String> inputGraph,
-			DGraph<String> sub, List<List<Integer>> occurrences,
-			List<Integer> wiring)
+	/**
+	 * Create a copy of the input graph with all (known) occurrences of the 
+	 * given subgraph replaced by a single node.
+	 * 
+	 * @param inputGraph
+	 * @param sub
+	 * @param occurrences
+	 * @param wiring
+	 * @return
+	 */
+	public static DGraph<String> subbedGraph(
+			DGraph<String> inputGraph,
+			DGraph<String> sub, 
+			List<List<Integer>> occurrences,
+			List<List<Integer>> wiring)
 	{
 		DGraph<String> copy = MapDTGraph.copy(inputGraph);
 
+//		System.out.println("*** " + occurrences.size() + " occurrences.");
+//		System.out.println("*** original graph " + copy.size() + " " + copy.numLinks());
+//		
 		// * Translate the occurrences from integers to nodes (in the copy)
-		List<List<DNode<String>>> occ = new ArrayList<List<DNode<String>>>(
-				occurrences.size());
+		List<List<DNode<String>>> occ = 
+				new ArrayList<List<DNode<String>>>(occurrences.size());
+		
 		for (List<Integer> occurrence : occurrences)
 		{
-			List<DNode<String>> nodes = new ArrayList<DNode<String>>(
-					occurrence.size());
+			List<DNode<String>> nodes = 
+					new ArrayList<DNode<String>>(occurrence.size());
 			for (int index : occurrence)
 				nodes.add(copy.get(index));
+			
 			occ.add(nodes);
 		}
-
-		int totalOcc = occ.size(), i = 0;
-		// * For each occurrence of the motif on the graph
-		int removed = 0;
-		for (List<DNode<String>> nodes : occ)
+		
+		for (List<DNode<String>> occurrence : occ)
 		{
-			if (alive(nodes)) // -- make sure none of the nodes of the
-								// occurrence
-								// been removed. If two occurrences overlap,
-								// only the first gets replaced.
+			if (alive(occurrence)) // -- make sure none of the nodes of the
+								   // occurrence
+								   // been removed. If two occurrences overlap,
+								   // only the first gets replaced.
 			{
-				// * Wire a new symbol node into the graph to represent the
-				// occurrence
-				DNode<String> newNode = copy.add(MOTIF_SYMBOL);
+				// * Wire a new symbol node into the graph to represent the occurrence
+				DNode<String> newNode = copy.add(MotifCompressor.MOTIF_SYMBOL);
 
-				int indexInSubgraph = 0;
-				for (DNode<String> node : nodes)
+				// - This will hold the information how each edge into the motif node should be wired
+				//   into the motif subgraph (to be encoded later)
+				List<Integer> motifWiring = new ArrayList<Integer>(occ.size());
+				wiring.add(motifWiring);
+				
+				for (int indexInSubgraph : series(occurrence.size()))
 				{
-					for (DNode<String> neighbor : node.neighbors())
-						if (!nodes.contains(neighbor))
-						{
-							for (DLink<String> link : node.linksOut(neighbor))
-							{
+					DNode<String> node = occurrence.get(indexInSubgraph);
+					
+					for(DLink<String> link : node.links())
+					{
+						// If the link is external
+						DNode<String> neighbor = link.other(node);
+						
+						if(! occurrence.contains(neighbor))
+							if(link.from().equals(node))
 								newNode.connect(neighbor);
-								wiring.add(indexInSubgraph);
-							}
-
-							for (DLink<String> link : node.linksIn(neighbor))
-							{
+							else
 								neighbor.connect(newNode);
-								wiring.add(indexInSubgraph);
-							}
-						} else
-						{
-							removed++;
-						}
-
-					indexInSubgraph++;
+						
+						motifWiring.add(indexInSubgraph);
+					}
 				}
 
-				for (DNode<String> node : nodes)
+				for (DNode<String> node : occurrence)
 					node.remove();
 			}
-			i++;
 		}
-
+//		System.out.println("*** subbed " + copy.size() + " " + copy.numLinks());
+//		
 		return copy;
 	}
 
