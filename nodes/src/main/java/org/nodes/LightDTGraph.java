@@ -178,10 +178,12 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		// The modCount of the graph for which this node is safe to use
 		private final long nodeModState = nodeModCount;
 		private boolean dead = false;
-
+		private int theHashCode;
+		
 		public LightDTNode(int index)
 		{
 			this.index = index;
+			this.theHashCode = hashDude();
 		}
 
 		@Override
@@ -513,9 +515,14 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			return out.get(index).size();
 		}
 
+		
 		@Override
 		public int hashCode()
 		{
+			return this.theHashCode;
+		}
+		
+		private int hashDude() {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + getOuterType().hashCode();
@@ -523,7 +530,9 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			result = prime * result + ((index == null) ? 0 : index.hashCode());
 			return result;
 		}
+		
 
+		
 		@Override
 		public boolean equals(Object obj)
 		{
@@ -534,6 +543,8 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			if (getClass() != obj.getClass())
 				return false;
 			LightDTNode other = (LightDTNode) obj;
+			if (this.theHashCode != other.theHashCode)
+				return false;
 			if (getOuterType() != other.getOuterType()) // They don't come from the same graph object (checking for graph equality here is really, really, really slow)
 				return false;
 			if (dead != other.dead)
@@ -546,6 +557,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 				return false;
 			return true;
 		}
+		
 
 		private LightDTGraph getOuterType()
 		{
@@ -709,6 +721,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		private DTNode<L,T> from, to;
 		private int tagIndex;
 		private boolean toIndex;
+		private int theHashCode;
 
 
 		private long nodeModState = nodeModCount;
@@ -721,6 +734,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			this.to = new LightDTNode(to);
 			this.tagIndex = tagIndex;
 			this.toIndex = toIndex;
+			this.theHashCode = hashDude();
 		}
 
 		private void check()
@@ -818,8 +832,9 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		}
 
 
-		@Override
-		public int hashCode()
+		@Override public int hashCode() { return this.theHashCode; }
+		
+		public int hashDude()
 		{
 			final int prime = 31;
 			int result = 1;
@@ -828,11 +843,13 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			result = prime * result + ((from == null) ? 0 : from.hashCode());
 			result = prime * result + ((to == null) ? 0 : to.hashCode());
 			T tagThis = (toIndex) ? inTags.get(to.index()).get(tagIndex) : outTags.get(from.index()).get(tagIndex);
-			result = prime * result + tagThis.hashCode();
+			result = prime * result + ((tagThis == null) ? 0 : tagThis.hashCode());
 			return result;
 		}
+		
 
 
+		
 		@Override
 		public boolean equals(Object obj)
 		{
@@ -842,7 +859,9 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			LightDTLink other = (LightDTLink) obj;
+			LightDTLink other = (LightDTLink) obj;		
+			if (this.theHashCode != other.theHashCode)
+				return false;		
 			if (getOuterType() != other.getOuterType()) // They don't come from the same graph object (checking for graph equality here is really, really, really slow)
 				return false;
 			if (dead != other.dead)
@@ -861,9 +880,10 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 			T tagOther = (other.toIndex) ? inTags.get(other.to.index()).get(other.tagIndex) : outTags.get(other.from.index()).get(other.tagIndex);
 			if (!tagThis.equals(tagOther)) {
 				return false;
-			}			
+			}
 			return true;
 		}
+		
 
 		private LightDTGraph getOuterType()
 		{
