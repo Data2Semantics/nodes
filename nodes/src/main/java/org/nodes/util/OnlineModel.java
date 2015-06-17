@@ -3,7 +3,7 @@ package org.nodes.util;
 import java.util.Collection;
 
 /**
- * A KT estimator for observing and encoding a sequence of models.
+ * A KT estimator for observing and encoding a sequence of tokens.
  * 
  * Put simply, this encoder keeps a running model, encoding each symbol observed 
  * with its current model, and then updating the model. 
@@ -23,8 +23,8 @@ import java.util.Collection;
  *   // start observing
  * </pre>
  * 
- * Note that if this pattern is used, the user MUST ensure that all models are 
- * added before observe is called.
+ * Note that if this pattern is used, the user MUST ensure that all tokens are 
+ * added before observe is called for the first time.
  * 
  * TODO: Check that something like model.add("x", 15.3) still works.
  * 

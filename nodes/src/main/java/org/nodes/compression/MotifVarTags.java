@@ -41,8 +41,10 @@ import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 /**
- * Represents a selection of operations on a graph, a motif, and a list of 
- * occurrences for the motif 
+ * Collects a selection of operations on 
+ * * a graph
+ * * a motif
+ * * a list of occurrences for the motif 
  *
  * In contract to MotifVar.java, this version includes tags (edge labels) in the
  * motif and silhouette. Hence this method only works on DTGraphs.
@@ -67,12 +69,14 @@ public class MotifVarTags
 	
 	private boolean specifySubstitutions;
 	
+	// * whether to reset the wiring KT estimator for each occurrence
+	private boolean reset = true;
+	
 	/**
-	 * 
 	 * @param graph
 	 * @param motif
 	 * @param occurrences
-	 * @param specifySubstitutions If true, the encoding encodes the substitutions
+	 * @param specifySubstitutions If true, we encode the substitutions
 	 *  by first encoding the set of symbols used (with uniform encoding) and
 	 *  then using a KT estimator with that alphabet. If false, a KT estimator is 
 	 *  used directly with the set of tags or labels as an alphabet. 
@@ -94,13 +98,11 @@ public class MotifVarTags
 			inOccurrence.add(null);
 
 		for(int occIndex : Series.series(occurrences.size()))
-		{
 			for (Integer i : occurrences.get(occIndex))
 			{
 				inOccurrence.set(i, occIndex);
 				replacedNodes++;
 			}
-		}
 		
 		numLabels = graph.labels().size();
 	}
@@ -144,7 +146,6 @@ public class MotifVarTags
 			bits += - Functions.log2(labelModel.observe(node.label()));
 		
 		// * Store the tags
-		
 		OnlineModel<String> tagModel = new OnlineModel<String>(graph.tags());
 		tagModel.addToken(VARIABLE_SYMBOL);
 		
@@ -221,7 +222,8 @@ public class MotifVarTags
 			Integer secondOcc = inOccurrence.get(link.second().index());
 
 			if ((firstOcc == null && secondOcc == null)
-					|| firstOcc != secondOcc)
+					|| firstOcc != secondOcc) // if true, the link is not removed 
+											  // from the graph by the substitution process
 				subbedNumLinks++;
 		}
 		
@@ -231,6 +233,7 @@ public class MotifVarTags
 		// Num links in the subbed graph
 		bits += prefix(subbedNumLinks);
 		
+		// * Now we store the actual links
 		for (Link<String> link : graph.links())
 		{
 			Integer firstOcc = inOccurrence.get(link.first().index());
@@ -248,11 +251,11 @@ public class MotifVarTags
 						second : -(inOccurrence.get(second) + 1);
 
 				double p = source.observe(first) * target.observe(second);
-				
 				bits += - Functions.log2(p);
 			}
 		}
 
+		// * subtract the information stored in the link ordering
 		bits -= logFactorial(subbedNumLinks, 2.0);
 		
 		return bits;
@@ -524,6 +527,9 @@ public class MotifVarTags
 
 		for(List<Integer> occurrence : occurrences)
 		{
+			if(reset)
+				om = new OnlineModel<Integer>(Series.series(motif.size()));
+			
 			Set<Integer> occurrenceNodes = new HashSet<Integer>(occurrence);
 			for(int indexInOccurrence : Series.series(occurrence.size()))
 			{
@@ -542,22 +548,6 @@ public class MotifVarTags
 			
 			}
 		}
-		
-//		for(DTLink<String, String> link : graph.links())
-//		{
-//			int from = link.from().index();
-//			int to = link.to().index();
-//			
-//			if(inOccurrence.get(from) != null)
-//			{
-//				
-//			}
-//			
-//			if(inOccurrence.get(to) != null)
-//			{
-//				
-//			}
-//		}
 		
 		return bits;
 	}

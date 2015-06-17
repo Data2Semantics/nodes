@@ -4,6 +4,8 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.exp;
 import static java.lang.Math.floor;
 import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.pow;
 import static org.apache.commons.math3.util.ArithmeticUtils.binomialCoefficientLog;
 import static org.nodes.util.Series.series;
 
@@ -16,6 +18,8 @@ import java.io.IOException;
 import java.math.*;
 import java.text.*;
 
+import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.ArithmeticUtils;
 import org.nodes.Global;
 import org.nodes.draw.Point;
@@ -100,7 +104,7 @@ public class Functions
 	}
 	
 	/**
-	 * Calculates the log of the factorial of an integer n. Uses gamma
+	 * Calculates the log of the factorial of a double n. Uses gamma
 	 * functions.
 	 * @param n 
 	 * @return
@@ -294,6 +298,11 @@ public class Functions
 	{
 		return Math.log10(x) / Math.log10(2.0);
 	}
+	
+	public static double log(double x, double base)
+	{
+		return Math.log10(x) / Math.log10(base);
+	}
 
 	public static double logChoose(double sub, double total, double base)
 	{
@@ -420,12 +429,12 @@ public class Functions
 	 * @param sum The sum of the values in probabilities. This valeu is not 
 	 * 				calculated from the collection for reasons of efficiency.  
 	 */
-	public static int draw(Collection<Double> probabilities, double sum)
+	public static int choose(Collection<Double> probabilities, double sum)
 	{
-		return draw(probabilities, sum, Global.random());
+		return choose(probabilities, sum, Global.random());
 	}
 	
-	public static int draw(Collection<Double> probabilities, double sum, Random rand)
+	public static int choose(Collection<Double> probabilities, double sum, Random rand)
 	{
 		// * select random element
 		double draw = rand.nextDouble();
@@ -552,27 +561,7 @@ public class Functions
 		return result;
 	}
 
-	/**
-	 * Uses natural logarithms
-	 * @param logA
-	 * @param logB
-	 * @return
-	 */
-	public static double logSum(double logA, double logB)
-	{
-		double logMin, logMax;
-		
-		if(logA < logB)
-		{
-			logMin = logA;
-			logMax = logB;
-		} else {
-			logMax = logA;
-			logMin = logB;
-		}
-			
-		return log(exp(logMin) * (1 + exp(logMax - logMin)));
-	}
+
 	
 	public static double exp2(double x)
 	{
@@ -626,6 +615,126 @@ public class Functions
 		return false;
 	}
 
+	public static <E> List<E> concat(List<? extends E> first, List<? extends E> second)
+	{
+		return new CatList<E>(first, second);
+	}
 	
+	private static class CatList<E> extends AbstractList<E>
+	{
+		private List<? extends E> first, second;
 
+		public CatList(List<? extends E> first, List<? extends E> second)
+		{
+			this.first = first;
+			this.second = second;
+		}
+
+		@Override
+		public E get(int index)
+		{
+			if(index < first.size())
+				return first.get(index);
+			else
+				return second.get(index - first.size());
+		}
+
+		@Override
+		public int size()
+		{
+			return first.size() + second.size();
+		}
+		
+		
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public static double logSum(double base, double... values)
+	{
+		double max = Double.NEGATIVE_INFINITY;
+		for(double v : values)
+			max = max(max, v);
+		
+		double sum = 0.0;
+		for(double v : values)
+			sum += pow(base, v - max);
+		
+		return log(sum, base) + max;
+	}
+	
+	public static double logSum(double base, List<Double> values)
+	{
+		double max = Double.NEGATIVE_INFINITY;
+		for(double v : values)
+			max = max(max, v);
+		
+		double sum = 0.0;
+		for(double v : values)
+			sum += pow(base, v - max);
+		
+		return log(sum, base) + max;
+	}
+	
+	public static double logMin(double base, double a, double b)
+	{
+		double max = max(a, b);
+		
+		return log(pow(base, a-max) - pow(base, b-max), base) + max;
+	}
+	
+	public static double log2Sum(List<Double> values)
+	{
+		return logSum(2.0, values);
+	}
+	
+	public static double log2Sum(double...values)
+	{
+		return logSum(2.0, values);
+	}
+	
+	public static double log2Min(double a, double b)
+	{
+		return logMin(2.0, a, b);
+	}
+	
+	public static boolean isInvertible(RealMatrix in)
+	{
+		return new LUDecomposition(in).getSolver().isNonSingular();
+	}
+	
+	public static double getDeterminant(RealMatrix in)
+	{
+		return new LUDecomposition(in).getDeterminant();
+	}
+
+	public static RealMatrix inverse(RealMatrix in) 
+	{
+		return new LUDecomposition(in).getSolver().getInverse();
+	}
+	
+	public static boolean isSingular(RealMatrix in)
+	{
+		return ! new LUDecomposition(in).getSolver().isNonSingular();
+	}
+	
+	public static String toString(RealMatrix s)
+	{
+		return toString(s, 1);
+	}
+
+	public static String toString(RealMatrix s, int dec)
+	{
+		String result = "";
+		for(int i : series(s.getRowDimension()))
+		{
+			for(int j : series(s.getColumnDimension()))
+				result += String.format("%."+dec+"f\t", s.getEntry(i, j));
+			result += "\n";
+		}
+			
+		return result;
+	}
 }

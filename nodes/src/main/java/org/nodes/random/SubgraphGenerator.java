@@ -183,7 +183,7 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 				}
 					
 					
-				logProbability = Functions.logSum(logProbability, sub);
+				logProbability = Functions.log2Sum(logProbability, sub);
 			}
 			
 		}
