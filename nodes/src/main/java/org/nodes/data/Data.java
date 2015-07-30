@@ -32,6 +32,13 @@ public class Data {
 	public static UTGraph<String, String> edgeList(File file)
 			throws IOException
 	{
+		return edgeList(file, false);
+	}
+	
+	
+	public static UTGraph<String, String> edgeList(File file, boolean bipartite)
+				throws IOException
+	{
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		UTGraph<String, String> graph = new MapUTGraph<String, String>();
 				
@@ -52,30 +59,20 @@ public class Data {
 			
 			String[] split = line.split("\\s");
 			if(split.length < 2)
-				throw new IllegalArgumentException("Line "+i+" does not split into two elements.");
+				throw new IllegalArgumentException("Line "+i+" does not split into two (or more) elements.");
 			
 			String a, b, c = null;
-			try {
-				a = split[0];
-			} catch(NumberFormatException e)
-			{
-				throw new RuntimeException("The first element on line "+i+" ("+split[0]+") cannot be parsed into an integer.", e);
-			}
+			a = split[0];
+			b = split[1];
 			
-			try {
-				b = split[1];
-			} catch(NumberFormatException e)
+			if(bipartite)
 			{
-				throw new RuntimeException("The second element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
+				a = "l"+a;
+				b = "r"+b;
 			}
 
 			if(split.length > 2)
-				try {
-					c = split[2];
-				} catch(NumberFormatException e)
-				{
-					throw new RuntimeException("The third element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
-				}				
+				c = split[2];
 						
 			UTNode<String, String> nodeA = graph.node(a);
 			if(nodeA == null)

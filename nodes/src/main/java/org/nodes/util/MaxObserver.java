@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.RandomAccess;
+
+import org.nodes.Global;
 
 /**
- * Maintains an ordered list of the top k largest elements seen.
+ * Maintains a list of the top k largest elements seen.
  * 
  * @author Peter
  *
@@ -42,6 +45,9 @@ public class MaxObserver<T>
 	
 	public void observe(T element)
 	{
+		if(k == 0)
+			return;
+		
 		// * The buffer isn't full yet 
 		if(elements.size() < k)
 		{
@@ -88,7 +94,6 @@ public class MaxObserver<T>
 	
 	private class Wrap implements Comparator<T>
 	{
-
 		@SuppressWarnings("unchecked")
 		@Override
 		public int compare(T first, T second)
@@ -138,4 +143,66 @@ public class MaxObserver<T>
 		return (wrap.compare(first, second) <= 0);
 	}
 	
+	/**
+	 * Returns 
+	 * 
+	 * @param k
+	 * @param in
+	 * @param comp
+	 * @param copy If true, the original list is copied. If false, the original list is used,
+	 *   and the order will be changed.
+	 * @return
+	 */
+	public static <T> List<T> quickSelect(int k, List<T> in, Comparator<T> comp, boolean copy)
+	{
+		if(copy)
+			in = new ArrayList<T>(in);
+		
+		select(k, in, 0, in.size(), comp);
+		
+		return in.subList(0, k);
+	}
+	
+	protected static <T> int select(int k, List<T> list, int from, int to, Comparator<T> comp)
+	{
+		if(from == to -1)
+			return from;
+		
+		int pivotIndex = Global.random().nextInt(to - from) + from;
+		pivotIndex = partition(list, from, to, pivotIndex, comp);
+		
+		if(k == pivotIndex)
+			return pivotIndex;
+		else if(k < pivotIndex)
+			return select(k, list, from, pivotIndex, comp);
+		else 
+			return select(k, list, pivotIndex + 1, to, comp);
+	}
+	
+	/**
+	 * 
+	 * @param list
+	 * @param from Range start inclusive
+	 * @param to Range end exclusive
+	 * @param pivotIndex
+	 */
+	public static <T> int partition(List<T> list, int from, int to, int pivotIndex, Comparator<T> comp)
+	{
+		T pivotValue = list.get(pivotIndex);
+		
+		swap(list, pivotIndex, to - 1);
+		int storeIndex = from;
+		for(int i : Series.series(from, to - 1))
+			if( comp.compare(list.get(i), pivotValue) < 0)
+				swap(list, storeIndex ++, i);
+		swap(list, to - 1, storeIndex);
+		return storeIndex;
+	}
+	
+	public static <T> void swap(List<T> list, int first, int second)
+	{
+		T temp = list.get(first);
+		list.set(first, list.get(second));
+		list.set(second, temp);
+	}
 }

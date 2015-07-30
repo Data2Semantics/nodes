@@ -20,7 +20,7 @@ import org.nodes.util.Pair;
 
 /**
  * 
- * TODO: This required an UndirectedGraph implementation.
+ * TODO: This requires an UndirectedGraph implementation.
  * @author Peter
  *
  */

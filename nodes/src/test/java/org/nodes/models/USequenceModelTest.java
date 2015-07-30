@@ -2,21 +2,28 @@ package org.nodes.models;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.nodes.models.USequenceModel.findMaxFailDegree;
 import static org.nodes.models.USequenceModel.isGraphical;
+import static org.nodes.models.USequenceModel.numZeroes;
 import static org.nodes.util.Functions.tic;
 import static org.nodes.util.Functions.toc;
 import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.junit.Test;
 import org.nodes.Graph;
 import org.nodes.Graphs;
+import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.Functions;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 public class USequenceModelTest
@@ -44,18 +51,36 @@ public class USequenceModelTest
 		assertFalse(isGraphical(Arrays.asList(4, 2, 2, 2, 0)));
 		assertFalse(isGraphical(Arrays.asList(4, 4, 2, 2, 1)));
 		assertFalse(isGraphical(Arrays.asList(1, 1, 1, 1, 1)));
+		
+		assertFalse(isGraphical(Arrays.asList(3, 3, 1, 1)));
+		assertFalse(isGraphical(Arrays.asList(3, 3, 1, 1, 0, 0)));
 
+		assertFalse(isGraphical(Arrays.asList(5, 5, 1, 1, 1, 1, 1, 1)));
+		assertFalse(isGraphical(Arrays.asList(5, 5, 1, 1, 1, 1, 1, 1, 0, 0)));
+
+		assertFalse(isGraphical(Arrays.asList(2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)));
+		
 	}
+	
+	@Test
+	public void testNumZeroes()
+	{
+		assertEquals(1, numZeroes(asList(4, 2, 2, 2, 0)));
+		assertEquals(2, numZeroes(asList(4, 2, 2, 2, 0, 0)));
+		assertEquals(5, numZeroes(asList(0, 0, 0, 0, 0)));
+	}
+	
 	
 	@Test
 	public void testIsGraphicalSpeed()
 	{
-		Graph<?> graph = org.nodes.random.RandomGraphs.random(10000, 50000);
+		Graph<?> graph = org.nodes.random.RandomGraphs.random(1000, 5000);
+		
 		List<Integer> sequence = new ArrayList<Integer>(graph.size());
 		for(Node<?> node : graph.nodes())
 			sequence.add(node.degree());
 	
-		for(int i : series(100))
+		for(int i : series(5000))
 			isGraphical(sequence);
 	}
 	
@@ -103,7 +128,9 @@ public class USequenceModelTest
 	public void testFoodWeb()
 	{
 		List<Integer> sequence = asList(7, 8, 5, 1, 1, 2, 8, 10, 4, 2, 4, 5, 3, 
-			6, 7, 3, 2, 7, 6, 1, 2, 9, 6, 1, 3, 4, 6, 3, 3, 3, 2, 4, 4); 
+			6, 7, 3, 2, 7, 6, 1, 2, 9, 6, 1, 3, 4, 6, 3, 3, 3, 2, 4, 4);
+		
+		System.out.println(USequenceModel.sum(sequence));
 
 		tic();
 		USequenceModel<String> model = new USequenceModel<String>(sequence, 6000);
@@ -118,17 +145,17 @@ public class USequenceModelTest
 	@Test
 	public void testBig()
 	{
-		Graph<String> graph = RandomGraphs.preferentialAttachment(66, 2);
+		Graph<String> graph = RandomGraphs.random(1000, 10000);
 		System.out.println("sampled");
 		
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(graph, 6000);
+		USequenceModel<String> model = new USequenceModel<String>(graph, 25);
 		System.out.println("Sampling completed in " + toc() + " seconds.");
 
-		System.out.println("number of graphs of size " + model.numGraphs() + " +/- " + Math.pow(2.0, model.logStdError()));
+		System.out.println("number of graphs of size " + model.logNumGraphs() +
+				" [" + model.confidenceNaiveLower() + ", " + model.confidenceNaiveUpper()+ "]"); 
 		System.out.println("effective sample size " + model.effectiveSampleSize());
 	}
-	
 	
 	@Test
 	public void test3Regular()
@@ -181,6 +208,92 @@ public class USequenceModelTest
 	{
 		USequenceModel<String> model = new USequenceModel<String>(Arrays.asList(3,2,2,2,1), 500);
 		System.out.println(model.nonuniform().graph());
+	}
+	
+	@Test 
+	public void testFindXks()
+	{	
+		assertEquals(asList(11, 7, 4), USequenceModel.findxks(asList(5,5,4,3, 2, 2, 2, 1, 1, 1, 1)));
+		
+		assertEquals(asList(4, 2), USequenceModel.findxks(asList(3, 3, 1, 1)));
+		assertEquals(asList(8, 2), USequenceModel.findxks(asList(5, 5, 1, 1, 1, 1, 1, 1)));
+	}
+
+	@Test 
+	public void testFindFailDegree()
+	{
+		List<USequenceModel.Index> seq = new ArrayList<USequenceModel.Index>();
+		seq.add(new USequenceModel.Index(2, false));
+		seq.add(new USequenceModel.Index(2, false));
+		seq.add(new USequenceModel.Index(2, false));
+		seq.add(new USequenceModel.Index(1, false));
+		seq.add(new USequenceModel.Index(1, false));
+		
+		assertEquals(0, findMaxFailDegree(seq));
+	}
+	
+	@Test 
+	public void testFindAcceptableSet()
+	{
+		List<Integer> seq; 
+		Graph<String> graph = new MapUTGraph<String, String>();
+		
+		Node<String> a = graph.add("a");
+		Node<String> b = graph.add("b");
+		Node<String> c = graph.add("c");
+		Node<String> d = graph.add("d");
+		Node<String> e = graph.add("e");
+		
+		Node<String> hub = graph.get(0);
+
+		List<Integer> expected;
+		
+		seq = asList(4, 3, 3, 2, 2);
+		
+		expected = asList(1, 2, 3, 4);
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		a.connect(c);
+		seq = asList(3, 3, 2, 2, 2);
+		
+		expected = asList(1, 3, 4);
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		a.connect(d);
+		seq = asList(2, 3, 2, 1, 2);
+		
+		expected = asList(1, 4);
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		a.connect(e);
+		seq = asList(1, 3, 2, 1, 1);
+		
+		expected = asList(1);
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		a.connect(b);
+		
+		seq = asList(0, 2, 2, 1, 1);
+		
+		hub = b;
+		
+		expected = asList(2, 3, 4);
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		b.connect(e);
+		seq = asList(0, 1, 2, 1, 0);
+		
+		expected = asList(2); // NOTE: d is no longer acceptable
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		
+		b.connect(c);
+		seq = asList(0, 0, 1, 1, 0);
+		
+		hub = c;
+		
+		expected = asList(3); 
+		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+
 	}
 	
 }
