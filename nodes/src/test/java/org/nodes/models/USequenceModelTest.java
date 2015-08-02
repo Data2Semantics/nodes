@@ -1,12 +1,15 @@
 package org.nodes.models;
 
+import static java.lang.Math.sqrt;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.nodes.models.USequenceModel.findMaxFailDegree;
 import static org.nodes.models.USequenceModel.isGraphical;
 import static org.nodes.models.USequenceModel.numZeroes;
+import static org.nodes.util.Functions.exp2;
 import static org.nodes.util.Functions.tic;
 import static org.nodes.util.Functions.toc;
+import static org.nodes.util.LogNumTest.l;
 import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.math3.distribution.TDistribution;
 import org.junit.Test;
 import org.nodes.Graph;
 import org.nodes.Graphs;
@@ -23,6 +27,8 @@ import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.Functions;
+import org.nodes.util.LogNum;
+import org.nodes.util.LogNumTest;
 import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
@@ -145,17 +151,48 @@ public class USequenceModelTest
 	@Test
 	public void testBig()
 	{
-		Graph<String> graph = RandomGraphs.random(1000, 10000);
+		Graph<String> graph = RandomGraphs.random(30, 300);
 		System.out.println("sampled");
 		
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(graph, 25);
+		USequenceModel<String> model = new USequenceModel<String>(graph, 5);
+		System.out.println(model.logSamples());
+		
+		for(double y : model.logSamples())
+			System.out.println(Functions.exp2(y));
+
 		System.out.println("Sampling completed in " + toc() + " seconds.");
 
-		System.out.println("number of graphs of size " + model.logNumGraphs() +
-				" [" + model.confidenceNaiveLower() + ", " + model.confidenceNaiveUpper()+ "]"); 
+//		System.out.println("log std dev " + model.logStdDev());
+//		System.out.println("std dev " + exp2(model.logStdDev()));
+//		
+//		System.out.println("log std error " + model.logStdError());
+//		System.out.println("std error " + exp2(model.logStdError()));
+//		
+//		System.out.println("std error " + exp2(model.logStdDev()) / sqrt(10) );
+		
+		System.out.println("log number of graphs " + model.logNumGraphs());
+		
+		double alpha = 0.05;
+		
+		Pair<Double, Double> ci;
+		ci = model.confidence(alpha, USequenceModel.CIType.TWO_SIDED);
+		System.out.println("standard:   [" + ci.first() + ", " + ci.second() + "]");
+		
+		ci = model.confidence(alpha, USequenceModel.CIMethod.LOG_NORMAL, USequenceModel.CIType.TWO_SIDED);
+		System.out.println("lognorm:    [" + ci.first() + ", " + ci.second() + "]");
+
+		ci = model.confidence(alpha, USequenceModel.CIMethod.PERCENTILE, USequenceModel.CIType.TWO_SIDED);
+		System.out.println("percentile: [" + ci.first() + ", " + ci.second() + "]");
+		
+		ci = model.confidence(alpha, USequenceModel.CIMethod.BCA, USequenceModel.CIType.TWO_SIDED);
+		System.out.println("bca:        [" + ci.first() + ", " + ci.second() + "]");
+		
+		
 		System.out.println("effective sample size " + model.effectiveSampleSize());
+
 	}
+	
 	
 	@Test
 	public void test3Regular()
@@ -296,5 +333,61 @@ public class USequenceModelTest
 
 	}
 	
+	@Test
+	public void quick()
+	{
+		for(int i : series(1, 1000))
+		{
+			TDistribution dist = new TDistribution(i);
+		
+			System.out.println(dist.inverseCumulativeProbability(0.025));
+		}
+	}
+	
+	@Test
+	public void computeATest()
+	{
+		double a, b, c;
+		
+		a = 1.0; b =10.0; c = 88.0;
+		LogNum exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
+		LogNum actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		actual.toBase(2.0);
+		
+		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);
+		assertEquals(exp.positive(), actual.positive());
+		
+		a = 1.0; b =1.0; c = 1.0;
+		exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
+		actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		actual.toBase(2.0);
+		
+		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);
+		assertEquals(exp.positive(), actual.positive());
+		
+		a = -1.0; b = 0.0; c = 1.0;
+		exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
+		actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		actual.toBase(2.0);
+				
+		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);
+		assertEquals(exp.positive(), actual.positive());
+	}
+	
+	public double computeATest(double a, double b, double c)
+	{
+		double mean = (a + b + c)/3.0;
+		double da = mean - a, db = mean - b, dc = mean - c;
+		
+		double num = da*da*da + db*db*db + dc*dc*dc;
+		double den = da*da + db*db + dc*dc;
+		
+		den = Math.sqrt(den);
+		den = den * den * den;
+		if(den == 0.0)
+			return 0.0;
+		
+		return num / (6.0 * den);
+	}
 }
 

@@ -531,7 +531,7 @@ public class Functions
 	public static List<Integer> sample(int k, int size)
 	{
 		if(0 > k || k > size)
-			throw new IllegalArgumentException("Argument k ("+k+") must be non-negative and larger than size ("+size+")");
+			throw new IllegalArgumentException("Argument k ("+k+") must be non-negative and smaller than size ("+size+")");
 		// * The algorithm we use basically simulates having an array with the 
 		//   values of 0 to n - 1 at their own indices, and for each i, choosing
 		//   a random index above it and swapping the two entries.
@@ -561,11 +561,11 @@ public class Functions
 		return result;
 	}
 
-
+	private static final double LN2 = Math.log(2.0);
 	
 	public static double exp2(double x)
 	{
-		return Math.exp(x);
+		return Math.exp(x * LN2);
 	}
 	
     public static <T> Set<T> asSet(T... a) {
@@ -677,9 +677,12 @@ public class Functions
 		
 		return log(sum, base) + max;
 	}
-	
+
 	public static double logMin(double base, double a, double b)
 	{
+		if(b == Double.NEGATIVE_INFINITY)
+			return a;
+		
 		double max = max(a, b);
 		
 		return log(pow(base, a-max) - pow(base, b-max), base) + max;

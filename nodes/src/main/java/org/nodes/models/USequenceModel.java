@@ -1,14 +1,18 @@
 package org.nodes.models;
 
 import static java.lang.Math.E;
+import static java.lang.Math.floor;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+import static org.nodes.models.USequenceModel.CIMethod.STANDARD;
 import static org.nodes.util.Functions.choose;
 import static org.nodes.util.Functions.exp2;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.log2Min;
 import static org.nodes.util.Functions.log2Sum;
+import static org.nodes.util.LogNum.fromDouble;
 import static org.nodes.util.Pair.first;
 import static org.nodes.util.Series.series;
 
@@ -23,6 +27,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.Global;
@@ -32,6 +38,7 @@ import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.util.Functions;
 import org.nodes.util.Generator;
+import org.nodes.util.LogNum;
 import org.nodes.util.MaxObserver;
 import org.nodes.util.Pair;
 import org.nodes.util.Series;
@@ -48,45 +55,43 @@ import org.nodes.util.Series;
 public class USequenceModel<L> implements Model<L, UGraph<L>>
 {	
 	public static final boolean PICK_CANDIDATE_BY_DEGREE = true;
-	private static final double ALPHA = 0.05;
 	private L label = null;
-	private boolean check = false;
-	private int samples; 
 	private List<Integer> sequence;
-	private int n;
-	
-	// * (estimated) logprob for graphs with this sequence 
-	private double logProb, logConf, numGraphs, logNumGraphs;
-	private double logStdDev;
-	private double logStdError, confLower, confUpper;
-	private double logEffSampleSize; 
 	
 	private List<Double> logSamples;
-	private double confBootstrapLower, confBootstrapUpper;
 
 	public USequenceModel(Graph<?> data, int samples)
 	{
-		this.samples = samples;
+		this(data);
+		
+		for(int i : series(samples))
+			nonuniform();
+	}
+	
+	public USequenceModel(Graph<?> data)
+	{
+
 		sequence = new ArrayList<Integer>(data.size());
 		
 		for(Node<?> node : data.nodes())
 			sequence.add(node.degree());
-			
-		n = sequence.size();
-		
-		this.check = check;
-		
-		compute();
+							
+		this.logSamples = new ArrayList<Double>();
 	}
 	
 	public USequenceModel(List<Integer> sequence, int samples)
 	{
-		this.samples = samples;
+		this(sequence);
+
+		for(int i : series(samples))
+			nonuniform();
+	}
+	
+	public USequenceModel(List<Integer> sequence)
+	{
 		this.sequence = new ArrayList<Integer>(sequence);
-			
-		n = sequence.size();
-				
-		compute();
+					
+		this.logSamples = new ArrayList<Double>();
 	}
 	
 	public List<Double> logSamples()
@@ -94,141 +99,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		return Collections.unmodifiableList(logSamples);
 	}
 	
-	private void compute()
-	{
-		logSamples = new ArrayList<Double>(samples);
-		
-		List<Double> logSigmas = new ArrayList<Double>(samples);
-		List<Double> logCs     = new ArrayList<Double>(samples);
-		
-		for(int i : series(samples))
-		{
-			Result result = nonuniform();
-			logSigmas.add(result.logSigma());
-			logCs.add(result.logC());
-			
-			logSamples.add(- result.logSigma() - result.logC());
-			
-			if(i % 10 == 0) System.out.print('.');
-			if(i % 1000 == 0) System.out.println("\n"+i);
-		}
-		
-		double logEstimate = log2Sum(logSamples) - log2(samples);
-		
-		logNumGraphs = logEstimate;
-		numGraphs = pow(2.0, logNumGraphs);
-		logProb = - logEstimate;
-		
-		
-		// * Compute the standard deviation
-		//   This one gets a little complicated to avoid overflows
-		//   let c_i be log cY + log sigmaY for sample i
-		//   let log m be the logarithm of the estimated number of graphs
-		//   a = 2 * logsum c_i, 
-		//   b = logsum(c_i + log m)
-		//   c = 2 log m + log n
-		//   Then the logartihm of the standard deviation is
-		//   1 - 0.5 log(n-1) + 0.5 log(2^a - 2^b + 2^c)
-
-		double a, b, c;
-		
-		List<Double> cs = new ArrayList<Double>(samples);
-		for(int i : series(samples))
-			cs.add(- 2.0 * (logSigmas.get(i) + logCs.get(i)));
-		
-		a = log2Sum(cs); 
-		cs = null;
-		
-		List<Double> cPlus = new ArrayList<Double>(samples);
-		for(int i : series(samples))
-			cPlus.add(logNumGraphs - logSigmas.get(i) - logCs.get(i));
-		
-		b = log2Sum(cPlus) + 1;
-		
-		c = 2.0 * logNumGraphs + log2(samples);
-				
-		logStdDev = - 0.5 * log2(samples - 1.0) + 0.5 * log2Min(log2Sum(a, c), b);
-		
-		logStdError = logStdDev - 0.5 * log2(samples);
-		
-		// * Compute the effective standard error
-		logEffSampleSize = 2.0 * log2Sum(logSamples) - a;
-		
-		confLower = log2Min(logNumGraphs, log2(1.96) + logStdError);
-		confUpper = log2Sum(logNumGraphs, log2(1.96) + logStdError);
-		
-		List<Double> lnSamples = new ArrayList<Double>(logSamples.size());
-		for(int i : series(logSamples.size()))
-			lnSamples.add(logSamples.get(i) * Math.log(2.0));
-		
-		double[] bounds = computeBootstrapConfidence(lnSamples, ALPHA);
-		confBootstrapLower = bounds[0] * log2(E);
-		confBootstrapUpper = bounds[1] * log2(E);
-	}
-	
 	private static final int BOOTSTRAP_SAMPLES = 10000;
-	
-	/**
-	 * 
-	 * NOTE:Arguments and return values of this function are in ln space, not log2!
-	 * @param lnObservations
-	 * @param alpha
-	 * @return
-	 */
-	private double[] computeBootstrapConfidence(List<Double> lnObservations, double alpha)
-	{
-		int n = lnObservations.size();
-		
-		// * compute the mean of the log observations
-		double lnMean = 0.0;
-		for(int i : series(n))
-			lnMean += lnObservations.get(i);
-		lnMean /= (double) n;
-		
-		// * compute the variance of the log observations
-		double lnVariance = 0;
-		for(int i : series(n))
-		{
-			double diff = lnObservations.get(i) - lnMean;
-			lnVariance += diff * diff;
-		}
-		lnVariance /= (double)(n - 1); 
-		
-		// * This is our estimate of the mean in log_2, based on the 
-		//   assumption that we have a log-normal distribution
-		logNormalMean = (lnMean + 0.5 * lnVariance) * log2(E);
-		
-		List<Double> ns = new ArrayList<Double>(BOOTSTRAP_SAMPLES);
-		List<Double> chis = new ArrayList<Double>(BOOTSTRAP_SAMPLES);
-		
-		for(int i : series(BOOTSTRAP_SAMPLES))
-			ns.add(Global.random().nextGaussian());
-		
-		for(int i : series(BOOTSTRAP_SAMPLES))
-			chis.add(chiSquaredSample(n - 1));
-		
-		List<Double> ts = new ArrayList<Double>();
-		for(int i : series(BOOTSTRAP_SAMPLES))
-		{
-			double x = chis.get(i)/(n-1);
-			double num = ns.get(i) + sqrt(lnVariance) * 0.5 * sqrt(n) * (x - 1);
-			double den = sqrt(x * (1.0 + lnVariance * 0.5 * x));
-			ts.add(num/den);
-		}
-		
-		Collections.sort(ts);
-		
-		int lowerIndex = (int) Math.floor( (alpha*0.5) * BOOTSTRAP_SAMPLES );
-		double t0 = ts.get(lowerIndex);
-
-		int upperIndex = (int) Math.floor( (1.0 - alpha*0.5) * BOOTSTRAP_SAMPLES );
-		double t1 = ts.get(upperIndex);
-		
-		double lowerBound = lnMean + lnVariance * 0.5 - t1 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
-		double upperBound = lnMean + lnVariance * 0.5 - t0 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
-		
-		return new double[]{lowerBound, upperBound};
-	}
 	
 	private double logNormalMean;
 	
@@ -251,75 +122,437 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	
 	public double effectiveSampleSize()
 	{
+		List<Double> squared = new ArrayList<Double>(logSamples.size());
+		for(int i : series(logSamples.size()))
+			squared.add(2.0 * logSamples.get(i)); 
+		
+		double logEffSampleSize = 2.0 * log2Sum(logSamples) - log2Sum(squared);
+		
 		return pow(2.0, logEffSampleSize);
 	}
 	
 	public double logStdError()
 	{
-		return logStdError;
+		return logStdDev() - 0.5 * log2(logSamples.size());
 	}
 
 	public double logStdDev()
 	{
-		return logStdDev;
+		double logMean = logNumGraphs();
+		
+		List<Double> logDiffs = new ArrayList<Double>(logSamples.size());
+		for(int i : series(logSamples.size()))
+		{
+			double max = Math.max(logSamples.get(i), logMean);
+			double min = Math.min(logSamples.get(i), logMean);
+			logDiffs.add(2.0 * log2Min(max, min));
+		}
+	
+		return - 0.5 * log2(logSamples.size() - 1.0) + 0.5 * log2Sum(logDiffs);
 	}
 	
 	public double logProb()
 	{
-		return logProb;
+		return - logNumGraphs();
 	}
 	
 	public double logNumGraphs()
 	{
-		return logNumGraphs;
+		return log2Sum(logSamples) - log2(logSamples.size());
 	}
 
 	public double numGraphs()
 	{
-		return numGraphs;
+		return pow(2.0, logNumGraphs());
 	}
 	
 	@Override
 	public double logProb(UGraph<L> graph)
 	{
-		if(check)
+		// TODO: check if graph matches sequence
+		
+		return - logNumGraphs();
+	}
+	
+	public static enum CIMethod {
+		/**
+		 * The CI method for the mean estimator, based on the T statistic. Note 
+		 * that this method is _highly_ unreliable in this setting. 
+		 */
+		STANDARD,
+		/**
+		 * A parametric bootstrap method, based on the assumption that the 
+		 * samples are log-normally distributed.   
+		 */
+		LOG_NORMAL,
+		/**
+		 * Standard non-parametric bootstrap method. Unreliable, since our source 
+		 * distribution is highly skewed. 
+		 */
+		PERCENTILE,
+		/**
+		 * Bias-corrected version of the percentile method.
+		 */
+		BCA
+	}
+	
+	public static enum CIType
+	{
+		/**
+		 * Leaves exactly alpha/2 of probability mass
+		 * on either side of the confidence interval
+		 */
+		TWO_SIDED,
+		/**
+		 * Leaves alpha of probability mass below the confidence interval and 
+		 * none above
+		 */
+		LOWER_BOUND,
+		/**
+		 * Leaves alpha of probability mass above the confidence interval and 
+		 * none below
+		 */
+		UPPER_BOUND
+		
+	}
+	
+	public Pair<Double, Double> confidence(double alpha, CIType type)
+	{
+		return confidence(alpha, CIMethod.STANDARD, type);
+	}
+	
+	/**
+	 * Returns a confidence interval, in log space, for the estimate of the 
+	 * logarithm of the number of graphs. 
+	 *  
+	 * @param alpha
+	 * @param method 
+	 * @param type
+	 * @return
+	 */
+	public Pair<Double, Double> confidence(double alpha, CIMethod method, CIType type)
+	{
+		if(logSamples.isEmpty())
+			throw new IllegalStateException("logSamples is empty. Cannot compute CI before samples have been created");
+
+		if(method == STANDARD)
+			return confidenceStandard(alpha, type);
+		
+		if(method == CIMethod.LOG_NORMAL)
+			return confidenceLogNormal(alpha, type);
+		
+		if(method == CIMethod.PERCENTILE || method == CIMethod.BCA)
+			return confidenceBootstrap(alpha, method, type);
+		
+		return null;
+		
+	}
+	
+	protected Pair<Double, Double> confidenceStandard(double alpha, CIType type)
+	{
+		// * Compute the effective standard error
+		double logNumGraphs = logNumGraphs(), logStdError = logStdError();
+		
+		TDistribution t = new TDistribution(logSamples.size() - 1);
+		
+		if(type == CIType.TWO_SIDED)
 		{
-			// ...
+			double crit = t.inverseCumulativeProbability(1.0 - (alpha/2.0));
+			
+			System.out.println(crit + " " + logStdError);
+			
+			double confLower = logNumGraphs > log2(crit) + logStdError ? 
+					log2Min(logNumGraphs, log2(crit) + logStdError) :
+					Double.NEGATIVE_INFINITY;
+			double confUpper = log2Sum(logNumGraphs, log2(crit) + logStdError);
+			
+			return new Pair<Double, Double>(confLower, confUpper);
+		} else if(type == CIType.LOWER_BOUND)
+		{
+			double crit = t.inverseCumulativeProbability(1.0 - alpha);
+			
+			double confLower = logNumGraphs > log2(crit) + logStdError ? 
+					log2Min(logNumGraphs, log2(crit) + logStdError) :
+					Double.NEGATIVE_INFINITY;			
+			return new Pair<Double, Double>(confLower, Double.POSITIVE_INFINITY);
+		} else // type == CIType.UPPER_BOUND
+		{
+			double crit = t.inverseCumulativeProbability(1.0 - alpha);
+
+			double confUpper = log2Sum(logNumGraphs, log2(crit) + logStdError);
+			
+			return new Pair<Double, Double>(Double.NEGATIVE_INFINITY, confUpper);
 		}
-		return logProb;
 	}
 	
+	protected Pair<Double, Double> confidenceLogNormal(double alpha, CIType type)
+	{
+		double ln2 = Math.log(2.0);
+		
+		// * Compute the effective standard error
+		double log2MeanEstimate = logNumGraphs();
+		
+		// * the ln of the mean of the samples
+		double lnMeanEstimate = log2MeanEstimate * ln2;
+	
+		int n = logSamples.size();
+		
+		// * convert observations to ln
+		List<Double> lnObservations = new ArrayList<Double>(n);
+		
+		for(int i : series(n))
+			lnObservations.add(logSamples.get(i) * 2);
+		
+		// * compute the mean of the log observations
+		//   NOTE: This is different from lnMeanEstimate
+		//         They'll coincide if the source is properly logNormal, but 
+		//         that's usually not quite the case
+		double lnMean = 0.0;
+		for(int i : series(n))
+			lnMean += lnObservations.get(i);
+		lnMean /= (double) n;
+		
+		// * compute the variance of the log observations
+		double lnVariance = 0;
+		for(int i : series(n))
+		{
+			double diff = lnObservations.get(i) - lnMean;
+			lnVariance += diff * diff;
+		}
+		lnVariance /= (double)(n - 1); 
+		
+		// * This is our estimate of the mean in log_2, based on the 
+		//   assumption that we have a log-normal distribution
+		//   This is usually different from the real mean, because the distribution
+		//   isn't truly logNormal		
+		//   logNormalMean = (lnMean + 0.5 * lnVariance) * log2(E);
+		
+		List<Double> ns = new ArrayList<Double>(BOOTSTRAP_SAMPLES);
+		List<Double> chis = new ArrayList<Double>(BOOTSTRAP_SAMPLES);
+		
+		for(int i : series(BOOTSTRAP_SAMPLES))
+			ns.add(Global.random().nextGaussian());
+		
+		for(int i : series(BOOTSTRAP_SAMPLES))
+			chis.add(chiSquaredSample(n - 1));
+		
+		List<Double> ts = new ArrayList<Double>();
+		for(int i : series(BOOTSTRAP_SAMPLES))
+		{
+			double x = chis.get(i)/(n-1);
+			double num = ns.get(i) + sqrt(lnVariance) * 0.5 * sqrt(n) * (x - 1);
+			double den = sqrt(x * (1.0 + lnVariance * 0.5 * x));
+			ts.add(num/den);
+		}
+		
+		Collections.sort(ts);
+		
+		double lowerBound, upperBound;
+		
+		if(type == CIType.TWO_SIDED)
+		{
+			int lowerIndex = (int) Math.floor( (alpha*0.5) * BOOTSTRAP_SAMPLES );
+			double t0 = ts.get(lowerIndex);
+
+			int upperIndex = (int) Math.floor( (1.0 - alpha*0.5) * BOOTSTRAP_SAMPLES );
+			double t1 = ts.get(upperIndex);
+
+			// * Construct the confidence interval
+			//   Note that the original method uses lnMean as the first term (the 'middle of the CI).
+			//   Since we don't know that our source is lognormal, we don't use that estimate. We only construct
+			//   the confidence interval in the lognormal assumption.
+			lowerBound = lnMeanEstimate + lnVariance * 0.5 - t1 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
+			upperBound = lnMeanEstimate + lnVariance * 0.5 - t0 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
+		} else if(type == CIType.LOWER_BOUND)
+		{
+			int upperIndex = (int) Math.floor( (1.0 - alpha) * BOOTSTRAP_SAMPLES );
+			double t1 = ts.get(upperIndex);
+
+			lowerBound = lnMeanEstimate + lnVariance * 0.5 - t1 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
+			upperBound = Double.POSITIVE_INFINITY;			
+		} else // type == CIType.UPPER_BOUND
+		{
+			int lowerIndex = (int) Math.floor( (alpha) * BOOTSTRAP_SAMPLES );
+			double t0 = ts.get(lowerIndex);
+
+			lowerBound = Double.NEGATIVE_INFINITY;
+			upperBound = lnMeanEstimate + lnVariance * 0.5 - t0 * sqrt((lnVariance * (1.0 + lnVariance*0.5)) / n);
+		}
+		
+		return new Pair<Double, Double>(lowerBound, upperBound);
+	}
+	
+	protected Pair<Double, Double> confidenceBootstrap(double alpha, CIMethod method, CIType type)
+	{
+		double logMean = logNumGraphs(); 
+		
+		List<Double> bsMeans = new ArrayList<Double>(BOOTSTRAP_SAMPLES);
+
+		List<Double> bsData = new ArrayList<Double>(logSamples.size());
+		for(int i : series(logSamples.size()))
+				bsData.add(null);
+		
+		for(int i : series(BOOTSTRAP_SAMPLES))
+		{
+			// * sample a bootstrap dataset
+			for(int j : series(bsData.size()))
+				bsData.set(j, choose(logSamples)); 
+			
+			// * compute the mean on the bootstrap dataset
+			bsMeans.add(log2Sum(bsData) - log2(bsData.size()));
+		}
+		
+		Collections.sort(bsMeans);
+		
+		Pair<Double, Double> result = null;
+		if(method == CIMethod.PERCENTILE)
+		{
+			if(type == CIType.TWO_SIDED)
+			{
+				int lowerIndex = (int) Math.floor( (alpha*0.5) * BOOTSTRAP_SAMPLES );
+				int upperIndex = (int) Math.floor( (1.0 - alpha*0.5) * BOOTSTRAP_SAMPLES );
+			
+				result = new Pair<Double, Double>(bsMeans.get(lowerIndex), bsMeans.get(upperIndex));
+			} else if(type == CIType.LOWER_BOUND)
+			{
+				int lowerIndex = (int) Math.floor( alpha * BOOTSTRAP_SAMPLES );
+			
+				result = new Pair<Double, Double>(bsMeans.get(lowerIndex), Double.POSITIVE_INFINITY);
+			
+			} else // type == CIType.UPPER_BOUND
+			{				
+				int upperIndex = (int) Math.floor( (1.0 - alpha) * BOOTSTRAP_SAMPLES );
+
+				result = new Pair<Double, Double>(Double.NEGATIVE_INFINITY, bsMeans.get(upperIndex));
+			}
+		} else if (method == CIMethod.BCA)
+		{
+			// * estimate b from the number of bootstrap means below the sample mean
+			int m = 0;
+			while(bsMeans.get(m) < logMean)
+				m++;
+			
+			double b = (new NormalDistribution()).inverseCumulativeProbability(m/(double)bsMeans.size());
+			
+			// * estimate a: jackknife method
+			// Mean estimates for each jackknife fold
+			List<LogNum> means = new ArrayList<LogNum>(logSamples.size());
+			for(int i : series(logSamples.size()))
+			{
+				List<Double> fold = minList(logSamples, i);
+				double foldLogMean = log2Sum(fold) - log2(logSamples.size() - 1);
+				means.add(LogNum.fromDouble(foldLogMean, 2.0));
+			}
+			
+			LogNum a = computeA(means);
+			
+			// * Compute corrected indices
+			
+			if(type == CIType.TWO_SIDED)
+			{
+
+				double betaLower = beta(a.doubleValue(), b, alpha/2.0);
+				double betaUpper = beta(a.doubleValue(), b, 1.0 - alpha/2.0);
+				
+				int lowerIndex = (int) floor( betaLower * BOOTSTRAP_SAMPLES );
+				int upperIndex = (int) floor( betaUpper * BOOTSTRAP_SAMPLES );
+			
+				result = new Pair<Double, Double>(bsMeans.get(lowerIndex), bsMeans.get(upperIndex));
+			} else if(type == CIType.LOWER_BOUND)
+			{
+				double betaLower = beta(a.doubleValue(), b, alpha);
+				
+				int lowerIndex = (int) floor( betaLower * BOOTSTRAP_SAMPLES );
+			
+				result = new Pair<Double, Double>(bsMeans.get(lowerIndex), Double.POSITIVE_INFINITY);
+			
+			} else // type == CIType.UPPER_BOUND
+			{				
+				double betaUpper = beta(a.doubleValue(), b, 1.0 - alpha);
+				
+				int upperIndex = (int) floor( betaUpper * BOOTSTRAP_SAMPLES );
+				
+				result = new Pair<Double, Double>(Double.NEGATIVE_INFINITY, bsMeans.get(upperIndex));
+			}
+		}
+		
+		return result;
+	}
+	
+	
+	private static final NormalDistribution N = new NormalDistribution(); 
+	protected static double beta(double a, double b, double alpha)
+	{
+		double z = N.inverseCumulativeProbability(alpha);
+		
+		return N.cumulativeProbability(b + (b + z)/(1.0 - a * (b+z))); 
+	}
+	
+	protected static LogNum computeA(List<LogNum> jkEstimates)
+	{
+		LogNum mean = LogNum.mean(jkEstimates);
+		
+		List<LogNum> diffs = new ArrayList<LogNum>(jkEstimates.size());
+		for(LogNum datum : jkEstimates)
+			diffs.add(mean.minus(datum));
+		
+		List<LogNum> diffsTo2 = new ArrayList<LogNum>(jkEstimates.size());
+		for(LogNum diff : diffs)
+			diffsTo2.add(diff.pow(2));
+				
+		List<LogNum> diffsTo3 = new ArrayList<LogNum>(jkEstimates.size());
+		for(LogNum diff : diffs)
+			diffsTo3.add(diff.pow(3));
+		
+		LogNum num = LogNum.sum(diffsTo3);
+		
+		LogNum den = LogNum.sum(diffsTo2);
+		den = den.root(2).pow(3).times(fromDouble(6.0, 2.0));
+		
+		if(den.logMag() == Double.NEGATIVE_INFINITY) // prevent div by zero
+			return LogNum.fromDouble(0.0, den.base());
+		
+		return num.divide(den);
+	}
+
 	/**
-	 * Return the lower edge of the 95% confidence interval for the estimate 
-	 * of the compression size (in bits).
-	 * 
-	 * NOTE: This confidence interval is highly unreliable, and is only included
-	 * for comparative purposes.
-	 * 
+	 * Returns a view of the given list with the specified index removed.
+	 * @param in
+	 * @param rmIndex
 	 * @return
 	 */
-	public double confidenceNaiveLower()
+	public static <T> List<T> minList(List<T> in, int rmIndex)
 	{
-		return confLower;
+		return new MinList<T>(in, rmIndex);
 	}
-	
-	public double confidenceNaiveUpper()
+	private static class MinList<T> extends AbstractList<T>
 	{
-		return confUpper;
-	}
-	
-	/**
-	 * The conifdence interval based on Angus' parametric bootstrap method
-	 * @return
-	 */
-	public double confidenceBootstrapLower()
-	{
-		return confBootstrapLower;
-	}
-	
-	public double confidenceBootstrapUpper()
-	{
-		return confBootstrapUpper;
+		List<T> master;
+		int rmIndex;
+		
+		public MinList(List<T> master, int rmIndex)
+		{
+			if(master.isEmpty())
+				throw new IllegalArgumentException("master must contain at least one element");
+			
+			this.master = master;
+			this.rmIndex = rmIndex;
+		}
+
+		@Override
+		public T get(int index)
+		{
+			if(index < rmIndex)
+				return master.get(index);
+			return master.get(index + 1);
+		}
+
+		@Override
+		public int size()
+		{
+			return master.size() - 1; 
+		}
+		
 	}
 	
 	/**
@@ -331,6 +564,8 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	{
 		// * Create an empty graph
 		UGraph<L> graph = new MapUTGraph<L, String>();
+		
+		int n = sequence.size();
 		
 		for(int i : Series.series(n))
 			graph.add(label);
@@ -398,7 +633,9 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 			}
 		}
 		
-		return new Result(graph, logCY, logSigY); 
+		logSamples.add(- logCY - logSigY);
+		
+		return new Result(graph, logCY, logSigY);
 	}
 	
 	public static boolean isGraphicalOld(List<Integer> sequence)
