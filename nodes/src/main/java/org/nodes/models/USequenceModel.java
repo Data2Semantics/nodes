@@ -103,13 +103,14 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		
 	public double logNormalMean()
 	{
+		double ln2 = Math.log(2.0);
 		int n = logSamples.size();
 		
 		// * convert observations to ln
 		List<Double> lnObservations = new ArrayList<Double>(n);
 		
 		for(int i : series(n))
-			lnObservations.add(logSamples.get(i) * 2);
+			lnObservations.add(logSamples.get(i) * ln2);
 		
 		// * compute the mean of the log observations
 		//   NOTE: This is different from lnMeanEstimate
@@ -320,7 +321,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		List<Double> lnObservations = new ArrayList<Double>(n);
 		
 		for(int i : series(n))
-			lnObservations.add(logSamples.get(i) * 2);
+			lnObservations.add(logSamples.get(i) * ln2);
 		
 		// * compute the mean of the log observations
 		//   NOTE: This is different from lnMeanEstimate
