@@ -23,6 +23,7 @@ import org.nodes.Link;
 import org.nodes.MapDTGraph;
 import org.nodes.Subgraph;
 import org.nodes.algorithms.Nauty;
+import org.nodes.motifs.MotifCompressor;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Order;

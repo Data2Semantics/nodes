@@ -1,4 +1,4 @@
-package org.nodes.compression;
+package org.nodes.motifs;
 
 import static org.nodes.util.Series.series;
 
@@ -26,6 +26,10 @@ import org.nodes.MapDTGraph;
 import org.nodes.Node;
 import org.nodes.Subgraph;
 import org.nodes.algorithms.Nauty;
+import org.nodes.compression.EdgeListCompressor;
+import org.nodes.compression.Functions;
+import org.nodes.compression.NeighborListCompressor;
+import org.nodes.compression.Functions.NaturalComparator;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.AbstractGenerator;
 import org.nodes.util.BitString;
@@ -40,13 +44,15 @@ import com.itextpdf.text.log.SysoLogger;
 import au.com.bytecode.opencsv.CSVWriter;
 
 /**
- * Extracts motifs from a DTGRaph<String, String> by sampling.
+ * Extracts motifs from a DTGraph<String, String> by sampling.
  * 
+ * This extractor returns _masked_ motifs: ie. it takes the labels and tags into 
+ * account and makes them variable where beneficial.
  * 
  * @author Peter
  *
  */
-public class MotifExtractor
+public class DTMotifExtractor
 {
 	private static final boolean SPECIFY_SUBS = true;
 	private static final int MIN_OCCURRENCES = 10;
@@ -64,7 +70,7 @@ public class MotifExtractor
 	
 	private MotifVarTags mvTop = null;
 	
-	public MotifExtractor(
+	public DTMotifExtractor(
 			DTGraph<String, String> data,
 			int numSamples,
 			int minSize,

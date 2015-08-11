@@ -758,6 +758,33 @@ public class Graphs
 	public static <L, T> String canonicalString(UTGraph<L, T> graph)
 	{
 		return "";
+	}
+	
+	/**
+	 * Converts the input to a simple u graph. Any self-loops and dual links are 
+	 * removed. If the original graph is directed, this information is also 
+	 * removed.
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public static UGraph<String> toSimpleUGraph(Graph<String> data)
+	{
+		MapUTGraph<String, String> result = new MapUTGraph<String, String>();
+		
+		for(Node<String> node : data.nodes())
+			result.add(node.label());
+		
+		for(Link<String> link : data.links())
+		{
+			Node<String> a = result.get(link.first().index()),
+			             b = result.get(link.second().index());
+			if(a.index() != b.index())
+				if(!a.connected(b))
+					a.connect(b);
+		}
+		
+		return result;
 	}	
 }
 

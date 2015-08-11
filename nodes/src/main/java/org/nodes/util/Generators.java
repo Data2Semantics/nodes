@@ -11,6 +11,14 @@ import org.nodes.Global;
 public class Generators
 {
 
+	/**
+	 * Returns a generator that samples integers from a uniform distribution
+	 * over the range from 'lower' (inclusive) to 'upper' (exclusive).
+	 * 
+	 * @param lower
+	 * @param upper
+	 * @return
+	 */
 	public static Generator<Integer> uniform(int lower, int upper)
 	{
 		return new UniformGenerator(lower, upper);

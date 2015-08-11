@@ -12,6 +12,8 @@ import org.junit.Test;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.MapDTGraph;
+import org.nodes.motifs.MotifVar;
+import org.nodes.motifs.MotifVarTags;
 
 public class MotifVarTest
 {

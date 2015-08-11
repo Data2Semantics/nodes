@@ -77,6 +77,15 @@ public class Nauty
 		return order(graph, comp, true, true);
 	}
 	
+	/**
+	 * Find the canonical ordering for the given graph
+	 * 
+	 * @param graph
+	 * @param comp
+	 * @param directed
+	 * @param tagged
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private static <L> Order order(Graph<L> graph, Comparator<L> comp,  boolean directed, boolean tagged)
 	{

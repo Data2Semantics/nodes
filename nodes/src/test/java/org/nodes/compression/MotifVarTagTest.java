@@ -14,6 +14,7 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.MapDTGraph;
+import org.nodes.motifs.MotifVarTags;
 
 public class MotifVarTagTest
 {

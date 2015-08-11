@@ -86,6 +86,23 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		return copy;
 	}
 	
+	public static <L,T> MapUTGraph<L,T> copy(UGraph<L> graph)
+	{	
+		MapUTGraph<L, T> copy = new MapUTGraph<L, T>();
+		for(UNode<L> node : graph.nodes())
+			copy.add(node.label());
+
+		for(ULink<L> link : graph.links())
+		{
+			int i = link.first().index(), 
+			    j = link.second().index();
+			
+			copy.nodes().get(i).connect(copy.nodes().get(j), null);
+		}
+		
+		return copy;
+	}
+	
 	private class MapUTNode implements UTNode<L, T>
 	{
 		private Map<T, List<MapUTLink>> links = new LinkedHashMap<T, List<MapUTLink>>();

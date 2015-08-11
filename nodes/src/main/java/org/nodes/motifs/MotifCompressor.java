@@ -1,4 +1,4 @@
-package org.nodes.compression;
+package org.nodes.motifs;
 
 import static org.nodes.compression.Functions.log2;
 import static org.nodes.compression.Functions.prefix;
@@ -9,6 +9,7 @@ import static org.nodes.util.Series.series;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,9 +26,15 @@ import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.MapDTGraph;
+import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
+import org.nodes.UGraph;
+import org.nodes.ULink;
+import org.nodes.UNode;
+import org.nodes.compression.AbstractGraphCompressor;
+import org.nodes.compression.EdgeListCompressor;
 import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
 import org.nodes.util.FrequencyModel;
@@ -52,12 +59,6 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 	public MotifCompressor()
 	{
 
-	}
-
-	@Override
-	public double structureBits(Graph<String> graph, List<Integer> order)
-	{
-		return -1.0;
 	}
 
 	/**
@@ -373,9 +374,6 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 	{
 		DGraph<String> copy = MapDTGraph.copy(inputGraph);
 
-//		System.out.println("*** " + occurrences.size() + " occurrences.");
-//		System.out.println("*** original graph " + copy.size() + " " + copy.numLinks());
-//		
 		// * Translate the occurrences from integers to nodes (in the copy)
 		List<List<DNode<String>>> occ = 
 				new ArrayList<List<DNode<String>>>(occurrences.size());
@@ -393,8 +391,8 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		for (List<DNode<String>> occurrence : occ)
 		{
 			if (alive(occurrence)) // -- make sure none of the nodes of the
-								   // occurrence
-								   // been removed. If two occurrences overlap,
+								   // occurrence have been removed. If two 
+								   // occurrences overlap,
 								   // only the first gets replaced.
 			{
 				// * Wire a new symbol node into the graph to represent the occurrence
@@ -415,12 +413,14 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 						DNode<String> neighbor = link.other(node);
 						
 						if(! occurrence.contains(neighbor))
+						{
 							if(link.from().equals(node))
 								newNode.connect(neighbor);
 							else
 								neighbor.connect(newNode);
 						
-						motifWiring.add(indexInSubgraph);
+							motifWiring.add(indexInSubgraph);
+						}
 					}
 				}
 
@@ -428,8 +428,79 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 					node.remove();
 			}
 		}
-//		System.out.println("*** subbed " + copy.size() + " " + copy.numLinks());
-//		
+
+		return copy;
+	}
+	
+	/**
+	 * Create a copy of the input graph with all given occurrences of the 
+	 * given subgraph replaced by a single node.
+	 * 
+	 * @param inputGraph
+	 * @param sub
+	 * @param occurrences
+	 * @param wiring
+	 * @return
+	 */
+	public static UGraph<String> subbedGraph(
+			UGraph<String> inputGraph,
+			UGraph<String> sub, 
+			List<List<Integer>> occurrences,
+			List<List<Integer>> wiring)
+	{
+		UGraph<String> copy = MapUTGraph.copy(inputGraph);
+
+		// * Translate the occurrences from integers to nodes (in the copy)
+		List<List<UNode<String>>> occ = 
+				new ArrayList<List<UNode<String>>>(occurrences.size());
+		
+		for (List<Integer> occurrence : occurrences)
+		{
+			List<UNode<String>> nodes = 
+					new ArrayList<UNode<String>>(occurrence.size());
+			for (int index : occurrence)
+				nodes.add(copy.get(index));
+			
+			occ.add(nodes);
+		}
+		
+		for (List<UNode<String>> occurrence : occ)
+		{
+			if (alive(occurrence)) // -- make sure none of the nodes of the
+								   // occurrence have been removed. If two 
+								   // occurrences overlap,
+								   // only the first gets replaced.
+			{
+				// * Wire a new symbol node into the graph to represent the occurrence
+				UNode<String> newNode = copy.add(MotifCompressor.MOTIF_SYMBOL);
+
+				// - This will hold the information how each edge into the motif node should be wired
+				//   into the motif subgraph (to be encoded later)
+				List<Integer> motifWiring = new ArrayList<Integer>(occ.size());
+				wiring.add(motifWiring);
+				
+				for (int indexInSubgraph : series(occurrence.size()))
+				{
+					UNode<String> node = occurrence.get(indexInSubgraph);
+					
+					for(ULink<String> link : node.links())
+					{
+						UNode<String> neighbor = link.other(node);
+						
+						if(! occurrence.contains(neighbor))	// If the link is external
+						{
+							newNode.connect(neighbor);
+
+							motifWiring.add(indexInSubgraph);
+						}
+					}
+				}
+
+				for (UNode<String> node : occurrence)
+					node.remove();
+			}
+		}
+
 		return copy;
 	}
 
@@ -450,5 +521,49 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 				return false;
 
 		return true;
+	}
+
+	@Override
+	public double structureBits(Graph<String> graph, List<Integer> order)
+	{
+		return -1.0;
+	}
+
+	public static <L> int exDegree(Graph<L> graph, List<Integer> occurrence)
+	{
+		int sum = 0;
+	
+		for (int i : Series.series(occurrence.size()))
+		{
+			int nodeIndex = occurrence.get(i);
+			Node<L> node = graph.get(nodeIndex);
+	
+			for (Node<L> neighbor : node.neighbors())
+				if (!occurrence.contains(neighbor.index()))
+					sum++;
+		}
+	
+		return sum;
+	}
+	
+	public static<L> Comparator<List<Integer>> exDegreeComparator(Graph<L> data)
+	{
+		return new ExDegreeComparator<L>(data);
+	}
+	
+	private static class ExDegreeComparator<L> implements Comparator<List<Integer>>
+	{
+		private Graph<L> data;
+
+		public ExDegreeComparator(Graph<L> data)
+		{
+			this.data = data;
+		}
+
+		@Override
+		public int compare(List<Integer> a, List<Integer> b)
+		{
+			return Integer.compare(exDegree(data, a),  exDegree(data, b)); 
+		}
 	}
 }

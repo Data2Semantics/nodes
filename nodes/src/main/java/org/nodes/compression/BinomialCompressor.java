@@ -18,7 +18,6 @@ import org.nodes.util.Functions;
 
 public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 {
-
 	@Override
 	public double structureBits(Graph<N> graph, List<Integer> order)
 	{
@@ -31,7 +30,7 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");
 	}
 	
-	public double undirected(Graph<N> graph)
+	public static <N> double undirected(Graph<N> graph)
 	{
 		int n = graph.size();
 		int t = n * (n + 1) / 2;
@@ -39,7 +38,7 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 		return prefix(n) + log2(t) + logChoose(graph.numLinks(), t, 2.0);
 	}
 	
-	public double directed(DGraph<N> graph) 
+	public static <N> double directed(DGraph<N> graph) 
 	{
 		double n = graph.size();
 		double t = n * (double) n;
@@ -48,6 +47,4 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 		
 		return prefix(graph.size()) + log2(t) + logChoose(graph.numLinks(), t, 2.0);
 	}
-	
-	
 }

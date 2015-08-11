@@ -2,6 +2,7 @@ package org.nodes.compression;
 
 import static org.nodes.compression.Functions.prefix;
 import static org.nodes.util.Functions.log2;
+import static org.nodes.util.Series.series;
 
 import java.util.List;
 
@@ -43,7 +44,22 @@ public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");
 	}
 	
-	public double size(Graph<N> graph, List<Integer> order, boolean directed)
+	/**
+	 * Computes the number of bits required to encode just the structure of the 
+	 * graph (including its size, but excluding its tags and labels).
+	 *  
+	 * @param graph
+	 * @param order
+	 * @param directed
+	 * @return
+	 */
+	public static <N> double size(Graph<N> graph, boolean directed)
+	{
+		return size(graph, series(graph.size()), directed);
+		
+	}
+	
+	public static <N> double size(Graph<N> graph, List<Integer> order, boolean directed)
 	{
 		FrequencyModel<Node<N>> nodes = new FrequencyModel<Node<N>>();
 		FrequencyModel<Boolean> directions = new FrequencyModel<Boolean>();

@@ -1,4 +1,4 @@
-package org.nodes.compression;
+package org.nodes.motifs;
 
 import static org.nodes.compression.Functions.log2;
 import static org.nodes.compression.Functions.prefix;
@@ -10,10 +10,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.nodes.DGraph;
 import org.nodes.DLink;
@@ -28,34 +31,35 @@ import org.nodes.MapDTGraph;
 import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
+import org.nodes.compression.EdgeListCompressor;
 import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
 import org.nodes.util.GZIPCompressor;
 import org.nodes.util.OnlineModel;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 /**
- * Represents a selection of operations on a graph, a motif, and a list of 
- * occurrences for the motif 
- * 
- * 
- * NOTE on tags: All other graph compressors store tags if the graph has them. 
- * In our case, we store the whole graph as though it doesn't have tags and then
- * store the tags in a straightforward manner (using a KT estimator). This means 
- * that (for now), the motif does not contain tags. 
+ * Collects a selection of operations on 
+ * * a graph
+ * * a motif
+ * * a list of occurrences for the motif 
+ *
+ * In contrast to MotifVar.java, this version includes tags (edge labels) in the
+ * motif and silhouette. Hence this method only works on DTGraphs.
  * 
  * @author Peter
  *
  */
-public class MotifVar 
+public class MotifVarTags 
 {
 	public static final String MOTIF_SYMBOL = "|M|";
 	public static final String VARIABLE_SYMBOL = "|V|";
 	
-	private DGraph<String> graph;
-	private DGraph<String> motif;		
+	private DTGraph<String, String> graph;
+	private DTGraph<String, String> motif;		
 	private List<List<Integer>> occurrences; 
 
 	// - This list holds the index of the occurrence the given node belongs to
@@ -64,26 +68,42 @@ public class MotifVar
 	private int replacedNodes = 0;
 	private int numLabels;
 	
-	public MotifVar(DGraph<String> graph, DGraph<String> motif,
-			List<List<Integer>> occurrences)
+	private boolean specifySubstitutions;
+	
+	// * whether to reset the wiring KT estimator for each occurrence
+	private boolean reset = true;
+	
+	/**
+	 * @param graph
+	 * @param motif
+	 * @param occurrences
+	 * @param specifySubstitutions If true, we encode the substitutions
+	 *  by first encoding the set of symbols used (with uniform encoding) and
+	 *  then using a KT estimator with that alphabet. If false, a KT estimator is 
+	 *  used directly with the set of tags or labels as an alphabet. 
+	 */
+	public MotifVarTags(
+			DTGraph<String, String> graph, 
+			DTGraph<String, String> motif,
+			List<List<Integer>> occurrences,
+			boolean specifySubstitutions)
 	{
 		super();
 		this.graph = graph;
 		this.motif = motif;
 		this.occurrences = occurrences;
+		this.specifySubstitutions = specifySubstitutions;
 
 		inOccurrence = new ArrayList<Integer>(graph.size());
-		for(int i : Series.series(graph.size()))
+		for(int i : series(graph.size()))
 			inOccurrence.add(null);
 
 		for(int occIndex : Series.series(occurrences.size()))
-		{
 			for (Integer i : occurrences.get(occIndex))
 			{
 				inOccurrence.set(i, occIndex);
 				replacedNodes++;
 			}
-		}
 		
 		numLabels = graph.labels().size();
 	}
@@ -98,11 +118,10 @@ public class MotifVar
 		bits += silhouetteStructure();
 		bits += silhouetteLabels();
 		
-		bits += substitutions();
+		bits += labelSubstitutions();
+		bits += tagSubstitutions();
 		bits += wiring();
-		
-		bits += tags();
-		
+				
 		return bits;
 	}
 	
@@ -121,11 +140,18 @@ public class MotifVar
 		bits += EdgeListCompressor.directed(motif); 
 		
 		// * Store the labels
-		OnlineModel<String> model = new OnlineModel<String>(graph.labels());
-		model.add(VARIABLE_SYMBOL, 0.0);
+		OnlineModel<String> labelModel = new OnlineModel<String>(graph.labels());
+		labelModel.addToken(VARIABLE_SYMBOL);
 		
 		for(DNode<String> node : motif.nodes())
-			bits += - Functions.log2(model.observe(node.label()));
+			bits += - Functions.log2(labelModel.observe(node.label()));
+		
+		// * Store the tags
+		OnlineModel<String> tagModel = new OnlineModel<String>(graph.tags());
+		tagModel.addToken(VARIABLE_SYMBOL);
+		
+		for(DTLink<String, String> link : motif.links())
+			bits += - Functions.log2(tagModel.observe(link.tag()));
 		
 		return bits;
 	}
@@ -138,16 +164,20 @@ public class MotifVar
 	 */
 	public double labelSets()
 	{
+		GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
+		
 		// * Labels
-		double labelBits = 0;
+		double bits = 0.0;
 
 		// ** Label set
 		List<String> labelSet = new ArrayList<String>(graph.labels());
+		bits += compressor.compressedSize(labelSet);
 		
-		GZIPCompressor<List<Object>> compressor = new GZIPCompressor<List<Object>>();
-		labelBits += compressor.compressedSize(labelSet);
+		// ** Tag Set
+		List<String> tagSet = new ArrayList<String>(graph.tags());	
+		bits += compressor.compressedSize(tagSet);
 				
-		return labelBits;
+		return bits;
 	}
 
 	/**
@@ -193,7 +223,8 @@ public class MotifVar
 			Integer secondOcc = inOccurrence.get(link.second().index());
 
 			if ((firstOcc == null && secondOcc == null)
-					|| firstOcc != secondOcc)
+					|| firstOcc != secondOcc) // if true, the link is not removed 
+											  // from the graph by the substitution process
 				subbedNumLinks++;
 		}
 		
@@ -203,6 +234,7 @@ public class MotifVar
 		// Num links in the subbed graph
 		bits += prefix(subbedNumLinks);
 		
+		// * Now we store the actual links
 		for (Link<String> link : graph.links())
 		{
 			Integer firstOcc = inOccurrence.get(link.first().index());
@@ -220,11 +252,11 @@ public class MotifVar
 						second : -(inOccurrence.get(second) + 1);
 
 				double p = source.observe(first) * target.observe(second);
-				
 				bits += - Functions.log2(p);
 			}
 		}
 
+		// * subtract the information stored in the link ordering
 		bits -= logFactorial(subbedNumLinks, 2.0);
 		
 		return bits;
@@ -232,7 +264,7 @@ public class MotifVar
 
 	public double silhouetteLabels()
 	{
-		// -- Labels
+		// * Labels
 		double bits = 0;
 		
 		OnlineModel<String> labelModel = new OnlineModel<String>(graph.labels());
@@ -244,6 +276,22 @@ public class MotifVar
 		
 		for (int i : Series.series(occurrences.size()))
 			bits += -log2(labelModel.observe(MOTIF_SYMBOL));
+		
+		// * Tags
+		OnlineModel<String> tagModel = new OnlineModel<String>(graph.tags());
+
+		for(DTLink<String, String> link : graph.links())
+		{
+			Integer firstOcc = inOccurrence.get(link.first().index());
+			Integer secondOcc = inOccurrence.get(link.second().index());
+			
+			if ((firstOcc == null && secondOcc == null)
+					|| firstOcc != secondOcc)
+			{
+				// -- the link is part of the silhouette.
+				bits += - log2(tagModel.observe(link.tag()));
+			}
+		}
 		
 		return bits;
 	}
@@ -257,12 +305,9 @@ public class MotifVar
 	 * @param comp
 	 * @return
 	 */
-	public double substitutions()
+	public double labelSubstitutions()
 	{
 		double bits = 0.0;
-	
-		// * Now to store the mapping from symbol to terminal for each
-		//   occurrence of a symbol
 		
 		// - Find the number of terminals per symbol
 		List<Set<String>> terminalSets = new ArrayList<Set<String>>();
@@ -291,12 +336,18 @@ public class MotifVar
 		{
 			Set<String> terminals = terminalSets.get(i);
 
-			// - Store the set of terminals
-			bits += prefix(terminals.size());
-			bits += log2(numLabels) * terminals.size();
+			if(specifySubstitutions)
+			{
+				// - Store the set of terminals
+				bits += prefix(terminals.size());
+				bits += log2(numLabels) * terminals.size();
+			}
 			
 			// - Store the sequence of terminals
-			OnlineModel<String> model = new OnlineModel<String>(terminals);
+			OnlineModel<String> model = 
+					specifySubstitutions ? 
+					new OnlineModel<String>(terminals) :
+					new OnlineModel<String>(graph.labels());	
 			
 			int index = indices.get(i);
 			for (List<Integer> occurrence : occurrences)
@@ -307,7 +358,157 @@ public class MotifVar
 		}
 
 		return bits;
+	}
+	
+	public double tagSubstitutions()
+	{		
+		// * Find the sequence of terminals for each symbol in the motif
+		Map<Indicator, List<String>> map 
+			= new LinkedHashMap<Indicator, List<String>>();
+		
+		// - collect all pairs of nodes that are linked
+		Set<Pair<Integer, Integer>> pairedNodes = new LinkedHashSet<Pair<Integer,Integer>>();
+		for(DTLink<String, String> link : motif.links())
+			pairedNodes.add(new Pair<Integer, Integer>( link.first().index(), link.second().index()));
+		
+		for(Pair<Integer, Integer> pair : pairedNodes)
+		{
+			// - count of the number of symbol links
+			int numVars = 0;
+			// - tags that the motif has between thesetwo nodes
+			List<String> motifTags = new ArrayList<String>();
+			for(DTLink<String, String> link : motif.get(pair.first()).linksOut(motif.get(pair.second())) )
+			{
+				if(VARIABLE_SYMBOL.equals(link.tag()))
+					numVars++;
+				motifTags.add(link.tag());
+			}
+			
+			if(numVars > 0)
+				for(List<Integer> occurrence : occurrences)
+				{
+					DTNode<String, String> graphFrom = graph.get(occurrence.get(pair.first())),
+					                       graphTo   = graph.get(occurrence.get(pair.second()));
+					
+					// - the tags that the occurrence has between the two nodes
+					List<String> occTags = new ArrayList<String>();
+					for(DTLink<String, String> link : graphFrom.linksOut(graphTo))
+						occTags.add(link.tag());
+					
+					// - match and remove all non-var tags
+					for(String tag : motifTags)
+						if(! VARIABLE_SYMBOL.equals(tag))
+							occTags.remove(tag);
+					
+					assert(occTags.size() == numVars);
+					
+					for(int i : series(occTags.size()))
+					{
+						Indicator ind = new Indicator(pair.first(), pair.second(), i);
+						
+						if(! map.containsKey(ind))
+							map.put(ind, new ArrayList<String>());
+						
+						map.get(ind).add(occTags.get(i));
+					}
+				}
+		}
+		
+		// 'map' now contains for each variable-link a list of the substitutions 
+		// required for that variable. We store each sequence first with a set
+		// of the symbols that occur and then a KT process representing
+		// the actual sequence.
+		
+		double bits = 0.0;
 
+		for(List<String> sequence : map.values())
+		{
+			// Store the set of symbols
+			Set<String> set = new LinkedHashSet<String>(sequence);
+			
+			if(specifySubstitutions)
+			{
+				bits += prefix(set.size());
+				bits += set.size() * log2(graph.tags().size());
+			}
+			
+			// Store the sequence
+			// We know the length of sequence already
+			OnlineModel<String> model = 
+					specifySubstitutions ?
+					new OnlineModel<String>(set) :
+					new OnlineModel<String>(graph.tags());
+			
+			for(String symbol : sequence)
+				bits += - log2(model.observe(symbol));
+		}
+		
+		return bits;
+	}
+	
+	/**
+	 * Represents a pair of nodes and an index of a link between the two. 
+	 * @author Peter
+	 *
+	 */
+	private class Indicator
+	{
+		private int from, to;
+		private int index;
+		
+		public Indicator(int from, int to, int index)
+		{
+			this.from = from;
+			this.to = to;
+			this.index = index;
+		}
+
+
+
+		@Override
+		public int hashCode()
+		{
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + from;
+			result = prime * result + index;
+			result = prime * result + to;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Indicator other = (Indicator) obj;
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (from != other.from)
+				return false;
+			if (index != other.index)
+				return false;
+			if (to != other.to)
+				return false;
+			return true;
+		}
+
+
+
+		private MotifVarTags getOuterType()
+		{
+			return MotifVarTags.this;
+		}
+		
+		public String toString()
+		{
+			return "I("+from+"->"+to+":"+index+")"; 
+		}
 	}
 
 	/**
@@ -324,9 +525,12 @@ public class MotifVar
 		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(motif.size()));
 
 		double bits = 0.0;
-		
+
 		for(List<Integer> occurrence : occurrences)
 		{
+			if(reset)
+				om = new OnlineModel<Integer>(Series.series(motif.size()));
+			
 			Set<Integer> occurrenceNodes = new HashSet<Integer>(occurrence);
 			for(int indexInOccurrence : Series.series(occurrence.size()))
 			{
@@ -345,20 +549,40 @@ public class MotifVar
 			
 			}
 		}
-
+		
 		return bits;
 	}
 
 	/**
 	 * Creates the actual graph with ocurrences replaced by symbol nodes. Note
 	 * that this operation is not necessary to compute the code length.
+	 * 
+	 * The symbol nodes in the returned graph are indexed. The method will first
+	 * check for the next available index, and use that for the symbol nodes in 
+	 * the returned graph.
 	 *  
 	 * @param wiring An empty list to which this method will add the wiring info
 	 * @return
 	 */
-	public DGraph<String> subbedGraph(List<Integer> wiring)
+	public DTGraph<String, String> subbedGraph(List<Integer> wiring)
 	{
-		DGraph<String> copy = MapDTGraph.copy(graph);
+		// * Check for the next available index
+		int index = -1;
+		for(Node<String> node : graph.nodes())
+		{
+			String label = node.label();
+			Matcher matcher = Pattern.compile(Pattern.quote(MOTIF_SYMBOL) + "_(.*)").matcher(label);
+			
+			if(matcher.matches())
+			{
+				System.out.println(label);
+				index = Math.max(index, Integer.parseInt(matcher.group(1)));
+			}
+		}
+		
+		index++;
+		
+		DTGraph<String, String> copy = MapDTGraph.copy(graph);
 
 		// * Translate the occurrences from integers to nodes (in the copy)
 		List<List<DNode<String>>> occ = new ArrayList<List<DNode<String>>>(
@@ -367,8 +591,8 @@ public class MotifVar
 		{
 			List<DNode<String>> nodes = new ArrayList<DNode<String>>(
 					occurrence.size());
-			for (int index : occurrence)
-				nodes.add(copy.get(index));
+			for (int i : occurrence)
+				nodes.add(copy.get(i));
 			occ.add(nodes);
 		}
 
@@ -384,7 +608,7 @@ public class MotifVar
 			{
 				// * Wire a new symbol node into the graph to represent the
 				// occurrence
-				DNode<String> newNode = copy.add(MOTIF_SYMBOL);
+				DNode<String> newNode = copy.add(MOTIF_SYMBOL+"_"+index);
 
 				int indexInSubgraph = 0;
 				for (DNode<String> node : nodes)
@@ -419,34 +643,6 @@ public class MotifVar
 
 		return copy;
 	}
-	
-	/**
-	 * The cost of storing the tags. These are not taken as part of the structure
-	 * and simply stored as a sequence once the rest of the graph has been encoded.
-	 * @return
-	 */
-	public double tags()
-	{
-		// * Tags
-		double tagBits = 1; // one bit to signal whether or not there are tags following
-	
-		if(graph instanceof TGraph<?, ?>)
-		{
-			TGraph<?, ?> tgraph = (TGraph<?, ?>)graph;
-			// ** Tag set
-			List<?> tagSet = new ArrayList<Object>(tgraph.tags());
-			tagBits += new GZIPCompressor<List<Object>>().compressedSize(tagSet);
-						
-			// ** Tag sequence
-			OnlineModel<Object> tagModel = new OnlineModel<Object>(  (Collection<Object>) tgraph.tags());
-						
-			for(TLink<?, ?> link : tgraph.links())
-				tagBits += - Functions.log2(tagModel.observe(link.tag()));
-		}
-		
-		return tagBits;
-	}
-	
 
 	private static boolean alive(List<? extends Node<String>> nodes)
 	{
@@ -465,5 +661,10 @@ public class MotifVar
 				return false;
 
 		return true;
+	}
+	
+	public DTGraph<String, String> motifGraph()
+	{
+		return motif;
 	}
 }
