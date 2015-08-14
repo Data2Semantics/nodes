@@ -1,8 +1,10 @@
 package org.nodes.data;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -13,6 +15,7 @@ import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Graph;
 import org.nodes.LightDGraph;
+import org.nodes.Link;
 import org.nodes.MapDTGraph;
 import org.nodes.MapUTGraph;
 import org.nodes.UTGraph;
@@ -244,4 +247,18 @@ public class Data {
 		while(graph.size() < max + 1)
 			graph.add(null);
 	}		
+	
+	/**
+	 * Writes the graph structure to the file as an edge list. 
+	 * Only the structure is written and the labels and tags are discarded 
+	 */
+	public static <L> void writeEdgeList(Graph<L> graph, File file) 
+			throws IOException
+	{
+		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		for(Link<L> link : graph.links())
+			writer.write(link.first().index() + "\t" + link.second().index() + "\n");
+		
+		writer.close();
+	}
 }
