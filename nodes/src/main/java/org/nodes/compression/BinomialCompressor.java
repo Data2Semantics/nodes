@@ -2,7 +2,7 @@ package org.nodes.compression;
 
 import static org.nodes.compression.Functions.prefix;
 import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.logChoose;
+import static org.nodes.util.Functions.log2Choose;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 		int n = graph.size();
 		int t = n * (n + 1) / 2;
 		
-		return prefix(n) + log2(t) + logChoose(graph.numLinks(), t, 2.0);
+		return prefix(n) + log2(t) + log2Choose(graph.numLinks(), t);
 	}
 	
 	public static <N> double directed(DGraph<N> graph) 
@@ -43,8 +43,8 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 		double n = graph.size();
 		double t = n * (double) n;
 		
-		Global.log().info("Choose bits: " +  logChoose(graph.numLinks(), t));
+		Global.log().info("Choose bits: " +  log2Choose(graph.numLinks(), t));
 		
-		return prefix(graph.size()) + log2(t) + logChoose(graph.numLinks(), t, 2.0);
+		return prefix(graph.size()) + log2(t) + log2Choose(graph.numLinks(), t);
 	}
 }

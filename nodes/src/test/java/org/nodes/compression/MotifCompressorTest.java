@@ -21,9 +21,13 @@ import org.nodes.DegreeComparator;
 import org.nodes.Graphs;
 import org.nodes.Link;
 import org.nodes.MapDTGraph;
+import org.nodes.MapUTGraph;
 import org.nodes.Subgraph;
+import org.nodes.UGraph;
+import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.motifs.MotifCompressor;
+import org.nodes.motifs.UPlainMotifExtractor;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Order;
@@ -172,5 +176,60 @@ public class MotifCompressorTest
 		
 		System.out.println(wiring);
 		System.out.println(subbed);
+	}
+	
+	@Test
+	public void subbedTest()
+	{
+		UGraph<String> data = new MapUTGraph<String, String>();
+		
+		UNode<String> a = data.add("x"),
+		              b = data.add("x"),
+		              c = data.add("x"),
+		              d = data.add("x"),
+		              e = data.add("x"),
+		              f = data.add("x"),
+		              g = data.add("x"),
+		              h = data.add("x"),
+		              i = data.add("x"),
+		              j = data.add("x"),
+		              k = data.add("x"),
+		              l = data.add("x"),
+		              m = data.add("x");
+		
+		a.connect(b);
+		b.connect(c);
+		c.connect(a);
+		
+		d.connect(e);
+		e.connect(f);
+		f.connect(d);
+
+		g.connect(h);
+		h.connect(i);
+		i.connect(g);
+		
+		j.connect(k);
+		k.connect(l);
+		l.connect(j);
+		
+		m.connect(a);
+		m.connect(d);
+		m.connect(g);
+		m.connect(j);
+		
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 10000, 3, 7);
+		
+		for(UGraph<String> sub : ex.subgraphs())
+		{
+			System.out.println("subgraph: " + sub);
+
+			List<List<Integer>> wiring = new ArrayList<List<Integer>>(); 
+			UGraph<String> subbed = MotifCompressor.subbedGraph(data, sub, ex.occurrences(sub), wiring);
+			System.out.println("remainder: " + subbed);
+			System.out.println("wiring: " + wiring);
+			
+			System.out.println();
+		}
 	}
 }

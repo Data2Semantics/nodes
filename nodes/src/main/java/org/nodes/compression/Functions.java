@@ -25,6 +25,7 @@ public class Functions
 
 	/**
 	 * 2 log
+	 * @deprecated Use the one in org.nodes.util.Functions
 	 */
 	public static double log2(double x)
 	{

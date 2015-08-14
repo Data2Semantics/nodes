@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,8 +57,9 @@ import au.com.bytecode.opencsv.CSVWriter;
 /**
  * Extracts motifs from a UGraph<String> by sampling.
  * 
- * This extractor does not consider the node labels: ie. it does not perform 
- * masking. It simply returns the subgraphs that best compress the structure.
+ * This extractor does not perform masking. It simply returns the subgraphs 
+ * that best compress the structure. If labels are to be ignored, the graph 
+ * should be blanked beforehand 
  * 
  * @author Peter
  *
@@ -154,8 +156,8 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		//   (keep the ones with the lowest exdegrees)
 		FrequencyModel<UGraph<L>> newFm = 
 				new FrequencyModel<UGraph<L>>();
-		Map<UGraph<L>, Set<Occurrence>> newOccurrences = 
-				new LinkedHashMap<UGraph<L>, Set<Occurrence>>();
+		Map<UGraph<L>, List<List<Integer>>> newOccurrences = 
+				new LinkedHashMap<UGraph<L>, List<List<Integer>>>();
 		
 		for(UGraph<L> sub : fm.tokens())
 		{
@@ -163,65 +165,51 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 			Map<UNode<L>, List<Occurrence>> map = 
 				new LinkedHashMap<UNode<L>, List<Occurrence>>();
 			
-			// - fill the map
+			// * A list of all occurrences, sorted by exDegree
+			LinkedList<Occurrence> list = new LinkedList<Occurrence>();
+			
+			// - fill the map and list
 			for(List<Integer> occurrence : occurrences.get(sub))
+			{
+				Occurrence occ = new Occurrence(occurrence);
+				
+				list.add(occ);
+				
 				for(int index : occurrence)
 				{
 					UNode<L> node = data.get(index);
+					
 					if(! map.containsKey(node))
-						map.put(node, new ArrayList<Occurrence>());
-						
-					map.get(node).add(new Occurrence(occurrence));
+						map.put(node, new ArrayList<Occurrence>());	 
+					map.get(node).add(occ);
 				}
-			
-			// - sort the occurrences by exdegree
-			Comparator<List<Integer>> comp = MotifCompressor.exDegreeComparator(data);
-			for(List<Occurrence> list : map.values())
-				Collections.sort(list, new ExDegreeComparator<L>(data));
-			
-			// * Now iterate over all occurrences for each node. Keep the first 
-			//   one that hasn't been killed yet, and kill the rest
-			for(UNode<L> node : map.keySet())
-			{
-				// - Find the first living Occurrence
-				Occurrence living = null;
-				Iterator<Occurrence> it = map.get(node).iterator();
-				while(it.hasNext())
-				{
-					living = it.next();
-					if(living.alive())
-						break;
-				}
-				
-				if(living != null)
-				{
-					if(! newOccurrences.containsKey(sub))
-						newOccurrences.put(sub, new LinkedHashSet<Occurrence>());
-					
-					newOccurrences.get(sub).add(living);
-					newFm.add(sub);
-				}
-					
-				// - kill the rest
-				while(it.hasNext())
-					it.next().kill();
 			}
-
+			
+			Collections.sort(list);
+			
+			while(!list.isEmpty())
+			{
+				// * Find the first living occurrence, remove any dead ones
+				Occurrence head = list.poll();
+				
+				if(head.alive()) // * register it as a viable occurrence
+				{
+					newFm.add(sub);
+					if(! newOccurrences.containsKey(sub))
+						newOccurrences.put(sub, new ArrayList<List<Integer>>());
+					newOccurrences.get(sub).add(head.indices());
+					
+					// - now kill any occurrence that shares a node with this one.
+					for(int nodeIndex : head.indices())
+						for(Occurrence occ : map.get(data.get(nodeIndex)))
+							occ.kill();
+				} 
+			}
+			
 		}
 		
 		fm = newFm;
-		
-		// - get rid of the Occurrence objects, return to lists of Integers
-		occurrences.clear();
-		for(UGraph<L> sub : newOccurrences.keySet())
-		{
-			List<List<Integer>> value = new ArrayList<List<Integer>>(newOccurrences.get(sub).size());
-			
-			for(Occurrence occ :  newOccurrences.get(sub))
-				value.add(occ.indices());
-			
-			occurrences.put(sub, value);
-		}
+		occurrences = newOccurrences;
 		
 		Global.log().info("Finished sampling motifs and removing overlaps.");
 
@@ -238,20 +226,19 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		return occurrences.get(subgraph);
 	}
 
-	private static class Occurrence {
-		private static int numObjects = 0;
-		private static List<Occurrence> objects = new ArrayList<Occurrence>();
+	private class Occurrence implements Comparable<Occurrence> {
 		
 		private boolean alive = true;
 		private List<Integer> indices;
 		private int id;
+		
+		private int exDegree;
 	
 		public Occurrence(List<Integer> indices)
 		{
-			this.indices = indices; 
-			id = numObjects++;
+			this.indices = indices;
 			
-			objects.add(this);
+			exDegree = MotifCompressor.exDegree(data, indices);
 		}
 		
 		public boolean alive()
@@ -269,27 +256,24 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 			return indices;
 		}
 		
-		public static Occurrence get(int id)
+		public int exDegree()
 		{
-			return objects.get(id);
-		}
-		
-	}
-	
-	private static class ExDegreeComparator<L> implements Comparator<Occurrence>
-	{
-		private Graph<L> data;
-
-		public ExDegreeComparator(Graph<L> data)
-		{
-			this.data = data;
+			return exDegree;
 		}
 
 		@Override
-		public int compare(Occurrence a, Occurrence b)
+		public int compareTo(Occurrence other)
 		{
-			return Integer.compare(exDegree(data, a.indices()),  exDegree(data, b.indices())); 
+			return Integer.compare(exDegree, other.exDegree);
 		}
+		
+
+		
+	}
+
+	public double frequency(UGraph<L> sub)
+	{
+		return fm.frequency(sub);
 	}
 	
 }

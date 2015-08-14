@@ -306,9 +306,13 @@ public class Functions
 
 	public static double logChoose(double sub, double total, double base)
 	{
-		return logChoose(sub, total) / Math.log(2.0);
+		return logChoose(sub, total) * log(Math.E, base);
 	}	
-	
+
+	public static double log2Choose(double sub, double total)
+	{
+		return logChoose(sub, total, 2.0);
+	}	
 	
 	/**
 	 * The binary logarithm of the choose function (ie. the binomial coefficient)
@@ -739,5 +743,45 @@ public class Functions
 		}
 			
 		return result;
+	}
+	
+	/**
+	 * Returns a view of the given list with the specified index removed.
+	 * @param in
+	 * @param rmIndex
+	 * @return
+	 */
+	public static <T> List<T> minList(List<T> in, int rmIndex)
+	{
+		return new MinList<T>(in, rmIndex);
+	}
+	private static class MinList<T> extends AbstractList<T>
+	{
+		List<T> master;
+		int rmIndex;
+		
+		public MinList(List<T> master, int rmIndex)
+		{
+			if(master.isEmpty())
+				throw new IllegalArgumentException("master must contain at least one element");
+			
+			this.master = master;
+			this.rmIndex = rmIndex;
+		}
+
+		@Override
+		public T get(int index)
+		{
+			if(index < rmIndex)
+				return master.get(index);
+			return master.get(index + 1);
+		}
+
+		@Override
+		public int size()
+		{
+			return master.size() - 1; 
+		}
+		
 	}
 }

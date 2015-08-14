@@ -13,6 +13,12 @@ import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.util.FrequencyModel;
 
+/**
+ * TODO: Check for self-loops, use one bit to encode
+ * @author Peter
+ *
+ * @param <N>
+ */
 public class UniformCompressor<N> extends AbstractGraphCompressor<N>
 {
 
@@ -31,12 +37,12 @@ public class UniformCompressor<N> extends AbstractGraphCompressor<N>
 	public double undirected(Graph<N> graph)
 	{
 		int n = graph.size();
-		return n * (n + 1) / 2;
+		return prefix(n) + n * (n + 1) / 2; 
 	}
 	
 	public double directed(DGraph<N> graph)
 	{
 		int n = graph.size();
-		return n * n;
+		return prefix(n) + n * n;
 	}
 }

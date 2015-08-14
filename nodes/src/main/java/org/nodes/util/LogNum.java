@@ -4,9 +4,15 @@ import static java.lang.Math.max;
 import static java.lang.Math.pow;
 import static java.util.Arrays.asList;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+
+import org.nodes.util.LogNum.LogNumList;
 
 import com.itextpdf.text.log.SysoLogger;
 
@@ -291,5 +297,35 @@ public class LogNum extends Number implements Comparable<LogNum>
 		LogNum sum = LogNum.sum(data);
 		double base = data.isEmpty() ? 2.0 : data.get(0).base();
 		return sum.divide(LogNum.fromDouble(data.size(), base));
+	}
+	
+	public static List<LogNum> list(List<Double> in, double base)
+	{
+		return new LogNumList(in, base);
+	}
+
+	public static class LogNumList extends AbstractList<LogNum>
+	{
+		private List<Double> master;
+		private double base;
+		
+		public LogNumList(List<Double> master, double base)
+		{
+			this.master = master;
+			this.base = base;
+		}
+
+		@Override
+		public LogNum get(int index)
+		{
+			return fromDouble(master.get(index), base);
+		}
+
+		@Override
+		public int size()
+		{
+			return master.size();
+		}
+	
 	}
 }
