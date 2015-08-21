@@ -12,7 +12,7 @@ import org.nodes.DGraph;
 import org.nodes.DNode;
 
 /**
- * These class computes bounds for the number of directed graphs (self loops 
+ * This class computes bounds for the number of directed graphs (self loops 
  * allowed) with given in and out sequences.
  *  
  * @author Peter

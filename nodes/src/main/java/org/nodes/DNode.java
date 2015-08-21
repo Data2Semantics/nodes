@@ -5,6 +5,10 @@ import java.util.Set;
 
 public interface DNode<L> extends Node<L> 
 {
+	/**
+	 * All nodes that can be reached by following an in or out link from this 
+	 * node.
+	 */
 	public Collection<? extends DNode<L>> neighbors();
 	
 	@Override
@@ -14,6 +18,10 @@ public interface DNode<L> extends Node<L>
 
 	public Collection<? extends DNode<L>> neighbors(L label);
 	
+	/**
+	 * All nodes that can be reached by following an outgoing link from this node.
+	 * @return
+	 */
 	public Collection<? extends DNode<L>> out();
 	
 	public Collection<? extends DLink<L>> linksOut();	

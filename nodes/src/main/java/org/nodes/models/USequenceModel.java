@@ -825,7 +825,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 				
 		// * Integrate which nodes are forbidden into the residual degree sequence
 		//   If the second element of the pair is false, the node is forbidden.
-		//   (this combined combined list allows us to sort the degree sequence 
+		//   (this combined list allows us to sort the degree sequence 
 		//    without losing track of which nodes are forbidden). 
 		List<Index> res = new ArrayList<Index>(residualDegrees.size());
 		
@@ -981,6 +981,15 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		{
 			return sigma;
 		}
+
+		@Override
+		public String toString()
+		{
+			return graph + ", (c=" + c + ", sigma=" + sigma
+					+ ")";
+		}
+		
+		
 	}
 	
 	public Generator<UGraph<L>> uniform()

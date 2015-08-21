@@ -1,606 +1,762 @@
 package org.nodes.models;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
-import static java.util.Arrays.asList;
+import static java.lang.Math.E;
+import static java.lang.Math.floor;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+
+import static org.nodes.util.Functions.choose;
+import static org.nodes.util.Functions.exp2;
 import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.logFactorial;
-import static org.nodes.util.Functions.tic;
-import static org.nodes.util.Functions.toString;
-import static org.nodes.util.Functions.toc;
+import static org.nodes.util.Functions.log2Min;
+import static org.nodes.util.Functions.log2Sum;
+import static org.nodes.util.LogNum.fromDouble;
+import static org.nodes.util.Pair.first;
 import static org.nodes.util.Series.series;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Set;
 
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.CholeskyDecomposition;
-import org.apache.commons.math3.linear.EigenDecomposition;
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.Global;
+import org.nodes.Graph;
+import org.nodes.MapDTGraph;
+import org.nodes.MapUTGraph;
 import org.nodes.Node;
+import org.nodes.UGraph;
 import org.nodes.util.Functions;
+import org.nodes.util.Generator;
+import org.nodes.util.LogNum;
+import org.nodes.util.MaxObserver;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 /**
- * This model represents a uniform distribution over all (directed) graphs with 
- * the given degree sequence.
+ * Implementation of the Diaconis/Blitzstein sequential importance sampling 
+ * algorithm.
  * 
+ *  
  * @author Peter
  *
+ * @param <L>
  */
-public class DSequenceModel<L> implements Model<L, DGraph<L>>
-{
-	private static final int MAX_SEARCH_DEPTH = (int)(16.0 * log2(10.0));
-	private static final double STOP_COND_GRAD = 10E-4;
-	private static final double STOP_COND_STEP = 10E-4;
-	private static final int DEFAULT_MEMORY = 7;
-	private static final double PHI = 1.61803398874989484820458683;
+public class DSequenceModel<L> implements Model<L, UGraph<L>>
+{	
+	public static final boolean PICK_CANDIDATE_BY_DEGREE = false;
+	private L label = null;
+	private List<D> sequence;
 	
-	private boolean check = false;
-	/**
-	 * r_i
-	 */
-	private List<Integer> inSequence;
-	/**
-	 * c_i
-	 */
-	private List<Integer> outSequence;
-	private int n;
 	
-	private int memory = DEFAULT_MEMORY; 
-	
-	// * (estimated) logprob for graphs with this sequence 
-	private double logProb, bitsUpperBound, bitsLowerBound; 
+	private List<Double> logSamples;
 
-	public DSequenceModel(DGraph<?> data, boolean check)
+	public DSequenceModel(DGraph<?> data, int samples)
 	{
-		inSequence = new ArrayList<Integer>(data.size());
-		outSequence = new ArrayList<Integer>(data.size());
+		this(data);
+		
+		for(int i : series(samples))
+			nonuniform();
+	}
+	
+	public DSequenceModel(DGraph<?> data)
+	{
+
+		sequence = new ArrayList<D>(data.size());
 		
 		for(DNode<?> node : data.nodes())
 		{
-			inSequence.add(node.inDegree());
-			outSequence.add(node.outDegree());
+			int in = node.inDegree(), out = node.outDegree();
+			sequence.add(new D(in, out));
 		}
-			
-		n = inSequence.size();
-		
-		this.check = check;
-		
-		computeNewton();
+							
+		this.logSamples = new ArrayList<Double>();
 	}
 	
-	/**
-	 * 
-	 * @param inSequence
-	 * @param outSequence
-	 * @param check Whether to check if the provided graph has the correct 
-	 * degree sequence.
-	 */
-	public DSequenceModel(
-			List<Integer> inSequence, List<Integer> outSequence, 
-			boolean check)
+	public DSequenceModel(List<Integer> inSequence, List<Integer> outSequence, int samples)
 	{
-		this.inSequence = new ArrayList<Integer>(inSequence);
-		this.outSequence = new ArrayList<Integer>(outSequence);
-		n = inSequence.size();
-		
-		this.check = check;
-		
-		computeNewton();
+		this(inSequence, outSequence);
+
+		Functions.tic();
+		for(int i : series(samples))
+		{
+			nonuniform();
+			if(Functions.toc() > 10)
+				System.out.println("\r " + logSamples.size() + "samples completed");
+		}
 	}
 	
-	private double logCorrection()
+	public DSequenceModel(List<Integer> inSequence, List<Integer> outSequence)
 	{
-		double value = logFactorial(n*n, 2.0);
-		value -= 2 * n * n * log2(n);
-		for(int i : series(n))
-			value += (n - inSequence.get(i)) * log2((n - inSequence.get(i))); 
+		this.sequence = new ArrayList<D>(inSequence.size());
 		
-		for(int i : series(n))
-			value -= logFactorial(n - inSequence.get(i), 2.0);
-		
-		for(int j : series(n))
-			value += outSequence.get(j) == 0  
-					? 0
-					: outSequence.get(j) * log2(outSequence.get(j));
-		
-		for(int j : series(n))
-			value -= logFactorial(outSequence.get(j), 2.0);
-		
-		return value;
-	}
-
-	private void computeNewton()
-	{
-		
-		LinkedList<RealVector> gradientSteps = new LinkedList<RealVector>();
-		LinkedList<RealVector> xSteps     = new LinkedList<RealVector>();
-		LinkedList<Double>     rhos       = new LinkedList<Double>();
-
-		
-		RealVector x = new ArrayRealVector(2 * n);
-		
-		for(int i : series(x.getDimension()))
-			x.setEntry(i, Global.random().nextDouble());
-		
-		int i = 0;
-		
-		RealVector gradient = gradient(x);
-
-		while(true)
-		{
-			i++;
-			
-			RealVector direction = hessianMultiply(gradientSteps, xSteps, rhos, gradient);
-			direction.mapMultiplyToSelf(-1.0);
-			
-			double rate = findStepSize(x, direction);
-			
-			RealVector oldX = x;
-			x = x.add(direction.mapMultiply(rate));
-			
-			RealVector oldGradient = gradient;
-			gradient = gradient(x);
-			
-			RealVector xStep = x.subtract(oldX),
-					gradientStep = gradient.subtract(oldGradient);
-			
-			xSteps.add(xStep);
-			gradientSteps.add(gradientStep);
-			rhos.add(1.0/xStep.dotProduct(gradientStep));
-			
-			System.out.println(i + " diff " + xSteps.get(xSteps.size()-1).getNorm());
-			System.out.println("Gradient norm " + gradient.getLInfNorm());
-			// System.out.println("x " + x);
-			// System.out.println("direction: " + direction);
-			// System.out.println("gradient at x :" + gradient(x));
-			double v = value(x)/log(2.0); 
-			System.out.println("[" + (v + logCorrection()) + ", "+ v +"]");
-			
-			if(gradient.getLInfNorm() < STOP_COND_GRAD && xSteps.get(xSteps.size()-1).getNorm() < STOP_COND_STEP)
-				break;
-			
-			while(gradientSteps.size() > memory)
-			{
-				gradientSteps.remove(0);
-				xSteps.remove(0);
-				rhos.remove(0);
-			}
-		}
-				
-		bitsUpperBound = value(x) / log(2.0);
-		bitsLowerBound = bitsUpperBound + logCorrection();
-		
-		
-	}
-
-	/**
-	 * Computes an approximation to the inverse Hessian multiplied by the 
-	 * direction
-	 *  
-	 * @param gradients
-	 * @param steps
-	 * @param direction
-	 * @return
-	 */
-	private RealVector hessianMultiply(
-			List<RealVector> y, List<RealVector> s,
-			List<Double> rhos,
-			RealVector direction)
-	{
-		RealVector r = new ArrayRealVector(direction);
-		
-		assert(y.size() == s.size());
-		
-		int n = y.size();
-		
-		double[] alpha = new double[n];
-		
-		for(int i : series(n - 1, -1))
-		{
-			alpha[i] = rhos.get(i) * s.get(i).dotProduct(r);
-			
-			r = r.subtract(y.get(i).mapMultiply(alpha[i]));
-		}
-		
-		if(n > 0)
-		{
-			double gamma = s.get(n-1).dotProduct(y.get(n-1)) / y.get(n-1).dotProduct(y.get(n-1));
-			r.mapMultiplyToSelf(gamma);
-		}
-		
-		for(int i : series(n))
-		{
-			double beta = rhos.get(i) * y.get(i).dotProduct(r);
-			r = r.add(s.get(i).mapMultiply(alpha[n - 1 - i] - beta));
-		}
-		
-		return r;
-	}
-
-	/**
-	 * Gives the matrix a little push so that it's guaranteed to be positive 
-	 * semidefinite
-	 * 
-	 * @param matrix
-	 * @return
-	 */
-	private RealMatrix nudge(RealMatrix matrix)
-	{	
-		System.out.println(Functions.toString(matrix, 2));
-		
-		EigenDecomposition decomp = new EigenDecomposition(matrix, -1.0);
-		RealMatrix v = decomp.getV();
-		RealMatrix d = decomp.getD();
-		RealMatrix vt = decomp.getVT();
-				
-		System.out.println(Functions.toString(d));
-
-		for(int i : series(2*n))
-			d.setEntry(i, i, Math.abs(decomp.getRealEigenvalue(i)));
-		
-		System.out.println(Functions.toString(d));
-		
-		matrix = v.multiply(d.multiply(v.transpose()));
-		
-		// Make symmetric, fix rounding errors
-		for(int i : series(matrix.getColumnDimension()))
-			for(int j : series(i, matrix.getRowDimension()))
-				matrix.setEntry(i, j, matrix.getEntry(j, i));
-		
-		System.out.println(Functions.toString(matrix, 2));
-		
-		return matrix;	
+		for(int i : series(inSequence.size()))
+			sequence.add(new D(inSequence.get(i), outSequence.get(i)));
+					
+		this.logSamples = new ArrayList<Double>();
 	}
 	
-	public int getDim()
+	public List<Double> logSamples()
 	{
-		return n * 2;
-	}
-
-	public RealVector gradient(RealVector x)
-	{
-		RealVector gradient = new ArrayRealVector(2 * n); 
-
-		for(int i : series(n))
-		{
-			double sum = 0.0;
-			for(int j : series(n))
-			{
-				double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
-				sum += part / (1 + part);
-			}
-			gradient.setEntry(s(i), sum - inSequence.get(i));
-		}
-		
-		for(int j : series(n))
-		{
-			double sum = 0.0;
-			for(int i : series(n))
-			{
-				double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
-				sum += part / (1 + part);
-			}
-			gradient.setEntry(t(j), sum - outSequence.get(j) );
-		}
-		
-		return gradient;
-	}
-		
-	private int t(int j)
-	{
-		return j + n;
+		return Collections.unmodifiableList(logSamples);
 	}
 	
-	private int s(int i)
+	public static final int BOOTSTRAP_SAMPLES = 10000;
+	private static final double SMOOTH = 0.1;
+	
+	public double effectiveSampleSize()
 	{
-		return i;
-	}
-
-	public RealMatrix hessian(RealVector x)
-	{
-		// Make a 2n x 2n empty matrix.
-		RealMatrix hessian = new Array2DRowRealMatrix(2 * n, 2 * n);
-
-		// * Compute the diagonal
-		for (int i : series(n))
-		{
-			double sum = 0.0;
-			for (int j : series(n))
-			{
-				double part = exp(x.getEntry(s(i)) + x.getEntry(t(j)));
-				sum += part / ((1+ part) * (1+part));
-			}
-			
-			hessian.setEntry(s(i), s(i), sum);
-		}
+		List<Double> squared = new ArrayList<Double>(logSamples.size());
+		for(int i : series(logSamples.size()))
+			squared.add(2.0 * logSamples.get(i)); 
 		
-		for (int j : series(n))
-		{
-			double sum = 0.0;
-			for (int i : series(n))
-			{
-				double part = exp(x.getEntry(s(i)) + x.getEntry(t(j)));
-				sum += part / ((1 + part) * (1 + part));
-			}
-			
-			hessian.setEntry(t(j), t(j), sum);
-		}
+		double logEffSampleSize = 2.0 * log2Sum(logSamples) - log2Sum(squared);
 		
-		// * Compute lower left (s vs t) and upper right.
-		//   The Hessian is symmetric, so we can do this in one go.
-		for(int i : series(n))
-			for(int v : series(n))
-			{
-				double part = exp(x.getEntry(s(i)) + x.getEntry(t(v)));
-				double val = part / ((1 + part) * (1 + part));
-				
-				hessian.setEntry(s(i), t(v), val);
-				hessian.setEntry(t(v), s(i), val);
-			}
-		
-		// * upper left and lower right are zero, so the default values 
-		//   don't need to be changed.
-		
-		return hessian;
-	}
-
-	public double value(RealVector x)
-	{
-		double value = 0.0;
-		double[] xa = ((ArrayRealVector)x).getDataRef();// nasty trick.
-		int nn = 2 * n;
-		for(int i = 0; i < n; i++)
-			for(int j = n; j < nn; j++)
-				value += Math.log1p( exp(xa[i] + xa[j]));
-		
-		for(int i = 0; i < n; i++)
-			value -= x.getEntry(s(i)) * inSequence.get(i);
-		
-		for(int j= 0; j < n; j++)
-			value -= x.getEntry(t(j)) * outSequence.get(j);
-		
-		return value;
+		return pow(2.0, logEffSampleSize);
 	}
 	
-	/**
-	 *  Compute the value of the objective function at x
-	 *  
-	 */
-	private double objective(List<Double> x)
+	public double logStdError()
 	{
-		List<Double> s = x.subList(0, n);
-		List<Double> t = x.subList(n, 2 * n);
-		
-		double v = 0.0; 
-		for(int i : series(n))
-			for(int j : series(n))
-				v += log(1.0 + exp(s.get(i)+t.get(j)));
-				
-		for(int i : series(n))
-			v -= s.get(i) * inSequence.get(i);
-		
-		for(int j : series(n))
-			v -= t.get(j) * outSequence.get(j);
-		
-		return v / log(2.0);
+		return logStdDev() - 0.5 * log2(logSamples.size());
 	}
 
-	
-	private double findStepSize(RealVector x, RealVector direction)
+	public double logStdDev()
 	{
-		// * make unit steps to find a value where the deriv is negative
-		double gamma = 1.0;
+		double logMean = logNumGraphs();
 		
-		double vg = value(x.add(direction.mapMultiply(gamma)));
-		double vx = value(x);
-		
-		while(vg < vx)
+		List<Double> logDiffs = new ArrayList<Double>(logSamples.size());
+		for(int i : series(logSamples.size()))
 		{
-			gamma *= 2.0;
-			vg = value(x.add(direction.mapMultiply(gamma)));
-			System.out.print("x");
-		}		
-		System.out.println();
+			double max = Math.max(logSamples.get(i), logMean);
+			double min = Math.min(logSamples.get(i), logMean);
+			logDiffs.add(2.0 * log2Min(max, min));
+		}
+	
+		return - 0.5 * log2(logSamples.size() - 1.0) + 0.5 * log2Sum(logDiffs);
+	}
+	
+	public double logProb()
+	{
+		return - logNumGraphs();
+	}
+	
+	public double logNumGraphs()
+	{
+		return log2Sum(logSamples) - log2(logSamples.size());
+	}
 
-		// * Golden section search
-		double a = 0.0, b = gamma / PHI, c = gamma;
-		double va = vx,
-		        vb = value(x.add(direction.mapMultiply(b))),
-		        vc = value(x.add(direction.mapMultiply(c)));
-		
-		return findStepSize(x, direction, a, b, c, va, vb, vc, 0);
-	}
-	
-	/**
-	 * We use golden section search to find the minimum along the search 
-	 * direction. 
-	 *  
-	 * Note that binary search for the root of the derivative along the 
-	 * direction is also an option, but it seems to be less stable once the 
-	 * gradient gets shallow.
-	 *  
-	 * @param x
-	 * @param gradient
-	 * @param lower
-	 * @param upper
-	 * @return
-	 */
-	private double findStepSize(RealVector x, RealVector direction, 
-			double lower, double mid, double upper, 
-			double vlower, double vmid, double vupper, int depth)
+	public double numGraphs()
 	{
-		if(depth >= MAX_SEARCH_DEPTH)
-			return Global.random().nextDouble() * (upper - lower) + lower;
-		
-		// System.out.print('.');
-		
-		double a = lower, b, c, d = upper, va = vlower, vb, vc, vd = vupper;
-		if(mid - lower >= upper - mid)
-		{
-			b = lower + (mid - lower) / PHI;
-			vb = value(x.add(direction.mapMultiply(b)));
-			
-			c = mid;
-			vc = vmid;
-		} else
-		{
-			b = mid;
-			vb = vmid;
-			
-			c = upper - (upper - mid) / PHI;
-			vc = value(x.add(direction.mapMultiply(c)));
-		}
-		
-		if(vb <= vc)
-			return findStepSize(x, direction, a, b, c, va, vb, vc, depth + 1);
-		else
-			return findStepSize(x, direction, b, c, d, vb, vc, vd, depth + 1);
-	}
-	
-	private double directionalDerivative(RealVector x, RealVector direction)
-	{
-		return gradient(x).dotProduct(direction);
-	}
-	
-	private List<Double> gradient(List<Double> x)
-	{
-		List<Double> s = x.subList(0, n);
-		List<Double> t = x.subList(n, 2 * n);
-		
-		List<Double> gradientS = new ArrayList<Double>(n);
-		List<Double> gradientT = new ArrayList<Double>(n);
-		for(int i : Series.series(n))
-			gradientS.add(0.0);
-		for(int i : Series.series(n))
-			gradientT.add(0.0);
-		
-		// * compute the gradient
-		// - first half
-		for(int i : series(n))
-		{
-			double g = - inSequence.get(i);
-			
-			for(int j : series(n)) 
-				g += 
-					Math.exp(s.get(i) + t.get(j)) / 
-					(1.0 + Math.exp(s.get(i) + t.get(j)));
-			
-			gradientS.set(i, g);
-		}
-		
-		// - second half
-		for(int j : series(n))
-		{
-			double g = - outSequence.get(j);
-			
-			for(int i : series(n)) 
-				g += 
-					Math.exp(s.get(i) + t.get(j)) / 
-					(1.0 + Math.exp(s.get(i) + t.get(j)));
-			
-			gradientT.set(j, g);
-		}
-		
-		return Functions.concat(gradientS, gradientT);
+		return pow(2.0, logNumGraphs());
 	}
 	
 	@Override
-	public double logProb(DGraph<L> graph)
+	public double logProb(UGraph<L> graph)
 	{
-		if(check)
-		{
-			// check if the graph has the correct in and out sequence and return 
-			// -infty if not. 
-			// TODO
-		}
+		// TODO: check if graph matches sequence
 		
-		return logProb;
-	}
-	
-	public double bitsUpperBound()
-	{
-		return bitsUpperBound;
-	}
-	
-	public double bitsLowerBound()
-	{
-		return bitsLowerBound;
+		return - logNumGraphs();
 	}
 	
 	/**
-	 * Returns the log_2 probability that is assigned to all graphs with the 
-	 * correct degree sequences.
-	 *   
+	 * Generates a random graph with the given degree  
+	 * 
 	 * @return
 	 */
-	public double logProb()
+	public Result nonuniform()
 	{
-		return logProb;
-	}
-	
-	private static int SA_MAX_ITS = 1000000;
-	private static double SA_BETA = 2.0;
-	
-	public double computeWithSimulatedAnnealing()
-	{
-		List<Double> 
-				x = new ArrayList<Double>(2 * n), 
-				xNew = new ArrayList<Double>(2 * n);
+		// * Create an empty graph
+		DGraph<L> graph = new MapDTGraph<L, String>();
 		
-		// * Initial position
-		for(int i : series(2 * n))
-		{
-			x.add(1.0);
-			xNew.add(1.0);
-		}
+		int n = sequence.size();
 		
-		double vMin = Double.POSITIVE_INFINITY; 
+		for(int i : Series.series(n))
+			graph.add(label);
 		
-		double vX = objective(x), vXNew;
+		// * Residual degrees
+		List<D> sequence = new ArrayList<D>(this.sequence);
 		
-		for(int i : series(SA_MAX_ITS))
-		{
-			if(i % (50000) == 0) System.out.print('.');
-			
-			double temp = i / (double) SA_MAX_ITS;
-			
-			// * generate a random step
-			double maxStep = Math.pow((1.0 - temp), SA_BETA);
-			for(int j : series(x.size()))
-				xNew.set(j, x.get(j) + (Global.random().nextDouble() - 0.5 ) * maxStep);
-			vXNew = objective(xNew);
-			
-			if(vXNew < vMin)
-				vMin = vXNew;
-			
-			if(vXNew < vX  || exp((vX - vXNew)/temp) > Global.random().nextDouble())
+		// * The log number of edge sequences producing the graph that will be
+		//   sampled
+		double logCY = 0; 
+		// * The log probability of the edge sequence that we've sampled 
+		double logSigY = 0;
+		
+		while(sum(sequence) > 0) // TODO: keep running value of sum
+		{			
+			// * Find the smallest i whose index is nonzero and minimal
+			int fromIndex = -1, fromOut = Integer.MAX_VALUE;
+			for(int index : Series.series(n))
 			{
-				List<Double> t = x;
+				int outDegree = sequence.get(index).out();
+
+				if(outDegree != 0 && outDegree < fromOut)
+				{
+					fromIndex = index;
+					fromOut = outDegree;
+				}
+			}
+			
+//			System.out.println(sequence);
+//			System.out.println("work node: " + fromIndex);
+			
+			logCY += Functions.logFactorial(fromOut, 2.0);
+			
+			while(sequence.get(fromIndex).out() > 0)
+			{
+				DNode<L> from = graph.get(fromIndex);
 				
-				x = xNew;
-				vX = vXNew;
+				List<Integer> toCandidates = findAcceptableSet(sequence, graph, from);
+//				System.out.println("candidates: " + toCandidates);
 				
-				xNew = t;
-				vXNew = Double.NaN;
+				int i;
+				if(toCandidates.isEmpty())
+				{
+					throw new IllegalStateException("Candidates is empty. Residual degree sequence: " + sequence);
+				}
+				
+				if(PICK_CANDIDATE_BY_DEGREE) // * choose the candidate by weighted indegree
+				{
+					List<Double> candidateWeights = new ArrayList<Double>(n);
+					int sum = 0;
+					
+					for(int toIndex : toCandidates)
+					{
+						candidateWeights.add((double)sequence.get(toIndex).in() + SMOOTH);
+						sum += sequence.get(toIndex).in() + SMOOTH;
+					}
+					
+					i = choose(candidateWeights, sum);
+					logSigY += log2(candidateWeights.get(i)/sum);
+
+				} else // * uniform choice
+				{
+					i = Global.random().nextInt(toCandidates.size());
+					logSigY += - log2(toCandidates.size());
+				}
+				
+				
+				int toIndex = toCandidates.get(i);
+//				System.out.println("candidate: " + toIndex);
+				
+				Node<L> to = graph.get(toIndex);
+				
+				from.connect(to);
+				
+				sequence.set(fromIndex, sequence.get(fromIndex).decOut());
+				sequence.set(toIndex, sequence.get(toIndex).decIn());
+
 			}
 		}
 		
-		System.out.println();
+		logSamples.add(- logCY - logSigY);
 		
-		return vMin;
+		return new Result(graph, logCY, logSigY);
+	}
+	
+	private static int numZeroes(List<Integer> seq)
+	{
+		int numZeroes = 0;
+		int i = seq.size();
+		
+		while(i > 0 && seq.get(--i) <= 0)
+			numZeroes ++;
+			
+		return numZeroes;
+	}
+	
+	/**
+	 * Find the maximum fail degree
+	 * 
+	 * @param seq The residual degree sequence (sorted in descending order). 
+	 *   This sequence must be graphical
+	 * @param allowed A set of nodes that we are not allowed to connect the 
+	 *   hub to (should include the hub itself).
+	 * @return The maximum fail degree for this sequence. 0 if no fail degrees
+	 *   exist. The logic is that connecting to a node with residual degree 0 is
+	 * 	 always illegal.
+	 */
+	protected static D findMaxFailDegree(List<Index> seq, int j)
+	{		
+		if (seq.size() == 0)
+			return new D(-1, -1);
+
+		// * find k0: the smallest k such that the two parts of the FR condition 
+		//   are equal 
+		
+		int n = seq.size();
+		
+		List<Integer> out = out(seq);
+		List<Integer> in  = in(seq);
+		
+		List<Integer> g1 = g1(out);
+		List<Integer> s  = s(out);
+
+		int lk = 0;
+		int rk = 0;
+		int squigk = 0;
+		
+		for(int k : series( 1, n))
+		{
+			// * update lk, squigk, rk
+			lk += in.get(k - 1);
+				
+			if(k == 1)
+				rk = n - 1 - g(1, 0, out);
+			else
+			    rk += n - squigk - i(out.get(k-1) >= k);
+			
+//			System.out.println("j = " + j + ", k = " + k);
+//			System.out.println(lk + " " + rk);
+			
+			if(!(k == 1 && j == 0))
+				if(lk == rk) 
+				{
+					int index = k;
+					while(index < seq.size() && ! seq.get(index).allowed)
+						index++;
+					if(index >= seq.size())
+						return new D(-1, -1);
+					
+					return seq.get(index).degree;
+				}
+			
+			// * update squigk
+			if(k == 1)
+				squigk = g(1, 0, out) + g(1, 1, out); 
+			else	
+				squigk += g1.get(k-1) + s.get(k-1);
+		}		
+		
+		return new D(-1, -1);
+	} 
+	
+	private static List<Integer> out(final List<Index> seq)
+	{
+		return new AbstractList<Integer>()
+		{
+			public Integer get(int index)
+			{
+				return seq.get(index).degree.out();
+			}
+
+			public int size()
+			{
+				return seq.size();
+			}
+		};
+	}
+			
+	private static List<Integer> in(final List<Index> seq)
+	{
+		return new AbstractList<Integer>()
+		{
+			public Integer get(int index)
+			{
+				return seq.get(index).degree.in();
+			}
+
+			public int size()
+			{
+				return seq.size();
+			}
+		};
+	}	
+	
+	/**
+	 * TODO: sort the input
+	 * 
+	 * @param in
+	 * @param out
+	 * @return
+	 */
+	public static boolean isGraphical(List<Integer> in, List<Integer> out)
+	{
+		assert(in.size() == out.size());
+		
+		int n = in.size();
+		
+		// * the basics
+		for(int d : in)
+			if(d > n - 1)
+				return false;
+		
+		for(int d : out)
+			if(d > n - 1)
+				return false;
+		
+		if(sums(in) != sums(out))
+			return false;
+		
+		List<Integer> g1 = g1(out);
+		List<Integer> s = s(out);
+
+		int lk = 0;
+		int rk = 0;
+		int squigk = 0;
+		
+		for(int k : series(1, n))
+		{
+			// * update lk, squigk, rk
+			lk += in.get(k - 1);
+				
+			if(k == 1)
+				rk = n - 1 - g(1, 0, out);
+			else
+			    rk += n - squigk - i(out.get(k-1) >= k); 
+			
+			if(lk > rk)
+				return false;
+			
+			// * update squigk
+			if(k == 1)
+				squigk = g(1, 0, out) + g(1, 1, out); 
+			else	
+				squigk += g1.get(k-1) + s.get(k-1);
+		}
+		
+		return true;
+	}
+	
+	protected static List<Integer> g1(List<Integer> out)
+	{
+		int n = out.size();
+		List<Integer> g1 = new ArrayList<Integer>(n+1);
+		for(int i : series(n+1))
+			g1.add(0);
+		
+		g1.set(out.get(0), 1);
+		for(int di : out.subList(1, n))
+			if (di > 0)
+			{
+				g1.set(di-1, g1.get(di-1) + 1); 
+			}
+	
+		return g1;
+	}
+	
+	protected static List<Integer> s(List<Integer> out)
+	{
+		int n = out.size();
+		List<Integer> s = new ArrayList<Integer>(n);
+		for(int i : series(n))
+			s.add(0);
+		
+		for(int t : series(2, n + 1))
+		{
+			int dt = out.get(t-1);
+					
+			int k = dt + 1; 
+			if(t <= k - 1)
+				s.set(k-1, s.get(k-1) + 1);
+			
+			k = dt;
+			if(t <= k)
+				s.set(k-1, s.get(k-1) - 1);
+		}
+
+		return s;
+	}
+
+	/**
+	 * G_k(p) from the paper
+	 */
+	public static int g(int k, int p, List<Integer> out)
+	{
+		int sum = 0;
+		for(int i : series(1, out.size() + 1))
+			if(p == out.get(i-1) + i(i <= k))
+				sum++;
+		
+		return sum;
+	}
+	
+	private static int i(boolean truth)
+	{
+		return truth ? 1 : 0;
+	}
+	
+	/**
+	 * Returns the set of nodes we can connect to the node hub without creating 
+	 * an ungraphical degree sequence.
+	 *
+	 * @param residualDegrees
+	 * @param graphSoFar
+	 * @param hub
+	 * @return
+	 */
+	public <L> List<Integer> findAcceptableSet(
+			List<D> residualDegrees, DGraph<L> graphSoFar, DNode<L> hub)
+	{
+		// * Cache the set of forbidden nodes
+		boolean[] forbidden = new boolean[residualDegrees.size()];
+		for(DNode<L> node : hub.out())
+			forbidden[node.index()] = true;
+		forbidden[hub.index()] = true;
+				
+		// * Integrate which nodes are forbidden into the residual degree sequence
+		//   If the boolean element of the Index is false, the node is forbidden.
+		//   (this combined list allows us to sort the degree sequence 
+		//    without losing track of which nodes are forbidden). 
+		List<Index> res = new ArrayList<Index>(residualDegrees.size());
+		
+		for (int i : series(residualDegrees.size()))
+			res.add(new Index(residualDegrees.get(i), !forbidden[i], i));
+		Index hubIndex = res.get(hub.index());
+		
+		D hubDegree = hubIndex.degree; 
+		
+		// * Pretend that we've connected all but one of the leftmost adjacency 
+		//   set to the hub
+		
+		// ** Set the hub's residual degree to 1
+		hubIndex.degree = hubIndex.degree.outToOne();
+		
+		// * This comparator will allow us to use quickselect to select the 
+		//   largest k allowed elements in res 
+		class SpecialComparator implements Comparator<Index>
+		{
+			@Override
+			public int compare(Index o1, Index o2)
+			{
+				if(o1.allowed == o2.allowed)
+					return - o1.degree.compareTo(o2.degree);
+				if(o1.allowed)
+					return -1;
+				else
+					return 1;
+			}
+		}
+		
+		List<Index> leftMost = MaxObserver.quickSelect(hubDegree.out() - 1, res, new SpecialComparator(), false);
+						
+		for(Index index : leftMost)
+		{
+			index.degree = index.degree.decIn();
+			index.allowed = false;
+//			System.out.println("lm " + index );
+		}
+		
+		// * Sort again
+		Collections.sort(res, Collections.reverseOrder());
+//		System.out.println("res " + res);		
+		
+		int j = res.indexOf(hubIndex);
+		
+		// * Find the maximum fail degree
+		D maxFailDegree = findMaxFailDegree(res, j);
+//		System.out.println("maxfaildegree = "  + maxFailDegree);
+				
+		List<Integer> result = new ArrayList<Integer>(res.size());
+		
+		// * Add all nonforbidden nodes with degree above 
+		//   maxFailDegree to the result set
+		for(int i : series(residualDegrees.size()))
+			if(residualDegrees.get(i).compareTo(maxFailDegree) > 0
+				&& (! forbidden[i]))
+			{
+				result.add(i);
+			}
+		
+		return result;
+	}
+	
+	protected static class Index implements Comparable<Index>
+	{
+		// Accessible fields for optimization
+		D degree;
+		boolean allowed;
+		int index;
+		
+		public Index(D degree, boolean allowed, int index)
+		{
+			this.degree = degree;
+			this.allowed = allowed;
+			this.index = index;
+		}
+
+		@Override
+		public int compareTo(Index o)
+		{
+			int comparison = this.degree.compareTo(o.degree);
+			return comparison != 0 ? comparison : Boolean.compare(this.allowed, o.allowed);
+		}
+		
+		public String toString()
+		{
+			return degree + "_" + allowed;
+		}
+	}
+	
+	private static List<D> degrees(final List<Index> in)
+	{
+		return new AbstractList<D>(){
+			
+			@Override
+			public D get(int i)
+			{
+				return in.get(i).degree;
+			}
+
+			@Override
+			public int size()
+			{
+				return in.size();
+			}};
+	}
+	
+	private int sum(List<D> seq)
+	{
+		int sum = 0;
+		for(D p : seq)
+			sum += p.in() + p.out();
+		
+		return sum;
+	}
+	
+	private static int sums(List<Integer> seq)
+	{
+		int sum = 0;
+		for(int p : seq)
+			sum += p;
+		
+		return sum; 
+	}
+	
+	public class Result 
+	{
+		private DGraph<L> graph;
+		private double c;
+		private double sigma;
+		
+		public Result(DGraph<L> graph, double c, double sigma)
+		{
+			this.graph = graph;
+			this.c = c;
+			this.sigma = sigma;
+		}
+		
+		public DGraph<L> graph()
+		{
+			return graph;
+		}
+		public double logC()
+		{
+			return c;
+		}
+		public double logSigma()
+		{
+			return sigma;
+		}
+
+		@Override
+		public String toString()
+		{
+			return graph + " c=" + c + ", sig=" + sigma + "]";
+		}
+		
+		
+	}
+	
+	public static <L> List<D> sequence(DGraph<L> graph)
+	{
+		List<D> list = new ArrayList<D>(graph.size());
+		for(DNode<L> node : graph.nodes())
+			list.add(new D(node.inDegree(), node.outDegree()));
+		
+		return list;
+	}
+	
+	public static final class D implements Comparable<D> {
+		int in;
+		int out;
+		
+		public D(int in, int out)
+		{
+			this.in = in;
+			this.out = out;
+		}
+		
+		public D outToOne()
+		{
+			return new D(in, 1);
+		}
+
+		public D decIn()
+		{
+			return new D(in - 1, out);
+		}
+
+		public D decOut()
+		{
+			return new D(in, out - 1);
+		}
+
+		public int in()
+		{
+			return in;
+		}
+		
+		public int out()
+		{
+			return out;
+		}
+		
+		@Override
+		public int hashCode()
+		{
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + in;
+			result = prime * result + out;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			
+			D other = (D) obj;
+
+			if (in != other.in)
+				return false;
+			if (out != other.out)
+				return false;
+			return true;
+		}
+
+		@Override
+		public int compareTo(D o)
+		{
+			int c = Integer.compare(in, o.in);
+			if(c != 0)
+				return c;
+			return Integer.compare(out, o.out);
+		}
+
+		@Override
+		public String toString()
+		{
+			return in + "_" + out;
+		}
+		
+		
 	}
 }

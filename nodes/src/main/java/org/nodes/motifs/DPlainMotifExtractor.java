@@ -30,16 +30,11 @@ import org.nodes.Graphs;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
 import org.nodes.Subgraph;
-import org.nodes.UGraph;
-import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.compression.EdgeListCompressor;
 import org.nodes.compression.Functions;
 import org.nodes.compression.NeighborListCompressor;
 import org.nodes.compression.Functions.NaturalComparator;
-import org.nodes.models.USequenceModel;
-import org.nodes.models.USequenceModel.CIMethod;
-import org.nodes.models.USequenceModel.CIType;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.AbstractGenerator;
 import org.nodes.util.BitString;
@@ -55,42 +50,45 @@ import com.itextpdf.text.log.SysoLogger;
 import au.com.bytecode.opencsv.CSVWriter;
 
 /**
- * Extracts motifs from a UGraph<String> by sampling.
+ * Extracts motifs from a DGraph<String> by sampling.
  * 
  * This extractor does not perform masking. It simply returns the subgraphs 
  * that best compress the structure. If labels are to be ignored, the graph 
- * should be blanked beforehand 
+ * should be blanked beforehand.
  * 
  * @author Peter
  *
  */
-public class UPlainMotifExtractor<L extends Comparable<L>>
+public class DPlainMotifExtractor<L extends Comparable<L>>
 {
 	private static final boolean SPECIFY_SUBS = true;
 	private static final int MIN_OCCURRENCES = 10;
 	private static final int MAX_MOTIFS = 10;
 	private static final boolean CORRECT_FREQUENCIES = true;
 
-	private UGraph<L> data;
+	private DGraph<L> data;
 	private int samples;
 
 	private Functions.NaturalComparator<L> comparator;
 
-	private List<UGraph<L>> tokens;
+	private List<DGraph<L>> tokens;
 
 	private Generator<Integer> intGen;
 	
 	private MotifVarTags mvTop = null;
 	
-	private FrequencyModel<UGraph<L>> fm;
-	private Map<UGraph<L>, List<List<Integer>>> occurrences;
+	private FrequencyModel<DGraph<L>> fm;
+	private Map<DGraph<L>, List<List<Integer>>> occurrences;
+	
+	private int minFreq;
 	
 	
-	public UPlainMotifExtractor(
-			UGraph<L> data,
+	public DPlainMotifExtractor(
+			DGraph<L> data,
 			int numSamples,
 			int minSize,
-			int maxSize)
+			int maxSize,
+			int minFreq)
 	{
 		this.data = data;
 		this.samples = numSamples;
@@ -98,13 +96,23 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		comparator = new Functions.NaturalComparator<L>();
 		intGen = Generators.uniform(minSize, maxSize + 1);
 		
+		this.minFreq = minFreq; 
+		
 		run();
 	}
 	
-	public UPlainMotifExtractor(
-			UGraph<L> data,
+	/**
+	 * Extracts motifs of a given size.
+	 * 
+	 * @param data
+	 * @param numSamples
+	 * @param size
+	 */
+	public DPlainMotifExtractor(
+			DGraph<L> data,
 			int numSamples,
-			int size)
+			int size, 
+			int minFreq)
 	{
 		this.data = data;
 		this.samples = numSamples;
@@ -112,16 +120,18 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		comparator = new Functions.NaturalComparator<L>();
 		intGen = Generators.uniform(size, size+1);
 		
+		this.minFreq = minFreq; 
+		
 		run();
 	}
 
 	private void run()
 	{
 		Global.log().info("Sampling motifs");		
-		fm = new FrequencyModel<UGraph<L>>();
+		fm = new FrequencyModel<DGraph<L>>();
 
 		// * The (overlapping) instances
-		occurrences = new LinkedHashMap<UGraph<L>, List<List<Integer>>>();
+		occurrences = new LinkedHashMap<DGraph<L>, List<List<Integer>>>();
 
 		SubgraphGenerator<L> gen = 
 			new SubgraphGenerator<L>(data, intGen, Collections.EMPTY_LIST);
@@ -134,7 +144,7 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 
 			SubgraphGenerator<L>.Result result = gen.generate();
 			
-			UGraph<L> sub = Subgraph.uSubgraphIndices(data, result.indices());
+			DGraph<L> sub = Subgraph.dSubgraphIndices(data, result.indices());
 
 			// * Reorder nodes to canonical ordering
 			Order canonical = Nauty.order(sub, comparator);
@@ -154,72 +164,74 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		Global.log().info("Removing overlapping occurrences.");
 		// * Remove overlapping occurrences 
 		//   (keep the ones with the lowest exdegrees)
-		FrequencyModel<UGraph<L>> newFm = 
-				new FrequencyModel<UGraph<L>>();
-		Map<UGraph<L>, List<List<Integer>>> newOccurrences = 
-				new LinkedHashMap<UGraph<L>, List<List<Integer>>>();
+		FrequencyModel<DGraph<L>> newFm = 
+				new FrequencyModel<DGraph<L>>();
+		Map<DGraph<L>, List<List<Integer>>> newOccurrences = 
+				new LinkedHashMap<DGraph<L>, List<List<Integer>>>();
 		
-		for(UGraph<L> sub : fm.tokens())
-		{
-			// * A map from nodes to occurrences containing them
-			Map<UNode<L>, List<Occurrence>> map = 
-				new LinkedHashMap<UNode<L>, List<Occurrence>>();
-			
-			// * A list of all occurrences, sorted by exDegree
-			LinkedList<Occurrence> list = new LinkedList<Occurrence>();
-			
-			// - fill the map and list
-			for(List<Integer> occurrence : occurrences.get(sub))
+		for(DGraph<L> sub : fm.tokens())
+			if(fm.frequency(sub) >= minFreq)
 			{
-				Occurrence occ = new Occurrence(occurrence);
-				list.add(occ);
+				// * A map from nodes to occurrences containing them
+				Map<DNode<L>, List<Occurrence>> map = 
+					new LinkedHashMap<DNode<L>, List<Occurrence>>();
 				
-				for(int index : occurrence)
+				// * A list of all occurrences, sorted by exDegree
+				LinkedList<Occurrence> list = new LinkedList<Occurrence>();
+				
+				// - fill the map and list
+				for(List<Integer> occurrence : occurrences.get(sub))
 				{
-					UNode<L> node = data.get(index);
+					Occurrence occ = new Occurrence(occurrence);
 					
-					if(! map.containsKey(node))
-						map.put(node, new ArrayList<Occurrence>());	 
-					map.get(node).add(occ);
+					list.add(occ);
+					
+					for(int index : occurrence)
+					{
+						DNode<L> node = data.get(index);
+						
+						if(! map.containsKey(node))
+							map.put(node, new ArrayList<Occurrence>());	 
+						map.get(node).add(occ);
+					}
 				}
-			}
-			
-			Collections.sort(list);
-			
-			while(!list.isEmpty())
-			{
-				// * Find the first living occurrence, remove any dead ones
-				Occurrence head = list.poll();
 				
-				if(head.alive()) // * register it as a viable occurrence
+				Collections.sort(list);
+				
+				while(!list.isEmpty())
 				{
-					newFm.add(sub);
-					if(! newOccurrences.containsKey(sub))
-						newOccurrences.put(sub, new ArrayList<List<Integer>>());
-					newOccurrences.get(sub).add(head.indices());
+					// * Find the first living occurrence, remove any dead ones
+					Occurrence head = list.poll();
 					
-					// - now kill any occurrence that shares a node with this one.
-					for(int nodeIndex : head.indices())
-						for(Occurrence occ : map.get(data.get(nodeIndex)))
-							occ.kill();
-				} 
-			}
-		}
+					if(head.alive()) // * register it as a viable occurrence
+					{
+						newFm.add(sub);
+						if(! newOccurrences.containsKey(sub))
+							newOccurrences.put(sub, new ArrayList<List<Integer>>());
+						newOccurrences.get(sub).add(head.indices());
+						
+						// - now kill any occurrence that shares a node with this one.
+						for(int nodeIndex : head.indices())
+							for(Occurrence occ : map.get(data.get(nodeIndex)))
+								occ.kill();
+					} 
+				}
+			}	
 		
 		fm = newFm;
 		occurrences = newOccurrences;
 		
 		Global.log().info("Finished sampling motifs and removing overlaps.");
 
-		tokens = fm.sorted();
+		tokens = new ArrayList<DGraph<L>>(fm.tokens());
 	}
 	
-	public List<UGraph<L>> subgraphs()
+	public List<DGraph<L>> subgraphs()
 	{
-		return fm.sorted();
+		return tokens;
 	}
 	
-	public List<List<Integer>> occurrences(UGraph<L> subgraph)
+	public List<List<Integer>> occurrences(DGraph<L> subgraph)
 	{
 		return occurrences.get(subgraph);
 	}
@@ -263,15 +275,11 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		public int compareTo(Occurrence other)
 		{
 			return Integer.compare(exDegree, other.exDegree);
-		}
-		
-
-		
+		}		
 	}
 
-	public double frequency(UGraph<L> sub)
+	public double frequency(DGraph<L> sub)
 	{
 		return fm.frequency(sub);
 	}
-	
 }

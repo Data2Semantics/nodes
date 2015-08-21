@@ -113,6 +113,18 @@ public class USequenceModelTest
 		System.out.println(model.nonuniform().graph());
 		
 	}
+	
+	@Test
+	public void testGenerateX()
+	{
+		USequenceModel<String> model = new USequenceModel<String>(asList(1, 2, 2, 1));
+		
+		for(int i : series(1000))
+			model.nonuniform();
+		
+		assertEquals(1.0, model.logNumGraphs(), 0.0);
+	}
+	
 	@Test
 	public void testGenerateSpeed()
 	{

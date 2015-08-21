@@ -12,7 +12,9 @@ import java.util.Set;
 
 import org.nodes.Global;
 import org.nodes.draw.Draw;
+import org.nodes.util.FrequencyModel;
 import org.nodes.util.Order;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 public class Graphs
@@ -770,6 +772,11 @@ public class Graphs
 	 */
 	public static UGraph<String> toSimpleUGraph(Graph<String> data)
 	{
+		return toSimpleUGraph(data, null);
+	}
+	
+	public static UGraph<String> toSimpleUGraph(Graph<String> data, FrequencyModel<Pair<Integer, Integer>> removals)
+	{
 		MapUTGraph<String, String> result = new MapUTGraph<String, String>();
 		
 		for(Node<String> node : data.nodes())
@@ -780,11 +787,63 @@ public class Graphs
 			Node<String> a = result.get(link.first().index()),
 			             b = result.get(link.second().index());
 			if(a.index() != b.index())
+			{
 				if(!a.connected(b))
+				{
 					a.connect(b);
+				} else if(removals != null)
+				{
+					int minor = Math.min(a.index(), b.index());
+					int major = Math.max(a.index(), b.index());
+
+					removals.add(new Pair<Integer, Integer>(minor, major));
+				}
+			}
 		}
 		
 		return result;
 	}	
+	
+	/**
+	 * Converts the input to a simple d graph. Any self-loops and dual links are 
+	 * removed. If the original graph is directed, this information is also 
+	 * removed.
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public static DGraph<String> toSimpleDGraph(DGraph<String> data)
+	{
+		return toSimpleDGraph(data, null);
+	}
+	
+	public static DGraph<String> toSimpleDGraph(DGraph<String> data, FrequencyModel<Pair<Integer, Integer>> removals)
+	{
+		MapDTGraph<String, String> result = new MapDTGraph<String, String>();
+		
+		for(Node<String> node : data.nodes())
+			result.add(node.label());
+		
+		for(DLink<String> link : data.links())
+		{
+			DNode<String> from = result.get(link.from().index()),
+			              to = result.get(link.to().index());
+			if(from.index() != to.index())
+			{
+				if(!from.connectedTo(to))
+				{
+					from.connect(to);
+				} else if(removals != null)
+				{
+					Pair<Integer, Integer> pair = 
+							new Pair<Integer, Integer>(from.index(), to.index());
+				
+					removals.add(pair);
+				}
+			}
+		}
+		
+		return result;
+	}
 }
 

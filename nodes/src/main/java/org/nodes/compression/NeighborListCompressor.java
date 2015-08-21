@@ -44,6 +44,16 @@ public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");
 	}
 	
+	public static <N >double undirected(Graph<N> graph)
+	{
+		return size(graph, false);
+	}
+
+	public static <N >double directed(Graph<N> graph)
+	{
+		return size(graph, true);
+	}
+
 	/**
 	 * Computes the number of bits required to encode just the structure of the 
 	 * graph (including its size, but excluding its tags and labels).
@@ -56,7 +66,6 @@ public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 	public static <N> double size(Graph<N> graph, boolean directed)
 	{
 		return size(graph, series(graph.size()), directed);
-		
 	}
 	
 	public static <N> double size(Graph<N> graph, List<Integer> order, boolean directed)

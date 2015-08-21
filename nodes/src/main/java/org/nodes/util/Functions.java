@@ -87,6 +87,9 @@ public class Functions
 	 */
 	public static double logFactorial(int n)
 	{
+		if(n < 0)
+			throw new IllegalArgumentException("Factorial not defined for negative values("+n+")");
+			
 		//initialize the lookup table for values < 101 
 		if(!factsInited)
 		{
