@@ -145,6 +145,11 @@ public class Pair<A, B> implements Serializable
 		}
 	}
 	
+	public static <A, B> Pair<A, B> p(A a, B b)
+	{
+		return new Pair<A, B>(a, b);
+	}
+	
 	/**
 	 * Returns a list of containing the first elements in all the pairs in the
 	 * list provided. The returned list is backed by the provided list.
