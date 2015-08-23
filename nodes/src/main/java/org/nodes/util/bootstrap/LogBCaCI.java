@@ -18,6 +18,11 @@ public class LogBCaCI extends LogPercentileCI
 	private static final NormalDistribution N = new NormalDistribution();
 	
 	protected double a, b;
+
+	public LogBCaCI(List<Double> data)
+	{
+		this(data, BS_SAMPLES);
+	}
 	
 	public LogBCaCI(List<Double> data, int bootstrapSamples)
 	{

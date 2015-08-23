@@ -25,6 +25,8 @@ import org.nodes.util.Pair;
  */
 public class LogPercentileCI
 {	
+	public static final int BS_SAMPLES = 10000;
+	
 	protected List<LogNum> data;
 	protected int bootstrapSamples;
 	

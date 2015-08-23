@@ -787,4 +787,24 @@ public class Functions
 		}
 		
 	}
+	
+	/**
+	 * Writes the given string to the given file. Utility method for doing this 
+	 * without too much boilerplate code. Hides the IOExceptions ina runtime 
+	 * exception.
+	 *  
+	 * @param string
+	 * @param file
+	 */
+	public static void write(String string, File file)
+	{
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(file));
+			out.write(string);
+			out.close();
+		} catch(IOException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
 }

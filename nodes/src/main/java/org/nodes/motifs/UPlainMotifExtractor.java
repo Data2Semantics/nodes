@@ -84,6 +84,7 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 	
 	private FrequencyModel<UGraph<L>> fm;
 	private Map<UGraph<L>, List<List<Integer>>> occurrences;
+	private int minFreq;
 	
 	
 	public UPlainMotifExtractor(
@@ -92,8 +93,20 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 			int minSize,
 			int maxSize)
 	{
+		this(data, numSamples, minSize, maxSize, 0);
+	}
+	
+	
+	public UPlainMotifExtractor(
+			UGraph<L> data,
+			int numSamples,
+			int minSize,
+			int maxSize,
+			int minFreq)
+	{	
 		this.data = data;
 		this.samples = numSamples;
+		this.minFreq = minFreq;
 		
 		comparator = new Functions.NaturalComparator<L>();
 		intGen = Generators.uniform(minSize, maxSize + 1);
@@ -160,51 +173,52 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 				new LinkedHashMap<UGraph<L>, List<List<Integer>>>();
 		
 		for(UGraph<L> sub : fm.tokens())
-		{
-			// * A map from nodes to occurrences containing them
-			Map<UNode<L>, List<Occurrence>> map = 
-				new LinkedHashMap<UNode<L>, List<Occurrence>>();
-			
-			// * A list of all occurrences, sorted by exDegree
-			LinkedList<Occurrence> list = new LinkedList<Occurrence>();
-			
-			// - fill the map and list
-			for(List<Integer> occurrence : occurrences.get(sub))
+			if(fm.frequency(sub) >= minFreq)
 			{
-				Occurrence occ = new Occurrence(occurrence);
-				list.add(occ);
+				// * A map from nodes to occurrences containing them
+				Map<UNode<L>, List<Occurrence>> map = 
+					new LinkedHashMap<UNode<L>, List<Occurrence>>();
 				
-				for(int index : occurrence)
+				// * A list of all occurrences, sorted by exDegree
+				LinkedList<Occurrence> list = new LinkedList<Occurrence>();
+				
+				// - fill the map and list
+				for(List<Integer> occurrence : occurrences.get(sub))
 				{
-					UNode<L> node = data.get(index);
+					Occurrence occ = new Occurrence(occurrence);
+					list.add(occ);
 					
-					if(! map.containsKey(node))
-						map.put(node, new ArrayList<Occurrence>());	 
-					map.get(node).add(occ);
+					for(int index : occurrence)
+					{
+						UNode<L> node = data.get(index);
+						
+						if(! map.containsKey(node))
+							map.put(node, new ArrayList<Occurrence>());	 
+						map.get(node).add(occ);
+					}
+				}
+				
+				Collections.sort(list);
+				
+				while(!list.isEmpty())
+				{
+					// * Find the first living occurrence, remove any dead ones
+					Occurrence head = list.poll();
+					
+					if(head.alive()) // * register it as a viable occurrence
+					{
+						newFm.add(sub);
+						if(! newOccurrences.containsKey(sub))
+							newOccurrences.put(sub, new ArrayList<List<Integer>>());
+						newOccurrences.get(sub).add(head.indices());
+						
+						// - now kill any occurrence that shares a node with this one.
+						for(int nodeIndex : head.indices())
+							for(Occurrence occ : map.get(data.get(nodeIndex)))
+								occ.kill();
+					} 
 				}
 			}
-			
-			Collections.sort(list);
-			
-			while(!list.isEmpty())
-			{
-				// * Find the first living occurrence, remove any dead ones
-				Occurrence head = list.poll();
-				
-				if(head.alive()) // * register it as a viable occurrence
-				{
-					newFm.add(sub);
-					if(! newOccurrences.containsKey(sub))
-						newOccurrences.put(sub, new ArrayList<List<Integer>>());
-					newOccurrences.get(sub).add(head.indices());
-					
-					// - now kill any occurrence that shares a node with this one.
-					for(int nodeIndex : head.indices())
-						for(Occurrence occ : map.get(data.get(nodeIndex)))
-							occ.kill();
-				} 
-			}
-		}
 		
 		fm = newFm;
 		occurrences = newOccurrences;
