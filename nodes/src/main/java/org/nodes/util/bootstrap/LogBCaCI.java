@@ -19,15 +19,27 @@ public class LogBCaCI extends LogPercentileCI
 	
 	protected double a, b;
 
+	protected LogBCaCI(List<LogNum> bootstraps, List<Double> data, Object blah)
+	{
+		super(bootstraps, data, blah);
+		
+		compute();
+	}
+	
 	public LogBCaCI(List<Double> data)
 	{
 		this(data, BS_SAMPLES);
-	}
-	
+	}	
+
 	public LogBCaCI(List<Double> data, int bootstrapSamples)
 	{
 		super(data, bootstrapSamples);
 		
+		compute();
+	}
+
+	private void compute()
+	{
 		// * estimate a by the jackknife method
 		List<LogNum> means = new ArrayList<LogNum>(this.data.size());
 		for(int i : series(this.data.size()))
@@ -98,5 +110,21 @@ public class LogBCaCI extends LogPercentileCI
 		return interpolate(bootstraps.get(iBelow), bootstraps.get(iBelow+1), (1.0 - rem)).logMag();
 	}
 	
+	/**
+	 * Create a log bca model directly from a sequence of bootstrap values.
+	 * 
+	 * This is useful for performing parametric bootstrap.
+	 *  
+	 * @param logValues
+	 * @return
+	 */
+	public static LogBCaCI fromBootstraps(List<Double> bootstraps, List<Double> data)
+	{
+		List<LogNum> bs = new ArrayList<LogNum>(bootstraps.size()); 
+		for(double val : bootstraps)
+			bs.add(new LogNum(val, true, 2.0));
+		
+		return new LogBCaCI(bs, data, null);
+	}
 
 }

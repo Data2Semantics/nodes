@@ -34,6 +34,21 @@ public class LogPercentileCI
 	
 	protected LogNum dataMean;
 	
+	protected LogPercentileCI(List<LogNum> bootstraps, List<Double> data, Object blah)
+	{
+		this.bootstraps = bootstraps;
+
+		this.data = new ArrayList<LogNum>(data.size());
+		for(double datum : data)
+			this.data.add(new LogNum(datum, true, 2.0));
+		
+		dataMean = LogNum.mean(this.data);
+		
+		this.bootstrapSamples = bootstraps.size();
+
+		Collections.sort(bootstraps);
+	}
+	
 	public LogPercentileCI(List<Double> data, int bootstrapSamples)
 	{
 		this.data = new ArrayList<LogNum>(data.size());
@@ -122,4 +137,5 @@ public class LogPercentileCI
 		
 		return lw.plus(rw);
 	}
+	
 }

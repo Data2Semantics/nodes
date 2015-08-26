@@ -163,11 +163,19 @@ public class USequenceModelTest
 	@Test
 	public void testBig()
 	{
-		Graph<String> graph = RandomGraphs.random(30, 300);
+		Graph<String> graph = RandomGraphs.random(10000, 100000);
 		System.out.println("sampled");
 		
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(graph, 5);
+		USequenceModel<String> model = new USequenceModel<String>(graph);
+		for(int i : series(5))
+		{
+			model.nonuniform();
+			System.out.println(" " + toc() + " seconds.");
+			tic();
+		}
+		
+			
 		System.out.println(model.logSamples());
 		
 		for(double y : model.logSamples())

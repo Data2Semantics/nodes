@@ -15,6 +15,8 @@ import static org.nodes.util.Functions.log2Sum;
 import static org.nodes.util.LogNum.fromDouble;
 import static org.nodes.util.Pair.first;
 import static org.nodes.util.Series.series;
+import static org.nodes.util.bootstrap.LogNormalCI.LN2;
+import static org.nodes.util.bootstrap.LogNormalCI.LOGE;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -154,6 +156,26 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	public double logNumGraphs()
 	{
 		return log2Sum(logSamples) - log2(logSamples.size());
+	}
+	
+	public double logNumGraphsML()
+	{
+		double ml2Mean = 0.0;
+		for(int i : series(logSamples.size()))
+			ml2Mean += logSamples.get(i);
+		ml2Mean /= (double) logSamples.size();
+		
+		// * compute the variance of the log observations
+		double sum2Sq = 0;
+		for(int i : series(logSamples.size()))
+		{
+			double diff = logSamples.get(i) - ml2Mean;
+			sum2Sq += diff * diff;
+		}
+		double ml2Variance = sum2Sq / (double) logSamples.size();
+		return ml2Mean + 0.5 * ml2Variance * LN2; 
+		// Since we store the samples in lag base 2, we need the LN2 multiplier
+		// on the variance
 	}
 
 	public double numGraphs()
