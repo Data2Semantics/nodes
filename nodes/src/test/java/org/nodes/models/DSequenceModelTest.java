@@ -115,21 +115,21 @@ public class DSequenceModelTest
 		for(int i : series(100000))
 			model.nonuniform();
 		
-		assertEquals(Functions.log2(9.0), model.logNumGraphs(), 0.001);
+		assertEquals(Functions.log2(9.0), model.logNumGraphsNaive(), 0.001);
 		
 		model = new DSequenceModel<String>(asList(1,  1, 1), asList(1, 1, 1));
 
 		for(int i : series(100))
 			model.nonuniform();
 		
-		assertEquals(1.0, model.logNumGraphs(), 0.0);
+		assertEquals(1.0, model.logNumGraphsNaive(), 0.0);
 		
 		model = new DSequenceModel<String>(asList(2,  1, 0), asList(0, 1, 2));
 		
 		for(int i : series(100))
 				model.nonuniform();
 		
-		assertEquals(0.0, model.logNumGraphs(), 0.0);
+		assertEquals(0.0, model.logNumGraphsNaive(), 0.0);
 	}
 	
 	

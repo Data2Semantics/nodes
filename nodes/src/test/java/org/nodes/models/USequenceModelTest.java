@@ -122,7 +122,7 @@ public class USequenceModelTest
 		for(int i : series(1000))
 			model.nonuniform();
 		
-		assertEquals(1.0, model.logNumGraphs(), 0.0);
+		assertEquals(1.0, model.logNumGraphsNaive(), 0.0);
 	}
 	
 	@Test
@@ -191,7 +191,7 @@ public class USequenceModelTest
 //		
 //		System.out.println("std error " + exp2(model.logStdDev()) / sqrt(10) );
 		
-		System.out.println("log number of graphs " + model.logNumGraphs());
+		System.out.println("log number of graphs " + model.logNumGraphsNaive());
 		
 		double alpha = 0.05;
 		

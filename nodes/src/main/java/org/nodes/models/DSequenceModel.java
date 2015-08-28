@@ -135,7 +135,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 
 	public double logStdDev()
 	{
-		double logMean = logNumGraphs();
+		double logMean = logNumGraphsNaive();
 		
 		List<Double> logDiffs = new ArrayList<Double>(logSamples.size());
 		for(int i : series(logSamples.size()))
@@ -150,10 +150,10 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	
 	public double logProb()
 	{
-		return - logNumGraphs();
+		return - logNumGraphsNaive();
 	}
 	
-	public double logNumGraphs()
+	public double logNumGraphsNaive()
 	{
 		return log2Sum(logSamples) - log2(logSamples.size());
 	}
@@ -180,7 +180,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 
 	public double numGraphs()
 	{
-		return pow(2.0, logNumGraphs());
+		return pow(2.0, logNumGraphsML());
 	}
 	
 	@Override
@@ -188,7 +188,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	{
 		// TODO: check if graph matches sequence
 		
-		return - logNumGraphs();
+		return - logNumGraphsML();
 	}
 	
 	/**

@@ -122,6 +122,6 @@ public class BootstrapCITest
 		System.out.println("bca (log):  " + bcaLog.twoSided(0.05));
 
 
-		System.out.println(model.logNumGraphs());
+		System.out.println(model.logNumGraphsNaive());
 	}
 }

@@ -24,8 +24,8 @@ public class LogNormalCITest
 		int repeats = 100;
 		double alpha = 0.05;
 
-		double lnMean = 2000.0;
-		double lnSD = 100.0;
+		double lnMean = 200.0;
+		double lnSD = 10.0;
 		
 		NormalDistribution normal = new NormalDistribution(lnMean, lnSD);
 		
@@ -34,7 +34,7 @@ public class LogNormalCITest
 		double logSum = Double.NEGATIVE_INFINITY;
 		
 		
-		for(int num : Arrays.asList(10, 100, 1000, 10000, 100000, 1000000))
+		for(int num : Arrays.asList(10, 100, 1000, 10000, 100000, 1000000, 10000000))
 		{
 			double[] sample = normal.sample(num);
 			
