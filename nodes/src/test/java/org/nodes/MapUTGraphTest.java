@@ -147,6 +147,28 @@ public class MapUTGraphTest
 	}
 	
 	@Test
+	public void testEquals2()
+	{		
+		UGraph<String> g1 = new MapUTGraph<String, String>();
+		UNode<String> 
+				a = g1.add(""),
+				b = g1.add(""),
+				c = g1.add("");
+		
+		UGraph<String> g2 = new MapUTGraph<String, String>();
+		UNode<String> 
+				d = g2.add(""),
+				e = g2.add(""),
+				f = g2.add("");
+		
+		d.connect(e);
+		
+		System.out.println(g1.equals(g2));
+		System.out.println(g1.hashCode() + " " + g2.hashCode());
+		
+	}
+	
+	@Test
 	public void neighborTest()
 	{
 		Graph<String> graph = RandomGraphs.random(20, 0.2);

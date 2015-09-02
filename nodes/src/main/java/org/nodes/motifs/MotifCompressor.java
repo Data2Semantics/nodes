@@ -372,7 +372,30 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			List<List<Integer>> occurrences,
 			List<List<Integer>> wiring)
 	{
-		DGraph<String> copy = MapDTGraph.copy(inputGraph);
+		// * Create a copy of the input.
+		//   We will re-purpose node 0 of each occurrence as the new instance 
+		//   node, so for those nodes, we set the label to "|M|"
+		DGraph<String> copy = new MapDTGraph<String, String>();
+		
+		Set<Integer> firstNodes = new HashSet<Integer>();
+		for(List<Integer> occurrence : occurrences)
+			firstNodes.add(occurrence.get(0));
+		
+		// -- copy the nodes
+		for (DNode<String> node : inputGraph.nodes())
+			if(firstNodes.contains(node.index()))
+				copy.add(MOTIF_SYMBOL);
+			else
+				copy.add(node.label());
+		
+		// -- copy the links
+		for (DLink<String> link : inputGraph.links())
+		{
+			int i = link.from().index(), 
+			    j = link.to().index();
+			
+			copy.get(i).connect(copy.get(j));
+		}
 
 		// * Translate the occurrences from integers to nodes (in the copy)
 		List<List<DNode<String>>> occ = 
@@ -395,8 +418,8 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 								   // occurrences overlap,
 								   // only the first gets replaced.
 			{
-				// * Wire a new symbol node into the graph to represent the occurrence
-				DNode<String> newNode = copy.add(MotifCompressor.MOTIF_SYMBOL);
+				// * Use the first node of the motif as the symbol node
+				DNode<String> newNode = occurrence.get(0);
 
 				// - This will hold the information how each edge into the motif node should be wired
 				//   into the motif subgraph (to be encoded later)
@@ -414,18 +437,21 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 						
 						if(! occurrence.contains(neighbor))
 						{
-							if(link.from().equals(node))
-								newNode.connect(neighbor);
-							else
-								neighbor.connect(newNode);
+							if(!node.equals(newNode))
+							{
+								if(link.from().equals(node))
+									newNode.connect(neighbor);
+								else
+									neighbor.connect(newNode);
+							}
 						
 							motifWiring.add(indexInSubgraph);
 						}
 					}
 				}
 
-				for (DNode<String> node : occurrence)
-					node.remove();
+				for (int i : series(1, occurrence.size()))
+					occurrence.get(i).remove();
 			}
 		}
 
@@ -448,8 +474,31 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			List<List<Integer>> occurrences,
 			List<List<Integer>> wiring)
 	{
-		UGraph<String> copy = MapUTGraph.copy(inputGraph);
-
+		// * Create a copy of the input.
+		//   We will re-purpose node 0 of each occurrence as the new instance 
+		//   node, so for those nodes, we set the label to "|M|"
+		UGraph<String> copy = new MapUTGraph<String, String>();
+		
+		Set<Integer> firstNodes = new HashSet<Integer>();
+		for(List<Integer> occurrence : occurrences)
+			firstNodes.add(occurrence.get(0));
+		
+		// -- copy the nodes
+		for (UNode<String> node : inputGraph.nodes())
+			if(firstNodes.contains(node.index()))
+				copy.add(MOTIF_SYMBOL);
+			else
+				copy.add(node.label());
+		
+		// -- copy the links
+		for (ULink<String> link : inputGraph.links())
+		{
+			int i = link.first().index(), 
+			    j = link.second().index();
+			
+			copy.get(i).connect(copy.get(j));
+		}
+		
 		// * Translate the occurrences from integers to nodes (in the copy)
 		List<List<UNode<String>>> occ = 
 				new ArrayList<List<UNode<String>>>(occurrences.size());
@@ -472,11 +521,11 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 								   // only the first gets replaced.
 			{
 				// * Wire a new symbol node into the graph to represent the occurrence
-				UNode<String> newNode = copy.add(MotifCompressor.MOTIF_SYMBOL);
+				UNode<String> newNode = occurrence.get(0);
 
 				// - This will hold the information how each edge into the motif node should be wired
 				//   into the motif subgraph (to be encoded later)
-				List<Integer> motifWiring = new ArrayList<Integer>(occ.size());
+				List<Integer> motifWiring = new ArrayList<Integer>();
 				wiring.add(motifWiring);
 				
 				for (int indexInSubgraph : series(occurrence.size()))
@@ -489,15 +538,16 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 						
 						if(! occurrence.contains(neighbor))	// If the link is external
 						{
-							newNode.connect(neighbor);
+							if(!node.equals(newNode))
+								newNode.connect(neighbor);
 
 							motifWiring.add(indexInSubgraph);
 						}
 					}
 				}
 
-				for (UNode<String> node : occurrence)
-					node.remove();
+				for (int i : series(1, occurrence.size()))
+					occurrence.get(i).remove();
 			}
 		}
 

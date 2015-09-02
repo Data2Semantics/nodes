@@ -1,8 +1,15 @@
 package org.nodes;
 
 import static org.junit.Assert.*;
+import static org.nodes.util.Series.series;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
+import org.nodes.algorithms.Nauty;
+import org.nodes.util.Series;
 
 public class GraphsTest
 {
@@ -56,6 +63,58 @@ public class GraphsTest
 		
 		System.out.println(empty);
 		
+		
+	}
+	
+	@Test
+	public void testAll()
+	{
+		Collection<UGraph<String>> all5 = Graphs.all(5, "");
+		
+		assertEquals(1024, all5.size());
+		int sum = 0;
+		for(UGraph<String> graph : all5)
+			sum++;
+		assertEquals(1024, sum);
+		
+		System.out.println("All size three graphs");
+		for(UGraph<String> graph : Graphs.all(3, ""))
+			System.out.println(graph);
+		System.out.println();
+		
+		// * iso classes
+		{
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(1, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 1);
+		} {
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(2, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 2);
+		} {
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(3, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 4);
+		} {
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(4, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 11);
+		} {
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(5, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 34);
+		} {
+			Set<Graph<String>> set = new HashSet<Graph<String>>();
+			for(Graph<String> graph : Graphs.all(6, ""))
+				set.add(Nauty.canonize(graph));
+			assertEquals(set.size(), 156);
+		}
+
 		
 	}
 

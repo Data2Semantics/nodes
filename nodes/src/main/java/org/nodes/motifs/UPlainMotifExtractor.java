@@ -66,11 +66,6 @@ import au.com.bytecode.opencsv.CSVWriter;
  */
 public class UPlainMotifExtractor<L extends Comparable<L>>
 {
-	private static final boolean SPECIFY_SUBS = true;
-	private static final int MIN_OCCURRENCES = 10;
-	private static final int MAX_MOTIFS = 10;
-	private static final boolean CORRECT_FREQUENCIES = true;
-
 	private UGraph<L> data;
 	private int samples;
 

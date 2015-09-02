@@ -531,6 +531,15 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 				return first;
 			return second;
 		}
+		
+		@Override
+		public int hashCode()
+		{
+			int result = 1;
+			result = 31 * result + (dead ? 1231 : 1237);
+			result = 31 * result + ((tag == null) ? 0 : tag.hashCode());
+			return result;
+		}
 	}
 
 	@Override
@@ -767,6 +776,21 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		
 		for(UTNode<L, T> node : nodes())
 		    hash = 31 * hash + (node == null ? 0 : node.hashCode());
+		
+		// * tags 
+		for(UTLink<L, T> link : links())
+			hash = 31 * hash + link.hashCode();
+		
+		// * structure
+		for(UTNode<L, T> node : nodes())
+		{
+			List<Integer> nbIndices = new ArrayList<Integer>(node.degree());
+			for(UTNode<L, T> neighbor : node.neighbors())
+				nbIndices.add(neighbor.index());
+			
+			Collections.sort(nbIndices);
+			hash = 31 * hash + nbIndices.hashCode();
+		}
 		
 		return hash;
 	}

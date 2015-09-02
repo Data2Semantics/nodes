@@ -36,5 +36,19 @@ public class FunctionsTest
 			v.add(val);
 		assertEquals(expected, log2Sum(v), 0.000000000000000000001);
 	}
+	
+	@Test
+	public void testMulti()
+	{
+		for(int i : Series.series(100))
+		{
+			List<Double> w = Functions.randomMultinomial(5); 
+			double sum = 0.0;
+			for(double v : w)
+				sum += v;
+			assertEquals(1.0, sum, 0.0);
+		}
+		
+	}
 
 }

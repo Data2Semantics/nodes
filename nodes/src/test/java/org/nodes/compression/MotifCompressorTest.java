@@ -1,5 +1,6 @@
 package org.nodes.compression;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.reverseOrder;
 import static org.junit.Assert.*;
 import static org.nodes.compression.Functions.tic;
@@ -232,4 +233,59 @@ public class MotifCompressorTest
 			System.out.println();
 		}
 	}
+	
+	@Test
+	public void subbedTest2()
+	{
+		UGraph<String> data = new MapUTGraph<String, String>();
+		
+		UNode<String> a = data.add("x"),
+		              b = data.add("x"),
+		              c = data.add("x"),
+		              d = data.add("x"),
+		              e = data.add("x"),
+		              f = data.add("x"),
+		              g = data.add("x"),
+		              h = data.add("x"),
+		              i = data.add("x");
+		            
+		a.connect(b);
+		a.connect(c);
+		a.connect(d);
+		
+		b.connect(c);
+		b.connect(d);
+		
+		c.connect(d);
+		c.connect(e);
+		
+		d.connect(e);
+		
+		e.connect(f);
+		
+		f.connect(g);
+		f.connect(h);
+		f.connect(i);
+		
+		g.connect(h);
+		
+		h.connect(i);
+		
+		UGraph<String> sub = new MapUTGraph<String, String>();
+		UNode<String> s0 = sub.add("x"),
+		              s1 = sub.add("x"),
+		              s2 = sub.add("x"),
+		              s3 = sub.add("x");
+				
+		List<List<Integer>> occurrences = asList(asList(2, 4, 3, 1), asList(5, 6, 7, 8)); 
+		
+		List<List<Integer>> wiring = new ArrayList<List<Integer>>(); 
+		UGraph<String> subbed = MotifCompressor.subbedGraph(data, sub, occurrences, wiring);
+		
+		System.out.println("remainder: " + subbed);
+		System.out.println("wiring: " + wiring);
+		
+		assertEquals(asList(asList(0, 1, 2, 3), asList(0)), wiring); 
+	}	
+
 }

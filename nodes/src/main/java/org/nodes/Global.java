@@ -1,6 +1,8 @@
 package org.nodes;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -24,6 +26,20 @@ public class Global
 	 * The default random seed. May be changed during runtime.
 	 */
 	public static final int RANDOM_SEED = 42;
+	
+	/**
+	 * Switches to a secure random generator (with random seed)
+	 */
+	public static void secureRandom()
+	{
+		random = new SecureRandom();
+	}
+	
+	public static void secureRandom(long seed)
+	{
+		byte[] bytes = ByteBuffer.allocate(Long.SIZE / Byte.SIZE).putLong(seed).array();
+		random = new SecureRandom(bytes);
+	}
 	
 	private static Random random = new Random(RANDOM_SEED);
 	public static Random random()

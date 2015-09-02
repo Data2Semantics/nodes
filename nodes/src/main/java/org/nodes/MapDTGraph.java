@@ -730,6 +730,15 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 				return first;
 			return second;
 		}
+
+		@Override
+		public int hashCode()
+		{
+			int result = 1;
+			result = 31 * result + (dead ? 1231 : 1237);
+			result = 31 * result + ((tag == null) ? 0 : tag.hashCode());
+			return result;
+		}
 	}
 
 	@Override
@@ -971,8 +980,31 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		
 		hash = 1;
 		
+		// * labels
 		for(DTNode<L, T> node : nodes())
-		    hash = 31 * hash + (node == null ? 0 : node.hashCode());
+		    hash = 31 * hash + node.hashCode();
+
+		// * tags 
+		for(DTLink<L, T> link : links())
+			hash = 31 * hash + link.hashCode();
+		
+		// * structure
+		for(DTNode<L, T> node : nodes())
+		{
+			List<Integer> nbIndices = new ArrayList<Integer>(node.outDegree());
+			for(DTNode<L, T> neighbor : node.out())
+				nbIndices.add(neighbor.index());
+			
+			Collections.sort(nbIndices);
+			hash = 31 * hash + nbIndices.hashCode();
+			
+			nbIndices = new ArrayList<Integer>(node.inDegree());
+			for(DTNode<L, T> neighbor : node.in())
+				nbIndices.add(neighbor.index());
+			
+			Collections.sort(nbIndices);
+			hash = 31 * hash + nbIndices.hashCode();
+		}
 		
 		return hash;
 	}

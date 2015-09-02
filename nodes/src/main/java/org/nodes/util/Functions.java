@@ -72,6 +72,12 @@ public class Functions
 		
 		return -tmp + Math.log(2.5066282746310005 * ser / x);
 	}
+
+	public static double log2Factorial(int n)
+	{
+		final double LN2 = Math.log(2.0); 
+		return logFactorial(n) / LN2;
+	}
 	
 	public static double logFactorial(int n, double base)
 	{
@@ -80,7 +86,7 @@ public class Functions
 	
 	
 	/**
-	 * Calculates the log of the factorial of an integer n. Uses gamma
+	 * Calculates the naturallog of the factorial of an integer n. Uses gamma
 	 * functions for n > 100;
 	 * @param n
 	 * @return
@@ -466,6 +472,59 @@ public class Functions
 		return elem;
 	}
 	
+	/**
+	 * Produces a uniform random multinomial, ie. a list of n double values
+	 * summing to one, so that each such list has equal probability. 
+	 * 
+	 * Algorithm from http://stats.stackexchange.com/questions/14059/generate-uniformly-distributed-weights-that-sum-to-unity
+	 * 
+	 * @param n
+	 * @return
+	 */
+	public static List<Double> randomMultinomial(int n)
+	{
+		List<Double> x = new ArrayList<Double>(n-1);
+		for(int i : series(n-1))
+			x.add(Global.random().nextDouble());
+		
+		Collections.sort(x);
+		
+		List<Double> w = new ArrayList<Double>(n);
+		for(int i : series(n))
+			if (i == 0)
+				w.add(x.get(0));
+			else if (i == n - 1)
+				w.add(1.0 - x.get(n-2));
+			else
+				w.add(x.get(i) - x.get(i-1));
+			
+		return w;
+	}
+	
+	/**
+	 * Samples a random subset (in order) without replacement.
+	 * @param collection
+	 * @param num
+	 * @return
+	 */
+	public static <T> List<T> subset(Collection<T> collection, int num)
+	{
+		List<T> list;
+		if(collection instanceof List<?>)
+			list = (List<T>) collection;
+		else
+			list = new ArrayList<T>(collection);
+		
+		List<Integer> indices = sample(num, list.size());
+		Collections.sort(indices);
+		
+		List<T> result = new ArrayList<T>(num);
+		for(int index : indices)
+			result.add(list.get(index));
+		
+		return result;
+	}
+	
 	public static <L extends List<Double>> void toCSV(List<L> data, File csvFile)
 			throws IOException
 	{
@@ -533,7 +592,7 @@ public class Functions
 	 * @param k The number of natural numbers to return
 	 * @param size The maximum integer possible + 1
 	 * @return A uniform random choice from all sets of size k of distinct 
-	 * 	integers below the 'size' parameter.
+	 * 	integers below the 'size' parameter. The result is not sorted.
 	 */
 	public static List<Integer> sample(int k, int size)
 	{

@@ -3,15 +3,20 @@ package org.nodes;
 import static org.nodes.util.Series.series;
 
 import java.awt.PageAttributes.OriginType;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.nodes.Global;
+import org.nodes.algorithms.Nauty;
 import org.nodes.draw.Draw;
+import org.nodes.random.RandomGraphs;
+import org.nodes.util.BitString;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Order;
 import org.nodes.util.Pair;
@@ -844,6 +849,115 @@ public class Graphs
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Returns a collection containing all graphs of the given length. The 
+	 * graphs are constructed on the fly.
+	 *  
+	 * @param n
+	 * @param label
+	 * @return
+	 */
+	public static Collection<UGraph<String>> all(final int n, final String label)
+	{
+		final int m = (n*n-n)/2;
+		return new AbstractCollection<UGraph<String>>()
+		{
+			private final Collection<BitString> master = BitString.all(m); 
+			@Override
+			public Iterator<UGraph<String>> iterator()
+			{
+				return new Iterator<UGraph<String>>()
+				{
+					private final Iterator<BitString> bitstrings = master.iterator();
+					
+					@Override
+					public boolean hasNext()
+					{
+						return bitstrings.hasNext();
+					}
+
+					@Override
+					public UGraph<String> next()
+					{
+						return fromBits(bitstrings.next(), label);
+					}
+
+					@Override
+					public void remove()
+					{
+						throw new UnsupportedOperationException(); 
+					}
+					
+					
+				};
+			}
+
+			@Override
+			public int size()
+			{
+				return (int) Math.pow(2, m);
+			
+			}
+			
+		};
+	}
+	
+	/**
+	 * Returns all graphs, of the given size, up to isomorphism: for each 
+	 * isomorphism class, only the canonical example is included. Note generated 
+	 * on the fly, and n larger than 6 is not recommended. 
+	 * 
+	 * @param n
+	 * @param label
+	 * @return
+	 */
+	public static List<UGraph<String>> allIso(int n, String label)
+	{
+		Set<Graph<String>> set = new LinkedHashSet<Graph<String>>();
+		for(Graph<String> graph : all(n, label))
+			set.add(Nauty.canonize(graph));
+		
+		List<UGraph<String>> list = new ArrayList<UGraph<String>>(set.size());
+		for(Graph<String> graph : set)
+			list.add((UGraph<String>)graph);
+			
+		return list;
+	}
+	
+	public static UGraph<String> fromBits(BitString bits, String label)
+	{
+		int n = numNodes(bits.size());
+		
+		if(n < 0)
+			throw new IllegalArgumentException("Wrong number of bits.");
+		
+		UGraph<String> res = new MapUTGraph<String, String>();
+		
+		for(int i : series(n))
+			res.add(label);
+			
+		for(int i : series(bits.size()))
+			if(bits.get(i))
+			{
+				Pair<Integer, Integer>  pair = RandomGraphs.toPairUndirected(i, false);
+				res.get(pair.first()).connect(res.get(pair.second()));
+			}
+		
+		return res;
+	}
+	
+	private static int numNodes(int m)
+	{
+		double d = Math.sqrt(1.0 + 8.0 * m);
+		double na = (1.0 + d)/2.0;
+		double nb = (1.0 - d)/2.0;
+		double n = Math.max(na, nb);
+		if(n - Math.floor(n) > 0.00001)
+			return -1;
+		
+		return (int) n; 
 	}
 }
 

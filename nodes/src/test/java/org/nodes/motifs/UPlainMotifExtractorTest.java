@@ -2,10 +2,13 @@ package org.nodes.motifs;
 
 import static org.junit.Assert.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.nodes.MapUTGraph;
+import org.nodes.Subgraph;
 import org.nodes.UGraph;
 import org.nodes.UNode;
 import org.nodes.random.RandomGraphs;
@@ -91,5 +94,43 @@ public class UPlainMotifExtractorTest
 			assertTrue(fm.frequency(fm.maxToken()) <= 1.0);
 		}
 	}
+	
+	@Test
+	public void testOverlaps()
+	{
+		UGraph<String> data = RandomGraphs.random(1000, 2000);
+		
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 300000, 3, 6);
+		
+		for(UGraph<String> sub : ex.subgraphs())
+		{
+			int total = 0;
+			Set<Integer> nodes = new HashSet<Integer>();
+			for(List<Integer> i : ex.occurrences(sub))
+			{
+				nodes.addAll(i);
+				total += i.size();
+			}
+			
+			assertEquals(total, nodes.size());
+		}
+	}
+	
+	@Test
+	public void testMotifs()
+	{
+		UGraph<String> data = RandomGraphs.random(1000, 2000);
+		
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 300000, 3, 6);
+		
+		for(UGraph<String> sub : ex.subgraphs())
+			for(List<Integer> occ : ex.occurrences(sub))
+			{
+				UGraph<String> ext = Subgraph.uSubgraphIndices(data, occ);
+				
+				assertEquals(sub, ext);
+			}
+		}
+
 	
 }

@@ -27,7 +27,7 @@ import java.util.Set;
  * <h2>A note on equality and inheritance</h2>
  * <p>
  * Our choice to use inheritance in the definition of graphs presents a problem
- * with the implementation of equals. Consider the following: a DTGraph 
+ * with the implementation of equals(). Consider the following: a DTGraph 
  * implementation considers another graph equal to itself if its nodes, links, 
  * labels and tags match. For a DGraph implementation, there are no tags, so 
  * only the nodes, links and labels are checked. The second considers itself 
@@ -122,6 +122,12 @@ public interface Graph<L>
 	 */
 	public Node<L> get(int i);
 	
+	/**
+	 * The level of the graph hierarchy which this graph accepts for equality
+	 * (see above). 
+	 * 
+	 * @return
+	 */
 	public Class<? extends Graph<?>> level();
 	
 }
