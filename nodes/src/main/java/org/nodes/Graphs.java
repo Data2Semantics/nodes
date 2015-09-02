@@ -7,8 +7,10 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -924,6 +926,52 @@ public class Graphs
 			list.add((UGraph<String>)graph);
 			
 		return list;
+	}
+	
+	/**
+	 * Returns connected graphs, of the given size, up to isomorphism: for each 
+	 * isomorphism class, only the canonical example is included. Note generated 
+	 * on the fly, and n larger than 6 is not recommended. 
+	 * 
+	 * @param n
+	 * @param label
+	 * @return
+	 */
+	public static List<UGraph<String>> allIsoConnected(int n, String label)
+	{
+		Set<Graph<String>> set = new LinkedHashSet<Graph<String>>();
+		for(UGraph<String> graph : all(n, label))
+			if(connected(graph))
+				set.add(Nauty.canonize(graph));
+		
+		List<UGraph<String>> list = new ArrayList<UGraph<String>>(set.size());
+		for(Graph<String> graph : set)
+			list.add((UGraph<String>)graph);
+			
+		return list;
+	}
+	
+	public static <L> boolean connected(UGraph<L> graph)
+	{
+		if(graph.size() == 0)
+			return true;
+		
+		Set<Integer> visited = new HashSet<Integer>();
+		
+		LinkedList<UNode<L>> buffer = new LinkedList<UNode<L>>();
+		buffer.add(graph.get(0));
+		
+		while(! buffer.isEmpty())
+		{
+			UNode<L> node = buffer.poll();
+			visited.add(node.index());
+			
+			for(UNode<L> neighbor : node.neighbors())
+				if(! visited.contains(neighbor.index()))
+					buffer.add(neighbor);
+		}
+		
+		return visited.size() == graph.size();
 	}
 	
 	public static UGraph<String> fromBits(BitString bits, String label)

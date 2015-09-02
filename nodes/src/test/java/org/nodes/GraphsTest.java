@@ -5,6 +5,7 @@ import static org.nodes.util.Series.series;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -62,8 +63,7 @@ public class GraphsTest
 		Graphs.add(empty, k3);
 		
 		System.out.println(empty);
-		
-		
+			
 	}
 	
 	@Test
@@ -114,8 +114,18 @@ public class GraphsTest
 				set.add(Nauty.canonize(graph));
 			assertEquals(set.size(), 156);
 		}
-
-		
+	}
+	
+	@Test
+	public void testAllIsoConnected()
+	{
+		assertEquals(1, Graphs.allIsoConnected(0, "").size());
+		assertEquals(1, Graphs.allIsoConnected(1, "").size());
+		assertEquals(1, Graphs.allIsoConnected(2, "").size());
+		assertEquals(2, Graphs.allIsoConnected(3, "").size());
+		assertEquals(6, Graphs.allIsoConnected(4, "").size());
+		assertEquals(21, Graphs.allIsoConnected(5, "").size());
+		assertEquals(112, Graphs.allIsoConnected(6, "").size());
 	}
 
 //	@Test
