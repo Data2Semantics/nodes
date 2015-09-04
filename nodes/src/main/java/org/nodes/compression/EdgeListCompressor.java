@@ -47,12 +47,20 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public static <N> double undirected(Graph<N> graph)
 	{
+		return undirected(graph, true);
+	}	
+	public static <N> double undirected(Graph<N> graph, boolean withPrior)
+	{
+
 		OnlineModel<Integer> model = new OnlineModel<Integer>(Series.series(graph.size()));
 		
 		double bits = 0;
 		
-		bits += prefix(graph.size());
-		bits += prefix(graph.numLinks());
+		if(withPrior)
+		{
+			bits += prefix(graph.size());
+			bits += prefix(graph.numLinks());
+		}
 						
 		for(Link<N> link : graph.links())
 		{
@@ -65,16 +73,24 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		
 		return bits - logFactorial(graph.numLinks(), 2.0);
 	}	
-	
+
 	public static <N> double directed(DGraph<N> graph)
+	{
+		return directed(graph, true);
+	}
+	
+	public static <N> double directed(DGraph<N> graph, boolean withPrior)
 	{
 		OnlineModel<Integer> source = new OnlineModel<Integer>(series(graph.size()));
 		OnlineModel<Integer> target = new OnlineModel<Integer>(series(graph.size()));
 		
 		double bits = 0;
 		
-		bits += prefix(graph.size());
-		bits += prefix(graph.numLinks());
+		if(withPrior)
+		{
+			bits += prefix(graph.size());
+			bits += prefix(graph.numLinks());
+		}
 
 		for(Link<N> link : graph.links())
 		{

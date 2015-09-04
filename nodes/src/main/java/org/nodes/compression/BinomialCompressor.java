@@ -37,23 +37,54 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public static <N> double undirected(Graph<N> graph, boolean simple)
 	{
+		return undirected(graph, simple, true);
+	}
+		
+	/**
+	 * @param graph
+	 * @param simple If true, the code length is computed under the assumption 
+	 * that self loops cannot be encoded.  
+	 * @param withPrior If false the code length is computed as though the 
+	 * number of nodes and the number of links were already known. Otherwise,
+	 * these are computed using the default prefix code and a uniform code 
+	 * respectively and added to the code.
+	 * @return
+	 */
+	public static <N> double undirected(Graph<N> graph, boolean simple, boolean withPrior)
+	{
 		int n = graph.size();
 		int t = simple ? n * (n - 1) / 2 : n * (n + 1) / 2;
 		
-		return prefix(n) + log2(t) + log2Choose(graph.numLinks(), t);
+		return (withPrior ? prefix(n) + log2(t): 0) + log2Choose(graph.numLinks(), t);
 	}
 
 	public static <N> double directed(DGraph<N> graph) 
 	{
 		return directed(graph, false);
 	}
+	
 	public static <N> double directed(DGraph<N> graph, boolean simple) 
+	{
+		return directed(graph, simple, true);
+	}
+	
+	/**
+	 * @param graph
+	 * @param simple If true, the code length is computed under the assumption 
+	 * that self loops cannot be encoded. 
+	 * @param withPrior If false the code length is computed as though the 
+	 * number of nodes and the number of links were already known. Otherwise,
+	 * these are computed using the default prefix code and a uniform code 
+	 * respectively and added to the code.
+	 * @return
+	 */
+	public static <N> double directed(DGraph<N> graph, boolean simple, boolean withPrior) 
 	{
 		double n = graph.size();
 		double t = simple ? n * n - n : n * n;
 		
 		// Global.log().info("Choose bits: " +  log2Choose(graph.numLinks(), t));
 		
-		return prefix(graph.size()) + log2(t) + log2Choose(graph.numLinks(), t);
+		return (withPrior ? prefix(graph.size()) + log2(t) : 0) + log2Choose(graph.numLinks(), t);
 	}
 }
