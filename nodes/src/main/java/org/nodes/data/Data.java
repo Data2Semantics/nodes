@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.nodes.Global;
 import org.nodes.DGraph;
@@ -45,14 +47,21 @@ public class Data {
 	public static UTGraph<String, String> edgeList(File file, boolean bipartite)
 				throws IOException
 	{
+		return edgeList(file, bipartite, false);
+	}
+	
+	public static UTGraph<String, String> edgeList(File file, boolean bipartite, boolean blank)
+			throws IOException
+	{
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		UTGraph<String, String> graph = new MapUTGraph<String, String>();
 				
 		String line;
 		int i = 0;
 		
-		do
-		 {
+		Map<String, UNode<String>> map = new HashMap<String, UNode<String>>();
+		
+		do {
 			line = reader.readLine();
 			i++;
 			
@@ -61,6 +70,8 @@ public class Data {
 			if(line.trim().isEmpty())
 				continue;
 			if(line.trim().startsWith("#"))
+				continue;
+			if(line.trim().startsWith("%"))
 				continue;
 			
 			String[] split = line.split("\\s");
@@ -79,14 +90,22 @@ public class Data {
 
 			if(split.length > 2)
 				c = split[2];
-						
-			UTNode<String, String> nodeA = graph.node(a);
-			if(nodeA == null)
-				nodeA = graph.add(a);
-			
-			UTNode<String, String> nodeB = graph.node(b);
-			if(nodeB == null)
-				nodeB = graph.add(b);
+
+			UNode<String> nodeA;
+			if(! map.containsKey(a))
+			{
+				nodeA = graph.add(blank ? "" : a);
+				map.put(a, nodeA);
+			} else
+				nodeA = map.get(a);
+				
+			UNode<String> nodeB;
+			if(! map.containsKey(b))
+			{
+				nodeB = graph.add(blank ? "" : b);
+				map.put(b, nodeB);
+			} else
+				nodeB = map.get(b);
 			
 			nodeA.connect(nodeB);
 			
@@ -124,6 +143,9 @@ public class Data {
 				continue;
 			if(line.trim().startsWith("#"))
 				continue;
+			if(line.trim().startsWith("%"))
+				continue;
+
 			
 			String[] split = line.split("\\s");
 			if(split.length < 2)
@@ -197,6 +219,8 @@ public class Data {
 			if(line.trim().isEmpty())
 				continue;
 			if(line.trim().startsWith("#"))
+				continue;
+			if(line.trim().startsWith("%"))
 				continue;
 			
 			String[] split = line.split("\\s");
@@ -275,6 +299,8 @@ public class Data {
 				continue;
 			if(line.trim().startsWith("#"))
 				continue;
+			if(line.trim().startsWith("%"))
+				continue;
 			
 			String[] split = line.split("\\s");
 			if(split.length < 2)
@@ -285,7 +311,7 @@ public class Data {
 				a = Integer.parseInt(split[0]);
 			} catch(NumberFormatException e)
 			{
-				throw new RuntimeException("The first element on line "+i+" ("+split[0]+") cannot be parsed into an integer.", e);
+				throw new RuntimeException("The first element on line "+i+" ("+split[0]+", line = "+line+") cannot be parsed into an integer.", e);
 			}
 			
 			try {
