@@ -99,7 +99,7 @@ public class Boxing<L> extends AbstractList<Set<Node<L>>>
 	}
 	
 	public int boxMax(int i)
-	{
+	{ 
 		Graph<L> sub = Subgraph.subgraph(graph, base.get(i));
 		FloydWarshall<L> fw = new FloydWarshall<L>(sub);
 		

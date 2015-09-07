@@ -5,8 +5,11 @@ import static org.nodes.util.Series.series;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.nodes.util.Series;
+
+import cern.colt.list.AbstractList;
 
 /**
  * @author Peter
@@ -120,31 +123,45 @@ public class Subgraph
 		
 		return dSubgraph(graph, list);
 	}
-	
+
 	public static <L> Graph<L> subgraph(Graph<L> graph, Collection<Node<L>> nodes)
 	{
-		List<Node<L>> list = new ArrayList<Node<L>>(nodes);
+		final List<Node<L>> nodeList =
+				nodes instanceof List
+				? (List<Node<L>>) nodes 
+				: new ArrayList<Node<L>>(nodes);
 		
-		Graph<L> out = new MapUTGraph<L, String>();
-		for(Node<L> node : list)
-			out.add(node.label());
-		
-		for(int i : series(nodes.size()))
-			for(int j : series(i, nodes.size()))
-				for(Link<L> link : list.get(i).links(list.get(j)))
-					out.get(i).connect(out.get(j));
+		List<Integer> indices = new java.util.AbstractList<Integer>()
+		{
+			@Override
+			public Integer get(int index)
+			{
+				return nodeList.get(index).index();
+			}
 
+			@Override
+			public int size()
+			{
+				return nodeList.size(); 
+			}
+		};
 		
-		return out;
+		return subgraphIndices(graph, indices); 
 	}
+	
 	
 	public static <L> Graph<L> subgraphIndices(Graph<L> graph, Collection<Integer> nodes)
 	{
-		List<Node<L>> list = new ArrayList<Node<L>>();
-		for(int i : nodes)
-			list.add(graph.nodes().get(i));
-		
-		return subgraph(graph, list);
+		if(graph instanceof DGraph)
+			return dSubgraphIndices((DGraph<L>) graph,  nodes);
+		if(graph instanceof UGraph)
+			return uSubgraphIndices((UGraph<L>) graph, nodes);
+		if(graph instanceof DTGraph)
+			return dtSubgraphIndices((DTGraph<L, ?>) graph, nodes);
+		if(graph instanceof UTGraph)
+			return utSubgraphIndices((UTGraph<L, ?>) graph, nodes);
+
+		throw new IllegalArgumentException("Graph type ("+graph.getClass()+") not recognized.");
 	}
 	
 	public static <L> UGraph<L> uSubgraph(UGraph<L> graph, Collection<UNode<L>> nodes)
@@ -171,4 +188,6 @@ public class Subgraph
 		
 		return uSubgraph(graph, list);
 	}
+
+
 }

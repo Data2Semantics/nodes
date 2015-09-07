@@ -17,6 +17,7 @@ import org.nodes.classification.Classification;
 import org.nodes.classification.Classified;
 import org.nodes.Graph;
 import org.nodes.Node;
+import org.nodes.Subgraph;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.BitString;
 import org.nodes.util.Series;
@@ -36,6 +37,18 @@ public class ConnectionClusterer<N> implements Clusterer<N>
 	{
 		ConnectionClustering<N> c = new ConnectionClustering<N>(graph);
 		return c.clustered();
+	}
+
+	/**
+	 * Returns a copy of the (weakly) largest connected component.
+	 * @return
+	 */
+	public static <N> Graph<N> largest(Graph<N> graph)
+	{
+		ConnectionClustering<N> cc = new ConnectionClustering<N>(graph);
+		Collection<Integer> largest = cc.largestCluster();
+		
+		return Subgraph.subgraphIndices(graph, largest);
 	}
 
 	public static class ConnectionClustering<N>

@@ -126,14 +126,21 @@ public class Data {
 	public static DTGraph<String, String> edgeListDirected(File file)
 			throws IOException
 	{
+		return edgeListDirected(file, false);
+	}
+	
+	public static DTGraph<String, String> edgeListDirected(File file, boolean blank)
+		throws IOException
+	{
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		DTGraph<String, String> graph = new MapDTGraph<String, String>();
 				
 		String line;
 		int i = 0;
 		
-		do
-		 {
+		Map<String, DNode<String>> map = new HashMap<String, DNode<String>>();
+		
+		do {
 			line = reader.readLine();
 			i++;
 
@@ -151,36 +158,26 @@ public class Data {
 			if(split.length < 2)
 				throw new IllegalArgumentException("Line "+i+" does not split into two elements.");
 			
-			String a, b, c = null;
-			try {
-				a = split[0];
-			} catch(NumberFormatException e)
-			{
-				throw new RuntimeException("The first element on line "+i+" ("+split[0]+") cannot be parsed into an integer.", e);
-			}
+			String a, b = null;
+		
+			a = split[0];			
+			b = split[1];
+				
+			DNode<String> nodeA, nodeB;
 			
-			try {
-				b = split[1];
-			} catch(NumberFormatException e)
+			if(! map.containsKey(a))
 			{
-				throw new RuntimeException("The second element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
-			}
+				nodeA = graph.add(blank ? "" : a);
+				map.put(a,  nodeA);
+			} else
+				nodeA= map.get(a);
 
-			if(split.length > 2)
-				try {
-					c = split[2];
-				} catch(NumberFormatException e)
-				{
-					throw new RuntimeException("The third element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
-				}				
-						
-			DTNode<String, String> nodeA = graph.node(a);
-			if(nodeA == null)
-				nodeA = graph.add(a);
-			
-			DTNode<String, String> nodeB = graph.node(b);
-			if(nodeB == null)
-				nodeB = graph.add(b);
+			if(! map.containsKey(b))
+			{
+				nodeB = graph.add(blank ? "" : b);
+				map.put(b,  nodeB);
+			} else
+				nodeB = map.get(b);
 			
 			nodeA.connect(nodeB);
 			
