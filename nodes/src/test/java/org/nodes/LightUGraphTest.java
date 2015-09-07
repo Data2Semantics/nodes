@@ -2,24 +2,29 @@ package org.nodes;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Test;
+import org.nodes.data.Data;
 
-public class LightDGraphTest
+public class LightUGraphTest
 {
-
 
 	@Test
 	public void testMapDTGraph()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
+		assertEquals(0, graph.size());
+		assertEquals(0, graph.numLinks());
 	}
 
 	@Test
 	public void testToString()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
 		
-		DNode<String> a = graph.add("a"),
+		UNode<String> a = graph.add("a"),
 		              b = graph.add("b");
 		graph.add("c");
 	
@@ -31,13 +36,13 @@ public class LightDGraphTest
 	@Test
 	public void starTest()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
 		
-		DNode<String> a = graph.add(null),
-		              b = graph.add(null),
-		              c = graph.add(null),
-		              d = graph.add(null),
-		              e = graph.add(null);
+		UNode<String> a = graph.add("a"),
+		              b = graph.add("b"),
+		              c = graph.add("c"),
+		              d = graph.add("d"),
+		              e = graph.add("e");
 	
 		b.connect(a);
 		c.connect(a);
@@ -50,6 +55,7 @@ public class LightDGraphTest
 		
 		System.out.println(graph);
 		
+		System.out.println(a.index());
 		a.remove();
 		
 		System.out.println(graph);	
@@ -58,13 +64,13 @@ public class LightDGraphTest
 	@Test
 	public void testRemove()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
 		
-		DNode<String> a = graph.add(null),
-		              b = graph.add(null),
-		              c = graph.add(null),
-		              d = graph.add(null),
-		              e = graph.add(null);
+		UNode<String> a = graph.add("a"),
+		              b = graph.add("b"),
+		              c = graph.add("c"),
+		              d = graph.add("d"),
+		              e = graph.add("e");
 	
 		b.connect(a);
 		c.connect(a);
@@ -85,43 +91,36 @@ public class LightDGraphTest
 	@Test
 	public void testConnected()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
 		
-		DNode<String> a = graph.add(null),
-		              b = graph.add(null),
-		              c = graph.add(null);
+		UNode<String> a = graph.add("a"),
+		              b = graph.add("b"),
+		              c = graph.add("c");
 	
 		a.connect(b);
 		a.connect(c);
 		
 		assertTrue(a.connected(b));
-		assertTrue(a.connectedTo(b));
 		
 		assertFalse(a.connected(a));
-		assertFalse(a.connectedTo(a));
 
 		assertTrue(b.connected(a));
-		assertFalse(b.connectedTo(a));
 		
 		assertTrue(a.connected(c));
-		assertTrue(a.connectedTo(c));
 
 		assertTrue(c.connected(a));
-		assertFalse(c.connectedTo(a));
 		
 		assertFalse(b.connected(c));
-		assertFalse(b.connectedTo(c));
 		
 		assertFalse(c.connected(b));
-		assertFalse(c.connectedTo(b));
 	}
 	
 	@Test
 	public void testLinks()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		UGraph<String> graph = new LightUGraph<String>();
 		
-		DNode<String> a = graph.add(null),
+		UNode<String> a = graph.add(null),
 		              b = graph.add(null),
 		              c = graph.add(null);
 	
@@ -140,7 +139,7 @@ public class LightDGraphTest
 	@Test
 	public void testEquals()
 	{
-		DGraph<String> g1 = new LightDGraph<String>();
+		UGraph<String> g1 = new LightUGraph<String>();
 		g1.add("a");
 		g1.add("b");
 		g1.add("c");
@@ -148,13 +147,13 @@ public class LightDGraphTest
 		g1.node("a").connect(g1.node("b"));
 		g1.node("b").connect(g1.node("c"));
 		
-		DGraph<String> g2 = new LightDGraph<String>();
+		UGraph<String> g2 = new LightUGraph<String>();
 		g2.add("a");
 		g2.add("b");
 		g2.add("c");
-		 
-		g2.node("a").connect(g2.node("b"));                    
+
 		g2.node("b").connect(g2.node("c"));		
+		g2.node("a").connect(g2.node("b"));                    
          
 		assertTrue(g1.equals(g2));
 		
@@ -166,11 +165,25 @@ public class LightDGraphTest
 	@Test
 	public void testNotEquals()
 	{
-		DGraph<String> g1 = new LightDGraph<String>();
+		UGraph<String> g1 = new LightUGraph<String>();
 		
-		DTGraph<String, String> g2 = new MapDTGraph<String, String>();
+		UTGraph<String, String> g2 = new MapUTGraph<String, String>();
 		
 		assertFalse(g1.equals(g2));
 		assertFalse(g2.equals(g1));	
+	}
+	
+	@Test
+	public void copy()
+		throws IOException
+	{
+		UGraph<String> data = 
+				Data.edgeList(new File("/Users/Peter/Documents/datasets/graphs/neural/celegans.txt"), false);
+		
+		data = Graphs.blank(data, "");
+		data = Graphs.toSimpleUGraph(data);
+
+		Data.writeEdgeList(data, new File("/Users/Peter/Documents/datasets/graphs/neural/simple.txt"));
+		
 	}
 }

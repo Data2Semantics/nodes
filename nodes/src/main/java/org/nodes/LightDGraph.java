@@ -113,18 +113,26 @@ public class LightDGraph<L> implements DGraph<L>
 		public void remove()
 		{
 			check();
-			
-			for(List<Integer> neighbours : out)
-			{
-				neighbours.remove(index);
-				numLinks --;
-			}
-			for(List<Integer> neighbours : in)
-			{
-				neighbours.remove(index);
-				numLinks --;
-			}
 
+			int linksRemoved = inDegree() + outDegree();
+			linksRemoved -= linksOut(this).size();
+			
+			numLinks -= linksRemoved;
+			
+			for(List<Integer> neighbors : out)
+			{
+				Iterator<Integer> it = neighbors.iterator();
+				while(it.hasNext())
+					if(it.next() == index)
+						it.remove();
+			}
+			for(List<Integer> neighbors : in)
+			{
+				Iterator<Integer> it = neighbors.iterator();
+				while(it.hasNext())
+					if(it.next() == index)
+						it.remove();
+			}
 			
 			in.remove((int)index);
 			out.remove((int)index);
@@ -602,7 +610,7 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public DNode<L> other(Node<L> current)
 		{
-			if(first() != current)
+			if(! first().equals(current))
 				return first();
 			return second();
 		}

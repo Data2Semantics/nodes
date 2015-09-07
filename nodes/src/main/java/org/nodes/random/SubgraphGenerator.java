@@ -87,7 +87,6 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 			nodes.clear();
 			linksChosen.clear();
 			linksCandidates.clear();
-		
 			
 			Link<L> link = links.generate();			
 			while(avoid(link))

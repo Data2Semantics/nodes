@@ -15,9 +15,12 @@ import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Graph;
 import org.nodes.LightDGraph;
+import org.nodes.LightUGraph;
 import org.nodes.Link;
 import org.nodes.MapDTGraph;
 import org.nodes.MapUTGraph;
+import org.nodes.UGraph;
+import org.nodes.UNode;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
 
@@ -168,8 +171,9 @@ public class Data {
 	
 	/**
 	 * Reads a file in edge-list representation into a string-labeled directed 
-	 * graph. 
-	 * 
+	 * graph. Requires that the edges are represented using _consecutive_ 
+	 * integers.
+	 *  
 	 * @param file
 	 * @return 
 	 * @throws IOException
@@ -241,6 +245,83 @@ public class Data {
 		
 		return graph;
 	}
+	
+	
+	/**
+	 * Reads a file in edge-list representation into a string-labeled directed 
+	 * graph. Requires that the edges are represented using _consecutive_ 
+	 * integers.
+	 *  
+	 * @param file
+	 * @return 
+	 * @throws IOException
+	 */
+	public static UGraph<String> edgeListUndirectedUnlabeled(File file, boolean clean)
+			throws IOException
+	{
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		LightUGraph<String> graph = new LightUGraph<String>();
+				
+		String line;
+		int i = 0;
+		
+		do {
+			line = reader.readLine();
+			i++;
+		
+			if(line == null)
+				continue;
+			if(line.trim().isEmpty())
+				continue;
+			if(line.trim().startsWith("#"))
+				continue;
+			
+			String[] split = line.split("\\s");
+			if(split.length < 2)
+				throw new IllegalArgumentException("Line "+i+" does not split into two elements.");
+			
+			Integer a, b, c = null;
+			try {
+				a = Integer.parseInt(split[0]);
+			} catch(NumberFormatException e)
+			{
+				throw new RuntimeException("The first element on line "+i+" ("+split[0]+") cannot be parsed into an integer.", e);
+			}
+			
+			try {
+				b = Integer.parseInt(split[1]);
+			} catch(NumberFormatException e)
+			{
+				throw new RuntimeException("The second element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
+			}
+						
+			ensure(graph, Math.max(a, b));
+			
+			UNode<String> nodeA = graph.get(a);
+			UNode<String> nodeB = graph.get(b);
+
+			nodeA.connect(nodeB);
+			
+			int links = graph.numLinks();
+			if(links%100000 == 0)
+				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
+			
+			
+		} while(line != null);
+		
+		Global.log().info("Sorting");
+		graph.sort();
+		
+		if(clean)
+		{
+			Global.log().info("Compacting");
+			graph.compact(0);
+			Global.log().info("Done");
+
+		}
+		
+		return graph;
+	}	
 
 	private static void ensure(Graph<String> graph, int max)
 	{

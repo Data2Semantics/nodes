@@ -818,7 +818,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		// * for all connected nodes
 		for(UTNode<L, T> node : nodes())
 		{
-			if(! node.label().equals(otherGraph.get(node.index()).label()))
+			if(! Functions.equals(node.label(), otherGraph.get(node.index()).label()))
 				return false;
 			
 			for(UTNode<L, T> neighbor : node.neighbors())
