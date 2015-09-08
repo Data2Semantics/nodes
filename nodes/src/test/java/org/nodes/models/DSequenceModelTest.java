@@ -4,8 +4,13 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.nodes.models.DSequenceModel.isGraphical;
 import static org.nodes.models.DSequenceModel.sequence;
+import static org.nodes.util.Functions.tic;
+import static org.nodes.util.Functions.toc;
 import static org.nodes.util.Series.series;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,11 +19,14 @@ import org.nodes.DGraph;
 import org.nodes.Global;
 import org.nodes.Graphs;
 import org.nodes.MapDTGraph;
+import org.nodes.UGraph;
+import org.nodes.data.Data;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.Functions;
 import org.nodes.util.Pair;
 import org.nodes.util.Series;
 import org.nodes.util.bootstrap.LogBCaCI;
+import org.nodes.util.bootstrap.LogNormalCI;
 
 public class DSequenceModelTest
 {
@@ -176,4 +184,47 @@ public class DSequenceModelTest
 	{
 		assertEquals(0, DSequenceModel.g(1, 0, asList(2, 2, 2)));
 	}
-}
+	
+	@Test
+	public void testTime()
+	{	
+		int n = 150;
+		List<Pair<Double, Double>> values = new ArrayList<Pair<Double,Double>>();
+		
+		for(int i : series(n))
+		{
+			int size = Global.random().nextInt(400) + 100;
+			int numLinks = Global.random().nextInt(2000) + 500;
+			
+			UGraph<String> graph;
+			try {
+				graph = RandomGraphs.random(size, numLinks);
+			} catch(Exception e)
+			{
+				continue;
+			}
+			
+			tic();
+			USequenceModel<String> model = new USequenceModel<String>(graph);
+			model.nonuniform();
+			double time = toc();
+			
+			System.out.println(((double)size*numLinks) + "\t" +  time);
+			
+		}
+		
+	}
+	
+	@Test
+	public void testTime2() throws IOException
+	{
+		DGraph<String> graph = Data.edgeListDirectedUnlabeled(new File("/Users/Peter/Documents/datasets/graphs/facebook/facebook.txt"), true);
+		// System.out.println("expected : " + (graph.size() * (double)graph.numLinks() / (double)100000) + " seconds");
+
+		Functions.tic();
+		USequenceModel<String> model = new USequenceModel<String>(graph, 10);
+		LogNormalCI ci = new LogNormalCI(model.logSamples(), 20000);
+
+		System.out.println(ci.twoSided(0.05));
+	}
+}	

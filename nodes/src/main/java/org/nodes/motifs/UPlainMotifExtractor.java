@@ -40,6 +40,7 @@ import org.nodes.compression.Functions.NaturalComparator;
 import org.nodes.models.USequenceModel;
 import org.nodes.models.USequenceModel.CIMethod;
 import org.nodes.models.USequenceModel.CIType;
+import org.nodes.random.SimpleSubgraphGenerator;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.AbstractGenerator;
 import org.nodes.util.BitString;
@@ -131,8 +132,8 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 		// * The (overlapping) instances
 		occurrences = new LinkedHashMap<UGraph<L>, List<List<Integer>>>();
 
-		SubgraphGenerator<L> gen = 
-			new SubgraphGenerator<L>(data, intGen, Collections.EMPTY_LIST);
+		SimpleSubgraphGenerator gen = 
+			new SimpleSubgraphGenerator(data, intGen);
 
 		Global.log().info("Start sampling.");
 		for (int i : Series.series(samples))
@@ -140,15 +141,15 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 			if (i % 10000 == 0)
 				System.out.println("Samples finished: " + i);
 
-			SubgraphGenerator<L>.Result result = gen.generate();
+			List<Integer> indices = gen.generate();
 			
-			UGraph<L> sub = Subgraph.uSubgraphIndices(data, result.indices());
+			UGraph<L> sub = Subgraph.uSubgraphIndices(data, indices);
 
 			// * Reorder nodes to canonical ordering
 			Order canonical = Nauty.order(sub, comparator);
 			sub = Graphs.reorder(sub, canonical);
 			
-			List<Integer> occurrence = canonical.apply(result.indices()); 
+			List<Integer> occurrence = canonical.apply(indices); 
 			
 			fm.add(sub); // no need for a correction as in normal motif sampling
 			

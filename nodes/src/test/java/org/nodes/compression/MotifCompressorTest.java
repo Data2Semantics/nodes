@@ -29,6 +29,7 @@ import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.motifs.MotifCompressor;
 import org.nodes.motifs.UPlainMotifExtractor;
+import org.nodes.random.SimpleSubgraphGenerator;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Order;

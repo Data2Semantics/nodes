@@ -37,6 +37,7 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 	private LinkGenerator<L> links;
 	private Set<Node<L>> toAvoid;
 	
+	private boolean probability = true;
 	
 	public SubgraphGenerator(Graph<L> graph, int n)
 	{
@@ -55,6 +56,13 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 	public SubgraphGenerator(Graph<L> graph, Generator<Integer> ints)
 	{
 		this(graph, ints, new ArrayList<Node<L>>());
+
+	}
+	
+	public SubgraphGenerator(Graph<L> graph, Generator<Integer> ints, boolean probability)
+	{
+		this(graph, ints, new ArrayList<Node<L>>());
+		this.probability = probability;
 	}
 
 	public SubgraphGenerator(Graph<L> graph, Generator<Integer> ints, Collection<? extends Node<L>> toAvoid)
@@ -165,6 +173,9 @@ public class SubgraphGenerator<L> extends AbstractGenerator<SubgraphGenerator<L>
 
 		private void calculateProbability()
 		{
+			if(! probability)
+				return;
+			
 			int n = trail.size();
 			for(int[] perm : new Permutations(n))
 			{

@@ -265,15 +265,21 @@ public class LightUGraph<L> implements UGraph<L>
 		{
 			if (this == obj)
 				return true;
+			
 			if (obj == null)
 				return false;
+			
 			if (getClass() != obj.getClass())
 				return false;
+			
 			LightUNode other = (LightUNode) obj;
+			
 			if (this.graph() != other.graph())
 				return false;
+			
 			if (dead != other.dead)
 				return false;
+			
 			return index.equals(other.index);
 		}
 		

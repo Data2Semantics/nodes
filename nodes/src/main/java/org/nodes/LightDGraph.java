@@ -1,5 +1,7 @@
 package org.nodes;
 
+import static org.nodes.util.Functions.concat;
+
 import java.util.AbstractCollection;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -171,12 +173,8 @@ public class LightDGraph<L> implements DGraph<L>
 		public Collection<? extends DNode<L>> neighbors()
 		{
 			check();
-			List<Integer> indices = new ArrayList<Integer>(degree());
 			
-			for(int i : in.get(this.index))
-				indices.add(i);
-			for(int i : out.get(this.index))
-				indices.add(i);
+			List<Integer> indices = concat(in.get(this.index), out.get(this.index));
 			
 			return new NodeList(indices);
 		}
@@ -353,9 +351,9 @@ public class LightDGraph<L> implements DGraph<L>
 		{
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + getOuterType().hashCode();
 			result = prime * result + (dead ? 1231 : 1237);
 			result = prime * result + ((index == null) ? 0 : index.hashCode());
+			result = prime * result + ((labels.get(index) == null) ? 0 : labels.get(index).hashCode());
 			return result;
 		}
 
@@ -364,27 +362,21 @@ public class LightDGraph<L> implements DGraph<L>
 		{
 			if (this == obj)
 				return true;
+			
 			if (obj == null)
 				return false;
+			
 			if (getClass() != obj.getClass())
 				return false;
+			
 			LightDNode other = (LightDNode) obj;
-			if (!getOuterType().equals(other.getOuterType()))
+			
+			if (graph() != other.graph())
 				return false;
 			if (dead != other.dead)
 				return false;
-			if (index == null)
-			{
-				if (other.index != null)
-					return false;
-			} else if (!index.equals(other.index))
-				return false;
-			return true;
-		}
-
-		private LightDGraph getOuterType()
-		{
-			return LightDGraph.this;
+			
+			return index == other.index();
 		}
 		
 		public String toString()

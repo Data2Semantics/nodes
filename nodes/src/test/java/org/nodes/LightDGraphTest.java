@@ -2,7 +2,11 @@ package org.nodes;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Test;
+import org.nodes.data.Data;
 
 public class LightDGraphTest
 {
@@ -172,5 +176,15 @@ public class LightDGraphTest
 		
 		assertFalse(g1.equals(g2));
 		assertFalse(g2.equals(g1));	
+	}
+	
+	@Test
+	public void testImportBig()
+			throws IOException
+	{
+		DGraph<String> graph = Data.edgeListDirectedUnlabeled(new File("/Users/Peter/Documents/datasets/graphs/p2p/p2p.30.txt"), true);
+		System.out.println(graph.size());
+		System.out.println(graph.numLinks());
+
 	}
 }

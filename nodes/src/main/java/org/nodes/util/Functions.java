@@ -392,8 +392,7 @@ public class Functions
 				return t;
 		
 		// * Unreachable code to make the compiler happy
-		assert(false); 
-		return null; 
+		assert(false); return null; 
 	}
 	
 	/**
@@ -681,6 +680,15 @@ public class Functions
 		return false;
 	}
 
+	/**
+	 * Create a list representing the concatenation of the input arguments. 
+	 * 
+	 * The resulting list is backed by the arguments.
+	 * 
+	 * @param first
+	 * @param second
+	 * @return
+	 */
 	public static <E> List<E> concat(List<? extends E> first, List<? extends E> second)
 	{
 		return new CatList<E>(first, second);

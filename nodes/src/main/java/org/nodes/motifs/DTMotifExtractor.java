@@ -30,6 +30,7 @@ import org.nodes.compression.EdgeListCompressor;
 import org.nodes.compression.Functions;
 import org.nodes.compression.NeighborListCompressor;
 import org.nodes.compression.Functions.NaturalComparator;
+import org.nodes.random.SimpleSubgraphGenerator;
 import org.nodes.random.SubgraphGenerator;
 import org.nodes.util.AbstractGenerator;
 import org.nodes.util.BitString;

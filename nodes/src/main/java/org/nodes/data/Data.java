@@ -253,6 +253,8 @@ public class Data {
 			
 		} while(line != null);
 		
+		Global.log().info("Graph loaded (n="+graph.size()+", l="+graph.numLinks()+").");
+
 		Global.log().info("Sorting");
 		graph.sort();
 		
@@ -261,7 +263,6 @@ public class Data {
 			Global.log().info("Compacting");
 			graph.compact(0);
 			Global.log().info("Done");
-
 		}
 		
 		return graph;
