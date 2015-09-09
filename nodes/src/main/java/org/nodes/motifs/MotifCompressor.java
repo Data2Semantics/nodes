@@ -582,6 +582,7 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 	public static <L> int exDegree(Graph<L> graph, List<Integer> occurrence)
 	{
 		int sum = 0;
+		Set<Integer> occSet = new HashSet<Integer>(occurrence);
 	
 		for (int i : Series.series(occurrence.size()))
 		{
@@ -589,7 +590,7 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 			Node<L> node = graph.get(nodeIndex);
 	
 			for (Node<L> neighbor : node.neighbors())
-				if (!occurrence.contains(neighbor.index()))
+				if (!occSet.contains(neighbor.index()))
 					sum++;
 		}
 	

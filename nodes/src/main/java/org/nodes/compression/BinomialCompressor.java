@@ -52,10 +52,10 @@ public class BinomialCompressor<N> extends AbstractGraphCompressor<N>
 	 */
 	public static <N> double undirected(Graph<N> graph, boolean simple, boolean withPrior)
 	{
-		int n = graph.size();
-		int t = simple ? n * (n - 1) / 2 : n * (n + 1) / 2;
+		double n = graph.size();
+		double t = simple ? n * (n - 1) / 2 : n * (n + 1) / 2;
 		
-		return (withPrior ? prefix(n) + log2(t): 0) + log2Choose(graph.numLinks(), t);
+		return (withPrior ? prefix((int)n) + log2(t): 0) + log2Choose(graph.numLinks(), t);
 	}
 
 	public static <N> double directed(DGraph<N> graph) 
