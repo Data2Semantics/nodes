@@ -464,9 +464,29 @@ public class Graphs
 		List<Integer> degrees = new ArrayList<Integer>(graph.size());
 		
 		for(Node<?> node : graph.nodes())
-			degrees.add(node.neighbors().size());
+			degrees.add(node.degree());
 		
 		return degrees;
+	}
+	
+	public static List<Integer> inDegrees(DGraph<?> graph)
+	{
+		List<Integer> inDegrees = new ArrayList<Integer>(graph.size());
+		
+		for(DNode<?> node : graph.nodes())
+			inDegrees.add(node.inDegree());
+		
+		return inDegrees;
+	}
+	
+	public static List<Integer> outDegrees(DGraph<?> graph)
+	{
+		List<Integer> outDegrees = new ArrayList<Integer>(graph.size());
+		
+		for(DNode<?> node : graph.nodes())
+			outDegrees.add(node.outDegree());
+		
+		return outDegrees;
 	}
 	
 	public static <L> void add(Graph<L> graph, Graph<L> addition)

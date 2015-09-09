@@ -1,6 +1,9 @@
 package org.nodes.util;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A KT estimator for observing and encoding a sequence of tokens.
@@ -100,6 +103,38 @@ public class OnlineModel<T> extends FrequencyModel<T>
 	public boolean started()
 	{
 		return total() > 0.0;
+	}
+
+	public static <L> double storeSequence(List<L> sequence)
+	{
+		Set<L> symbols = new LinkedHashSet<L>(sequence);
+		
+		OnlineModel<L> model = new OnlineModel<L>(symbols);
+		
+		double bits = 0.0;
+		for(L symbol : sequence)
+			bits += - Functions.log2(model.observe(symbol)); 
+		
+		return bits;
+	}
+	
+	/**
+	 * The cost of storing the given sequence under the maximum likelihood model:
+	 * ie. the case when the precise relative frequencies of each symbol in the 
+	 * sequence are known to both sender and receiver.  
+	 * @param sequence
+	 * @return
+	 */
+	public static <L> double storeSequenceML(List<L> sequence)
+	{
+		
+		FrequencyModel<L> model = new FrequencyModel<L>(sequence);
+
+		double bits = 0.0;
+		for(L symbol : sequence)
+			bits += -Functions.log2(model.probability(symbol));
+		
+		return bits;
 	}
 
 }

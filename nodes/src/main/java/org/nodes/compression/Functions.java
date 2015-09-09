@@ -31,6 +31,12 @@ public class Functions
 	{
 		return Math.log10(x) / Math.log10(2.0);
 	}
+	
+	public static double prefix(int n)
+	{
+		double prob = 1.0/ ((n + 1.0)*(n + 2.0));
+		return - org.nodes.util.Functions.log2(prob);
+	}
 
 	/**
 	 * The cost of storing the given value in prefix coding
@@ -38,18 +44,18 @@ public class Functions
 	 * @param bits
 	 * @return
 	 */
-	public static double prefix(int value)
+	public static double prefixVit(int value)
 	{
 
-		return prefix(value, 10);
+		return prefixVit(value, 10);
 	}
 
-	public static int prefix(int value, int d)
+	public static int prefixVit(int value, int d)
 	{
 		if (d == 0)
 			return 2 * length(value) + 1;
 
-		return length(value) + length(prefix(length(value), d - 1));
+		return length(value) + length(prefixVit(length(value), d - 1));
 	}
 
 	/**

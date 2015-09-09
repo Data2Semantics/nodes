@@ -130,6 +130,8 @@ public class DPlainMotifExtractor<L extends Comparable<L>>
 
 		SimpleSubgraphGenerator gen = 
 			new SimpleSubgraphGenerator(data, intGen);
+		
+//		SubgraphGenerator<L> gen = new SubgraphGenerator<L>(data, intGen);
 
 		Global.log().info("Start sampling.");
 		for (int i : Series.series(samples))
