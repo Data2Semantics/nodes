@@ -247,9 +247,14 @@ public class Data {
 			nodeA.connect(nodeB);
 			
 			int links = graph.numLinks();
-			if(links%100000 == 0)
+			if(links%500000 == 0)
 				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
-			
+			if(links%5000000 == 0)
+			{			
+				Global.log().info("Compacting");
+				graph.compact(5);
+				Global.log().info("Done");
+			}
 			
 		} while(line != null);
 		
