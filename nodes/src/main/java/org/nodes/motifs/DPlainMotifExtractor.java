@@ -220,7 +220,7 @@ public class DPlainMotifExtractor<L extends Comparable<L>>
 		
 		Global.log().info("Finished sampling motifs and removing overlaps.");
 
-		tokens = new ArrayList<DGraph<L>>(fm.tokens());
+		tokens = new ArrayList<DGraph<L>>(fm.sorted());
 	}
 	
 	public List<DGraph<L>> subgraphs()

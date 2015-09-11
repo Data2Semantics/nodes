@@ -68,8 +68,14 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	{
 		this(data);
 		
+		int dotPer = (int)Math.ceil(samples/100.0);
 		for(int i : series(samples))
+		{
+			if(i % dotPer == 0)
+				System.out.print('.');
 			nonuniform();
+		}
+		System.out.println();
 	}
 	
 	public DSequenceModel(DGraph<?> data)

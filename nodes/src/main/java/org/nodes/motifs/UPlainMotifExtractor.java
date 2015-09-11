@@ -228,7 +228,7 @@ public class UPlainMotifExtractor<L extends Comparable<L>>
 	
 	public List<UGraph<L>> subgraphs()
 	{
-		return fm.sorted();
+		return tokens;
 	}
 	
 	public List<List<Integer>> occurrences(UGraph<L> subgraph)
