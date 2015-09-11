@@ -57,7 +57,7 @@ import org.nodes.util.Series;
  */
 public class DSequenceModel<L> implements Model<L, UGraph<L>>
 {	
-	public static final boolean PICK_CANDIDATE_BY_DEGREE = false;
+	public static final boolean PICK_CANDIDATE_BY_DEGREE = true;
 	private L label = null;
 	private List<D> sequence;
 	
@@ -121,7 +121,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	}
 	
 	public static final int BOOTSTRAP_SAMPLES = 10000;
-	private static final double SMOOTH = 0.1;
+	private static final double SMOOTH = 0.0;
 	
 	public double effectiveSampleSize()
 	{
@@ -235,9 +235,6 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 					fromOut = outDegree;
 				}
 			}
-			
-//			System.out.println(sequence);
-//			System.out.println("work node: " + fromIndex);
 			
 			logCY += Functions.logFactorial(fromOut, 2.0);
 			
