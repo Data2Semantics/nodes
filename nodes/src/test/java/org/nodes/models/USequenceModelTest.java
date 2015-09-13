@@ -163,7 +163,7 @@ public class USequenceModelTest
 	@Test
 	public void testMulti()
 	{
-		int n = 100;
+		int n = 20;
 		Graph<String> graph = RandomGraphs.random(200, 800);
 		System.out.println("sampled");
 		
@@ -175,15 +175,15 @@ public class USequenceModelTest
 		System.out.println(" " + toc() + " seconds.");
 		
 		tic();
-		model.nonUniform(n, 1);
+		model.nonuniform(n, 1);
 		System.out.println(" " + toc() + " seconds.");
 
 		tic();
-		model.nonUniform(n, 2);
+		model.nonuniform(n, 2);
 		System.out.println(" " + toc() + " seconds.");
 
 		tic();
-		model.nonUniform(n, 3);
+		model.nonuniform(n, 3);
 		System.out.println(" " + toc() + " seconds.");
 
 	

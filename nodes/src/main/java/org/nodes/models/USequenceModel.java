@@ -571,7 +571,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	 * 
 	 * Multithreaded
 	 */
-	public void nonUniform(final int samples, final int numThreads)
+	public void nonuniform(final int samples, final int numThreads)
 	{
 		final int perThread = samples/numThreads;
 		List<Thread> threads = new ArrayList<Thread>(numThreads);
@@ -588,7 +588,9 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		}
 		
 		for(Thread thread : threads)
-			thread.run();
+		{
+			thread.start();
+		}
 
 		try
 		{
