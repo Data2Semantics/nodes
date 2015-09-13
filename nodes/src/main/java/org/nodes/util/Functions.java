@@ -730,7 +730,7 @@ public class Functions
 	{
 		double max = Double.NEGATIVE_INFINITY;
 		for(double v : values)
-			max = max(max, v);
+			max = Math.max(max, v);
 		
 		double sum = 0.0;
 		for(double v : values)
@@ -743,7 +743,7 @@ public class Functions
 	{
 		double max = Double.NEGATIVE_INFINITY;
 		for(double v : values)
-			max = max(max, v);
+			max = Math.max(max, v);
 		
 		double sum = 0.0;
 		for(double v : values)
@@ -757,7 +757,7 @@ public class Functions
 		if(b == Double.NEGATIVE_INFINITY)
 			return a;
 		
-		double max = max(a, b);
+		double max = Math.max(a, b);
 		
 		return log(pow(base, a-max) - pow(base, b-max), base) + max;
 	}
@@ -873,5 +873,16 @@ public class Functions
 		{
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public static <L extends Comparable<L>> L max(Collection<L> values)
+	{
+		L max = null;
+		
+		for(L value : values)
+			if(max == null || value.compareTo(max) > 0)
+				max = value;
+		
+		return max;
 	}
 }

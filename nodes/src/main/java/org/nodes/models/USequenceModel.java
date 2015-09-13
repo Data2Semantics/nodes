@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -60,14 +61,20 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	private L label = null;
 	private List<Integer> sequence;
 	
-	private List<Double> logSamples;
+	private List<Double> logSamples = new Vector<Double>();
 
 	public USequenceModel(Graph<?> data, int samples)
 	{
 		this(data);
 		
+		int dotPer = (int)Math.ceil(samples/100.0);
 		for(int i : series(samples))
+		{
+			if(i % dotPer == 0)
+				System.out.print('.');
 			nonuniform();
+		}
+		System.out.println();
 	}
 	
 	public USequenceModel(Graph<?> data)
@@ -77,8 +84,6 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		
 		for(Node<?> node : data.nodes())
 			sequence.add(node.degree());
-							
-		this.logSamples = new ArrayList<Double>();
 	}
 	
 	public USequenceModel(List<Integer> sequence, int samples)
@@ -97,8 +102,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	public USequenceModel(List<Integer> sequence)
 	{
 		this.sequence = new ArrayList<Integer>(sequence);
-					
-		this.logSamples = new ArrayList<Double>();
+			
 	}
 	
 	public List<Double> logSamples()
@@ -561,7 +565,40 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		return num.divide(den);
 	}
 
+	/**
+	 * Samples the given number of graphs from this sequence model. The 
+	 * resulting log-probabilities are stored in the model.
+	 * 
+	 * Multithreaded
+	 */
+	public void nonUniform(final int samples, final int numThreads)
+	{
+		final int perThread = samples/numThreads;
+		List<Thread> threads = new ArrayList<Thread>(numThreads);
+		for(int t : series(numThreads))
+		{
+			Thread thread = new Thread() {
+				public void run()
+				{
+					for(int i : series(perThread))
+						nonuniform();
+				}
+			};
+			threads.add(thread);
+		}
+		
+		for(Thread thread : threads)
+			thread.run();
 
+		try
+		{
+			for(Thread thread : threads)
+				thread.join();
+		} catch (InterruptedException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
 	
 	/**
 	 * Generates a random graph with the given degree  

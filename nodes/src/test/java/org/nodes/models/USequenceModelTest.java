@@ -161,6 +161,35 @@ public class USequenceModelTest
 	}
 	
 	@Test
+	public void testMulti()
+	{
+		int n = 100;
+		Graph<String> graph = RandomGraphs.random(200, 800);
+		System.out.println("sampled");
+		
+		USequenceModel<String> model = new USequenceModel<String>(graph);
+		
+		tic();
+		for(int i : series(n))
+			model.nonuniform();
+		System.out.println(" " + toc() + " seconds.");
+		
+		tic();
+		model.nonUniform(n, 1);
+		System.out.println(" " + toc() + " seconds.");
+
+		tic();
+		model.nonUniform(n, 2);
+		System.out.println(" " + toc() + " seconds.");
+
+		tic();
+		model.nonUniform(n, 3);
+		System.out.println(" " + toc() + " seconds.");
+
+	
+	}
+	
+	@Test
 	public void testBig()
 	{
 		Graph<String> graph = RandomGraphs.random(10000, 100000);

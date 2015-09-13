@@ -105,6 +105,13 @@ public class OnlineModel<T> extends FrequencyModel<T>
 		return total() > 0.0;
 	}
 
+	/**
+	 * Returns the number of bits required to store the given sequence.
+	 * 
+	 * Does not include the cost of storing the symbols themselves.
+	 * @param sequence
+	 * @return
+	 */
 	public static <L> double storeSequence(List<L> sequence)
 	{
 		Set<L> symbols = new LinkedHashSet<L>(sequence);
