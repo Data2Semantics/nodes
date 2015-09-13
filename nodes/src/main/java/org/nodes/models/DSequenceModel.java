@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.Vector;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -62,7 +63,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	private List<D> sequence;
 	
 	
-	private List<Double> logSamples;
+	private List<Double> logSamples = new Vector<Double>();
 
 	public DSequenceModel(DGraph<?> data, int samples)
 	{
@@ -88,8 +89,6 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 			int in = node.inDegree(), out = node.outDegree();
 			sequence.add(new D(in, out));
 		}
-							
-		this.logSamples = new ArrayList<Double>();
 	}
 	
 	public DSequenceModel(List<Integer> inSequence, List<Integer> outSequence, int samples)
@@ -111,8 +110,6 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		
 		for(int i : series(inSequence.size()))
 			sequence.add(new D(inSequence.get(i), outSequence.get(i)));
-					
-		this.logSamples = new ArrayList<Double>();
 	}
 	
 	public List<Double> logSamples()
