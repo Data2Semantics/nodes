@@ -198,6 +198,43 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	}
 	
 	/**
+	 * Samples the given number of graphs from this sequence model. The 
+	 * resulting log-probabilities are stored in the model.
+	 * 
+	 * Multithreaded
+	 */
+	public void nonuniform(final int samples, final int numThreads)
+	{
+		final int perThread = samples/numThreads;
+		List<Thread> threads = new ArrayList<Thread>(numThreads);
+		for(int t : series(numThreads))
+		{
+			Thread thread = new Thread() {
+				public void run()
+				{
+					for(int i : series(perThread))
+						nonuniform();
+				}
+			};
+			threads.add(thread);
+		}
+		
+		for(Thread thread : threads)
+		{
+			thread.start();
+		}
+
+		try
+		{
+			for(Thread thread : threads)
+				thread.join();
+		} catch (InterruptedException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
 	 * Generates a random graph with the given degree  
 	 * 
 	 * @return
