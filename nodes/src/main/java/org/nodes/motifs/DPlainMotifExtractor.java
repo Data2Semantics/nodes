@@ -62,6 +62,8 @@ import au.com.bytecode.opencsv.CSVWriter;
  */
 public class DPlainMotifExtractor<L extends Comparable<L>>
 {
+	public static final boolean SORT_BY_SCORE = false;
+	
 	private DGraph<L> data;
 	private int samples;
 
@@ -149,7 +151,7 @@ public class DPlainMotifExtractor<L extends Comparable<L>>
 			
 			List<Integer> occurrence = canonical.apply(indices); 
 			
-			fm.add(sub); // no need for a correction as in normal motif sampling
+			fm.add(sub);
 			
 			// * record the occurrence
 			if (!occurrences.containsKey(sub))
@@ -169,6 +171,8 @@ public class DPlainMotifExtractor<L extends Comparable<L>>
 		for(DGraph<L> sub : fm.tokens())
 			if(fm.frequency(sub) >= minFreq)
 			{
+				int nl = sub.numLinks();
+				
 				// * A map from nodes to occurrences containing them
 				Map<DNode<L>, List<Occurrence>> map = 
 					new LinkedHashMap<DNode<L>, List<Occurrence>>();
@@ -202,7 +206,8 @@ public class DPlainMotifExtractor<L extends Comparable<L>>
 					
 					if(head.alive()) // * register it as a viable occurrence
 					{
-						newFm.add(sub);
+						newFm.add(sub, SORT_BY_SCORE ? nl/(double)head.exDegree() : 1.0);
+						
 						if(! newOccurrences.containsKey(sub))
 							newOccurrences.put(sub, new ArrayList<List<Integer>>());
 						newOccurrences.get(sub).add(head.indices());

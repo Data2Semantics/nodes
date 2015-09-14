@@ -885,4 +885,14 @@ public class Functions
 		
 		return max;
 	}
+	
+	public static void dot(int i, int total)
+	{
+		if(i == total - 1)
+			System.out.println();
+		
+		int dotPer = (int)Math.ceil(total/100.0);
+		if(i % dotPer == 0)
+			System.out.print('.');
+	}
 }

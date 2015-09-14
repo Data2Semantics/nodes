@@ -456,7 +456,7 @@ public class LightDGraph<L> implements DGraph<L>
 			
 			int o = other.index();
 			for(int neighbor : in.get(index))
-				if(neighbor == 0)
+				if(neighbor == o)
 					list.add(new LightDLink(neighbor, index));
 			
 			return list;
