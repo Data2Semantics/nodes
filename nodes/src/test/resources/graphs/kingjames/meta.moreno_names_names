@@ -1,0 +1,10 @@
+category: Lexical 
+code: MN
+name: King James
+description: Noun–noun co-occurences
+entity-names: noun
+extr: moreno
+url: http://moreno.ss.uci.edu/data.html#names
+long-description: This undirected network contains nouns – places and names – of the King James bible and information about their occurences. A node represents one of the above noun types and an edge indicates that two nouns appeared together in the same verse. The edge weights show how often two nouns occured together.
+relationship-names: co-occurence
+cite: konect:harrison

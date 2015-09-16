@@ -797,21 +797,21 @@ public class Graphs
 	 * @param data
 	 * @return
 	 */
-	public static UGraph<String> toSimpleUGraph(Graph<String> data)
+	public static <L> UGraph<L> toSimpleUGraph(Graph<L> data)
 	{
 		return toSimpleUGraph(data, null);
 	}
 	
-	public static UGraph<String> toSimpleUGraph(Graph<String> data, FrequencyModel<Pair<Integer, Integer>> removals)
+	public static <L> UGraph<L> toSimpleUGraph(Graph<L> data, FrequencyModel<Pair<Integer, Integer>> removals)
 	{
-		MapUTGraph<String, String> result = new MapUTGraph<String, String>();
+		MapUTGraph<L, String> result = new MapUTGraph<L, String>();
 		
-		for(Node<String> node : data.nodes())
+		for(Node<L> node : data.nodes())
 			result.add(node.label());
 		
-		for(Link<String> link : data.links())
+		for(Link<L> link : data.links())
 		{
-			Node<String> a = result.get(link.first().index()),
+			Node<L> a = result.get(link.first().index()),
 			             b = result.get(link.second().index());
 			if(a.index() != b.index())
 			{
@@ -839,22 +839,22 @@ public class Graphs
 	 * @param data
 	 * @return
 	 */
-	public static DGraph<String> toSimpleDGraph(DGraph<String> data)
+	public static <L> DGraph<L> toSimpleDGraph(DGraph<L> data)
 	{
 		return toSimpleDGraph(data, null);
 	}
 	
-	public static DGraph<String> toSimpleDGraph(DGraph<String> data, FrequencyModel<Pair<Integer, Integer>> removals)
+	public static <L> DGraph<L> toSimpleDGraph(DGraph<L> data, FrequencyModel<Pair<Integer, Integer>> removals)
 	{
-		MapDTGraph<String, String> result = new MapDTGraph<String, String>();
+		MapDTGraph<L, String> result = new MapDTGraph<L, String>();
 		
-		for(Node<String> node : data.nodes())
+		for(Node<L> node : data.nodes())
 			result.add(node.label());
 		
-		for(DLink<String> link : data.links())
+		for(DLink<L> link : data.links())
 		{
-			DNode<String> from = result.get(link.from().index()),
-			              to = result.get(link.to().index());
+			DNode<L> from = result.get(link.from().index()),
+			         to = result.get(link.to().index());
 			if(from.index() != to.index())
 			{
 				if(!from.connectedTo(to))

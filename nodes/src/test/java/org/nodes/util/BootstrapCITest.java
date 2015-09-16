@@ -9,9 +9,9 @@ import java.util.List;
 import org.junit.Test;
 import org.nodes.Global;
 import org.nodes.UGraph;
-import org.nodes.models.USequenceModel;
-import org.nodes.models.USequenceModel.CIMethod;
-import org.nodes.models.USequenceModel.CIType;
+import org.nodes.models.USequenceEstimator;
+import org.nodes.models.USequenceEstimator.CIMethod;
+import org.nodes.models.USequenceEstimator.CIType;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.bootstrap.PercentileCI;
 import org.nodes.util.bootstrap.BCaCI;
@@ -101,7 +101,7 @@ public class BootstrapCITest
 	{
 		UGraph<String> graph = RandomGraphs.random(100, 100);
 		
-		USequenceModel<String> model = new USequenceModel<String>(graph, 10);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph, 10);
 		
 		System.out.println("perc: " + model.confidence(0.05, CIMethod.PERCENTILE, CIType.TWO_SIDED));
 		System.out.println("bca:  " + model.confidence(0.05, CIMethod.BCA, CIType.TWO_SIDED));

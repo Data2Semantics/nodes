@@ -1,4 +1,4 @@
-package org.nodes.models;
+package org.nodes.models.old;
 
 import static java.lang.Math.exp;
 import static org.nodes.util.Series.series;

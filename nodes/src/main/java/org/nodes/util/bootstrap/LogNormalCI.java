@@ -14,6 +14,8 @@ import org.nodes.util.Pair;
 
 public class LogNormalCI
 {
+	public static final int DEFAULT_BS_SAMPLES = 10000;
+	
 	public static final double LN2 = Math.log(2.0);
 	public static final double LOGE = Functions.log2(Math.E);
 	
@@ -75,6 +77,11 @@ public class LogNormalCI
 		
 		Collections.sort(ts);
 	} 
+
+	public LogNormalCI(List<Double> logSamples)
+	{
+		this(logSamples, DEFAULT_BS_SAMPLES);
+	}
 
 	private double chiSquaredSample(int k)
 	{

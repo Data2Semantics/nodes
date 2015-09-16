@@ -1,0 +1,179 @@
+package org.nodes.models;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.nodes.DGraph;
+import org.nodes.Graph;
+import org.nodes.UGraph;
+import org.nodes.util.Fibonacci;
+import org.nodes.util.Pair;
+
+/**
+ * A copy of the motif model that searches for a good subselection in the 
+ * available instances.
+ *  
+ * @author Peter
+ *
+ */
+public class MotifSearchModel
+{
+	
+	public static <L> double size(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, final StructureModel<Graph<?>> model, boolean resetWiring)
+	{
+		Function<Graph<L>> function = new Function<Graph<L>>()
+		{
+			public double size(Graph<L> graph, Graph<L> sub,
+					List<List<Integer>> occurrences, boolean resetWiring)
+			{
+				return MotifModel.size(graph, sub, occurrences, model, resetWiring);
+			}
+		};
+		
+		FindPhi<Graph<L>> find 
+			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, function);
+		
+		return find.size();
+	}
+	
+	public static <L> double sizeBeta(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, boolean resetWiring, final int iterations, final double alpha)
+	{
+		Function<Graph<L>> function = new Function<Graph<L>>()
+		{
+			public double size(Graph<L> graph, Graph<L> sub,
+					List<List<Integer>> occurrences, boolean resetWiring)
+			{
+				return MotifModel.sizeBeta(graph, sub, occurrences, resetWiring, iterations, alpha);
+			}
+		};
+		
+		FindPhi<Graph<L>> find 
+			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, function);
+		
+		return find.size();
+	}
+	
+	public static double sizeER(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring)
+	{
+		Function<Graph<?>> function = new Function<Graph<?>>()
+		{
+			public double size(Graph<?> graph, Graph<?> sub,
+					List<List<Integer>> occurrences, boolean resetWiring)
+			{
+				return MotifModel.sizeER(graph, sub, occurrences, resetWiring);
+			}
+		};
+		
+		FindPhi<Graph<?>> find 
+			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, function);
+		
+		return find.size();
+	}
+	
+	
+	public static double sizeEL(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring)
+	{
+		Function<Graph<?>> function = new Function<Graph<?>>()
+		{
+			public double size(Graph<?> graph, Graph<?> sub,
+					List<List<Integer>> occurrences, boolean resetWiring)
+			{
+				return MotifModel.sizeEL(graph, sub, occurrences, resetWiring);
+			}
+		};
+		
+		FindPhi<Graph<?>> find 
+			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, function);
+		
+		return find.size();
+	}
+	
+	private static interface Function<G extends Graph<? extends Object>> {
+		public double size(G graph, G sub, List<List<Integer>> occurrences, boolean resetWiring);
+	}
+	
+	private static class FindPhi<G extends Graph<? extends Object>> 
+	{
+		G data; 
+		G motif;
+		List<List<Integer>> occurrences; 
+		Function<G> function;
+		boolean resetWiring;
+		
+		int cutoff;
+		double size;
+		
+		public FindPhi(G data, G motif,
+				List<List<Integer>> occurrences, 
+				boolean resetWiring,
+				Function<G> function)
+		{
+			this.data = data;
+			this.motif = motif;
+			this.occurrences = occurrences;
+			this.resetWiring = resetWiring;
+			this.function = function;
+			
+			int n = occurrences.size();
+			int to = Fibonacci.isFibonacci(n) ? n : (int)Fibonacci.get((int) Math.ceil(Fibonacci.getIndexApprox(n)));
+
+			Pair<Integer, Double> res = find(0, to);
+			cutoff = res.first();
+			size = res.second();
+		}
+
+		public double size()
+		{
+			return size;
+		}
+		
+		public int cutoff()
+		{
+			return cutoff;
+		}
+		
+		private Pair<Integer, Double> find(int from, int to)
+		{
+			int range = to - from;
+			
+			if(range <= 2)
+			{
+				// return the best of from, from +1 and to
+				int x0 = from, x1 = from + 1, x2 = to;
+				double y0 = sample(x0),
+					   y1 = sample(x1),
+					   y2 = sample(x2);
+				return y0 < y1 && y0 < y2 ? new Pair<Integer, Double>(x0, y0) : 
+				                 (y1 < y2 ? new Pair<Integer, Double>(x1, y1) : 
+					                        new Pair<Integer, Double>(x2, y2));
+			}
+			
+			int r0 = (int)Fibonacci.previous(range);
+			int mid1 = to - r0;
+			int mid2 = from + r0;
+			
+			double y1 = sample(mid1);
+			double y2 = sample(mid2);
+			
+			if(y1 > y2)
+				return find(mid1, to);
+			return find(from, mid2);
+		}
+		
+		private Map<Integer, Double> cache = new HashMap<Integer, Double>();
+		
+		public double sample(int n)
+		{
+			if(! cache.containsKey(n))
+			{
+				double size = function.size(data, motif, occurrences.subList(0, Math.min(occurrences.size(), n)), resetWiring);
+				cache.put(n, size);
+				
+				return size;
+			}
+			
+			return cache.get(n);
+		}
+	}
+}

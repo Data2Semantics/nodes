@@ -3,9 +3,9 @@ package org.nodes.models;
 import static java.lang.Math.sqrt;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.nodes.models.USequenceModel.findMaxFailDegree;
-import static org.nodes.models.USequenceModel.isGraphical;
-import static org.nodes.models.USequenceModel.numZeroes;
+import static org.nodes.models.USequenceEstimator.findMaxFailDegree;
+import static org.nodes.models.USequenceEstimator.isGraphical;
+import static org.nodes.models.USequenceEstimator.numZeroes;
 import static org.nodes.util.Functions.exp2;
 import static org.nodes.util.Functions.tic;
 import static org.nodes.util.Functions.toc;
@@ -109,7 +109,7 @@ public class USequenceModelTest
 			sequence.add(node.degree());
 		
 		
-		USequenceModel<String> model = new USequenceModel<String>(graph, 500);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph, 500);
 		System.out.println(model.nonuniform().graph());
 		
 	}
@@ -117,7 +117,7 @@ public class USequenceModelTest
 	@Test
 	public void testGenerateX()
 	{
-		USequenceModel<String> model = new USequenceModel<String>(asList(1, 2, 2, 1));
+		USequenceEstimator<String> model = new USequenceEstimator<String>(asList(1, 2, 2, 1));
 		
 		for(int i : series(1000))
 			model.nonuniform();
@@ -136,7 +136,7 @@ public class USequenceModelTest
 		
 		System.out.println(sequence);
 		
-		USequenceModel<String> model = new USequenceModel<String>(graph, 500);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph, 500);
 		for(int i : series(500))
 			System.out.println(model.nonuniform().graph());
 		
@@ -148,10 +148,10 @@ public class USequenceModelTest
 		List<Integer> sequence = asList(7, 8, 5, 1, 1, 2, 8, 10, 4, 2, 4, 5, 3, 
 			6, 7, 3, 2, 7, 6, 1, 2, 9, 6, 1, 3, 4, 6, 3, 3, 3, 2, 4, 4);
 		
-		System.out.println(USequenceModel.sum(sequence));
+		System.out.println(USequenceEstimator.sum(sequence));
 
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(sequence, 6000);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(sequence, 6000);
 		System.out.println("Sampling completed in " + toc() + " seconds.");
 		
 		System.out.println("logprob    :" + model.logProb());
@@ -167,7 +167,7 @@ public class USequenceModelTest
 		Graph<String> graph = RandomGraphs.random(200, 800);
 		System.out.println("sampled");
 		
-		USequenceModel<String> model = new USequenceModel<String>(graph);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph);
 		
 		tic();
 		for(int i : series(n))
@@ -196,7 +196,7 @@ public class USequenceModelTest
 		System.out.println("sampled");
 		
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(graph);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph);
 		for(int i : series(5))
 		{
 			model.nonuniform();
@@ -225,16 +225,16 @@ public class USequenceModelTest
 		double alpha = 0.05;
 		
 		Pair<Double, Double> ci;
-		ci = model.confidence(alpha, USequenceModel.CIType.TWO_SIDED);
+		ci = model.confidence(alpha, USequenceEstimator.CIType.TWO_SIDED);
 		System.out.println("standard:   [" + ci.first() + ", " + ci.second() + "]");
 		
-		ci = model.confidence(alpha, USequenceModel.CIMethod.LOG_NORMAL, USequenceModel.CIType.TWO_SIDED);
+		ci = model.confidence(alpha, USequenceEstimator.CIMethod.LOG_NORMAL, USequenceEstimator.CIType.TWO_SIDED);
 		System.out.println("lognorm:    [" + ci.first() + ", " + ci.second() + "]");
 
-		ci = model.confidence(alpha, USequenceModel.CIMethod.PERCENTILE, USequenceModel.CIType.TWO_SIDED);
+		ci = model.confidence(alpha, USequenceEstimator.CIMethod.PERCENTILE, USequenceEstimator.CIType.TWO_SIDED);
 		System.out.println("percentile: [" + ci.first() + ", " + ci.second() + "]");
 		
-		ci = model.confidence(alpha, USequenceModel.CIMethod.BCA, USequenceModel.CIType.TWO_SIDED);
+		ci = model.confidence(alpha, USequenceEstimator.CIMethod.BCA, USequenceEstimator.CIType.TWO_SIDED);
 		System.out.println("bca:        [" + ci.first() + ", " + ci.second() + "]");
 		
 		
@@ -266,7 +266,7 @@ public class USequenceModelTest
 			sequence.add(3);
 
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(sequence, samples);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(sequence, samples);
 		System.out.println("Sampling completed in " + toc() + " seconds.");
 
 		
@@ -282,7 +282,7 @@ public class USequenceModelTest
 		List<Integer> sequence = Arrays.asList(6, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 		
 		tic();
-		USequenceModel<String> model = new USequenceModel<String>(sequence, 500);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(sequence, 500);
 		System.out.println("Sampling completed in " + toc() + " seconds.");
 
 		System.out.println("number:" + model.numGraphs());
@@ -292,28 +292,28 @@ public class USequenceModelTest
 	@Test
 	public void testGenerate2()
 	{
-		USequenceModel<String> model = new USequenceModel<String>(Arrays.asList(3,2,2,2,1), 500);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(Arrays.asList(3,2,2,2,1), 500);
 		System.out.println(model.nonuniform().graph());
 	}
 	
 	@Test 
 	public void testFindXks()
 	{	
-		assertEquals(asList(11, 7, 4), USequenceModel.findxks(asList(5,5,4,3, 2, 2, 2, 1, 1, 1, 1)));
+		assertEquals(asList(11, 7, 4), USequenceEstimator.findxks(asList(5,5,4,3, 2, 2, 2, 1, 1, 1, 1)));
 		
-		assertEquals(asList(4, 2), USequenceModel.findxks(asList(3, 3, 1, 1)));
-		assertEquals(asList(8, 2), USequenceModel.findxks(asList(5, 5, 1, 1, 1, 1, 1, 1)));
+		assertEquals(asList(4, 2), USequenceEstimator.findxks(asList(3, 3, 1, 1)));
+		assertEquals(asList(8, 2), USequenceEstimator.findxks(asList(5, 5, 1, 1, 1, 1, 1, 1)));
 	}
 
 	@Test 
 	public void testFindFailDegree()
 	{
-		List<USequenceModel.Index> seq = new ArrayList<USequenceModel.Index>();
-		seq.add(new USequenceModel.Index(2, false));
-		seq.add(new USequenceModel.Index(2, false));
-		seq.add(new USequenceModel.Index(2, false));
-		seq.add(new USequenceModel.Index(1, false));
-		seq.add(new USequenceModel.Index(1, false));
+		List<USequenceEstimator.Index> seq = new ArrayList<USequenceEstimator.Index>();
+		seq.add(new USequenceEstimator.Index(2, false));
+		seq.add(new USequenceEstimator.Index(2, false));
+		seq.add(new USequenceEstimator.Index(2, false));
+		seq.add(new USequenceEstimator.Index(1, false));
+		seq.add(new USequenceEstimator.Index(1, false));
 		
 		assertEquals(0, findMaxFailDegree(seq));
 	}
@@ -337,25 +337,25 @@ public class USequenceModelTest
 		seq = asList(4, 3, 3, 2, 2);
 		
 		expected = asList(1, 2, 3, 4);
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		a.connect(c);
 		seq = asList(3, 3, 2, 2, 2);
 		
 		expected = asList(1, 3, 4);
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		a.connect(d);
 		seq = asList(2, 3, 2, 1, 2);
 		
 		expected = asList(1, 4);
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		a.connect(e);
 		seq = asList(1, 3, 2, 1, 1);
 		
 		expected = asList(1);
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		a.connect(b);
 		
@@ -364,13 +364,13 @@ public class USequenceModelTest
 		hub = b;
 		
 		expected = asList(2, 3, 4);
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		b.connect(e);
 		seq = asList(0, 1, 2, 1, 0);
 		
 		expected = asList(2); // NOTE: d is no longer acceptable
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 		
 		b.connect(c);
 		seq = asList(0, 0, 1, 1, 0);
@@ -378,7 +378,7 @@ public class USequenceModelTest
 		hub = c;
 		
 		expected = asList(3); 
-		assertEquals(expected, USequenceModel.findAcceptableSet(seq, graph, hub));
+		assertEquals(expected, USequenceEstimator.findAcceptableSet(seq, graph, hub));
 
 	}
 	
@@ -400,7 +400,7 @@ public class USequenceModelTest
 		
 		a = 1.0; b =10.0; c = 88.0;
 		LogNum exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
-		LogNum actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		LogNum actual = USequenceEstimator.computeA(Arrays.asList(l(a), l(b), l(c)));
 		actual.toBase(2.0);
 		
 		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);
@@ -408,7 +408,7 @@ public class USequenceModelTest
 		
 		a = 1.0; b =1.0; c = 1.0;
 		exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
-		actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		actual = USequenceEstimator.computeA(Arrays.asList(l(a), l(b), l(c)));
 		actual.toBase(2.0);
 		
 		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);
@@ -416,7 +416,7 @@ public class USequenceModelTest
 		
 		a = -1.0; b = 0.0; c = 1.0;
 		exp = LogNum.fromDouble(computeATest(a, b, c), 2.0);
-		actual = USequenceModel.computeA(Arrays.asList(l(a), l(b), l(c)));
+		actual = USequenceEstimator.computeA(Arrays.asList(l(a), l(b), l(c)));
 		actual.toBase(2.0);
 				
 		assertEquals(exp.logMag(), actual.logMag(), 0.0000001);

@@ -599,6 +599,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			// NOTE: We do not include the links in the calculation of the 
 			// hashcode. We want the hashcode to remain invariant to 
 			// modifications of the graph. 
+			// This means we also can't include the index, since node removal
+			// will change it.
 			int hash = 1;
 			
 			hash = 31 * hash + (label == null ? 0 : label.hashCode());
@@ -621,6 +623,11 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			links.addAll(linksIn(  (DTNode<L, T>) other));
 			
 			return links;
+		}
+		
+		public boolean equals(Object other)
+		{
+			return this == other;
 		}
 	}
 

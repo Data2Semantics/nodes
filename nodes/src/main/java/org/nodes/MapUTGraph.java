@@ -418,6 +418,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		{
 			// * We base the hashcode on just the label. If adding links changes
 			//   the hashcode, our maps will get messed up. 
+			// * Even the node index is _not_ persistent.
 			int hash = 1;
 			
 			hash = 31 * hash + (label == null ? 0 : label.hashCode());
@@ -436,6 +437,11 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 						result.add(link);
 			
 			return result;
+		}
+		
+		public boolean equals(Object other)
+		{
+			return this == other;
 		}
 	}
 

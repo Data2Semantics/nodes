@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.Test;
 import org.nodes.DGraph;
 import org.nodes.Global;
+import org.nodes.models.old.BarvinokUSimple;
 import org.nodes.random.RandomGraphs;
 
 public class BarvinokUSimpleTest

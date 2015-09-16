@@ -1,4 +1,4 @@
-package org.nodes.models;
+package org.nodes.models.old;
 
 import static java.lang.Math.log;
 import static org.nodes.util.Functions.log2;

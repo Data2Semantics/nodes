@@ -2,8 +2,8 @@ package org.nodes.models;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
-import static org.nodes.models.DSequenceModel.isGraphical;
-import static org.nodes.models.DSequenceModel.sequence;
+import static org.nodes.models.DSequenceEstimator.isGraphical;
+import static org.nodes.models.DSequenceEstimator.sequence;
 import static org.nodes.util.Functions.tic;
 import static org.nodes.util.Functions.toc;
 import static org.nodes.util.Series.series;
@@ -31,26 +31,26 @@ import org.nodes.util.bootstrap.LogNormalCI;
 public class DSequenceModelTest
 {
 
-	@Test
-	public void test1()
-	{
-		DGraph<?> graph = RandomGraphs.randomDirected(100, 0.1);
-		System.out.println("sampled");
-		
-		DSequenceModelOld<String> model = new DSequenceModelOld<String>(
-				graph, false);
-		
-		System.out.println("Barvinok: the size of the compressed graph is between " 
-				+ model.bitsLowerBound() + " and " + model.bitsUpperBound() + " bits");
-		
-		DSequenceModel<String> sampling = new DSequenceModel<String>(graph, 1000);
-		LogBCaCI bca = new LogBCaCI(sampling.logSamples(), 10000);
-		
-		Pair<Double, Double> ci = bca.twoSided(0.05);
-		System.out.println("Sampling: the size of the compressed graph is between " 
-				+  ci.first() + " and " + ci.second() + " bits");
-
-	}
+//	@Test
+//	public void test1()
+//	{
+//		DGraph<?> graph = RandomGraphs.randomDirected(100, 0.1);
+//		System.out.println("sampled");
+//		
+//		DSequenceModelOld<String> model = new DSequenceModelOld<String>(
+//				graph, false);
+//		
+//		System.out.println("Barvinok: the size of the compressed graph is between " 
+//				+ model.bitsLowerBound() + " and " + model.bitsUpperBound() + " bits");
+//		
+//		DSequenceModel<String> sampling = new DSequenceModel<String>(graph, 1000);
+//		LogBCaCI bca = new LogBCaCI(sampling.logSamples(), 10000);
+//		
+//		Pair<Double, Double> ci = bca.twoSided(0.05);
+//		System.out.println("Sampling: the size of the compressed graph is between " 
+//				+  ci.first() + " and " + ci.second() + " bits");
+//
+//	}
 
 	@Test
 	public void testG1()
@@ -58,17 +58,17 @@ public class DSequenceModelTest
 		List<Integer> in = Arrays.asList(5, 3, 2, 2, 1, 1, 1);
 		List<Integer> g1 = Arrays.asList(3, 2, 1, 0, 0, 1, 0);
 		
-		assertEquals(g1, DSequenceModel.g1(in));
+		assertEquals(g1, DSequenceEstimator.g1(in));
 		
 		in = Arrays.asList(1, 1, 1, 1, 1, 1, 1);
 		g1 = Arrays.asList(6, 1, 0, 0, 0, 0, 0);
 		
-		assertEquals(g1, DSequenceModel.g1(in));
+		assertEquals(g1, DSequenceEstimator.g1(in));
 		
 		in = Arrays.asList(2, 1, 0);
 		g1 = Arrays.asList(0, 0, 0);
 		
-		assertEquals(g1, DSequenceModel.g1(in));
+		assertEquals(g1, DSequenceEstimator.g1(in));
 	}
 	
 	@Test
@@ -77,17 +77,17 @@ public class DSequenceModelTest
 		List<Integer> in = Arrays.asList(5, 3, 2, 2, 1, 1, 1);
 		List<Integer> s  = Arrays.asList(0, 0, -1, 1, 0, 0, 0);
 		
-		assertEquals(s, DSequenceModel.s(in));
+		assertEquals(s, DSequenceEstimator.s(in));
 		
 		in = asList(5, 2, 2, 2, 2, 2, 2);
 		s  = asList(0, -1, 1, 0, 0, 0, 0);
 			
-		assertEquals(s, DSequenceModel.s(in));
+		assertEquals(s, DSequenceEstimator.s(in));
 
 		in = asList(5, 5, 5, 5, 5, 5, 5);
 		s  = asList(0, 0, 0, 0, -4, 4, 0);
 			
-		assertEquals(s, DSequenceModel.s(in));
+		assertEquals(s, DSequenceEstimator.s(in));
 	}
 	
 	@Test
@@ -116,23 +116,23 @@ public class DSequenceModelTest
 	public void testGenerate()
 	{
 		Global.random().setSeed(1);
-		DSequenceModel<String> model;
+		DSequenceEstimator<String> model;
 		
-		model = new DSequenceModel<String>(asList(1, 1, 1, 1), asList(1, 1, 1, 1));
+		model = new DSequenceEstimator<String>(asList(1, 1, 1, 1), asList(1, 1, 1, 1));
 
 		for(int i : series(100000))
 			model.nonuniform();
 		
 		assertEquals(Functions.log2(9.0), model.logNumGraphsNaive(), 0.001);
 		
-		model = new DSequenceModel<String>(asList(1,  1, 1), asList(1, 1, 1));
+		model = new DSequenceEstimator<String>(asList(1,  1, 1), asList(1, 1, 1));
 
 		for(int i : series(100))
 			model.nonuniform();
 		
 		assertEquals(1.0, model.logNumGraphsNaive(), 0.0);
 		
-		model = new DSequenceModel<String>(asList(2,  1, 0), asList(0, 1, 2));
+		model = new DSequenceEstimator<String>(asList(2,  1, 0), asList(0, 1, 2));
 		
 		for(int i : series(100))
 				model.nonuniform();
@@ -147,7 +147,7 @@ public class DSequenceModelTest
 		DGraph<?> graph = RandomGraphs.randomDirected(7115, 0.00205);
 		System.out.println("generated");
 		
-		DSequenceModel<String> model = new DSequenceModel<String>(graph);
+		DSequenceEstimator<String> model = new DSequenceEstimator<String>(graph);
 		Functions.tic();
 		model.nonuniform();
 		System.out.println("Finished sample. Time taken: " + Functions.toc() + " seconds.");
@@ -168,7 +168,7 @@ public class DSequenceModelTest
 			
 			DGraph<?> graph = RandomGraphs.randomDirected(n, p);
 			
-			DSequenceModel<String> model = new DSequenceModel<String>(graph);
+			DSequenceEstimator<String> model = new DSequenceEstimator<String>(graph);
 			for(int i : series(100))
 			{
 				DGraph<String> gen = model.nonuniform().graph();
@@ -182,7 +182,7 @@ public class DSequenceModelTest
 	@Test
 	public void testG()
 	{
-		assertEquals(0, DSequenceModel.g(1, 0, asList(2, 2, 2)));
+		assertEquals(0, DSequenceEstimator.g(1, 0, asList(2, 2, 2)));
 	}
 	
 	@Test
@@ -205,7 +205,7 @@ public class DSequenceModelTest
 			}
 			
 			tic();
-			USequenceModel<String> model = new USequenceModel<String>(graph);
+			USequenceEstimator<String> model = new USequenceEstimator<String>(graph);
 			model.nonuniform();
 			double time = toc();
 			
@@ -222,7 +222,7 @@ public class DSequenceModelTest
 		// System.out.println("expected : " + (graph.size() * (double)graph.numLinks() / (double)100000) + " seconds");
 
 		Functions.tic();
-		USequenceModel<String> model = new USequenceModel<String>(graph, 10);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(graph, 10);
 		LogNormalCI ci = new LogNormalCI(model.logSamples(), 20000);
 
 		System.out.println(ci.twoSided(0.05));

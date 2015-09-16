@@ -48,7 +48,8 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 	public static <N> double undirected(Graph<N> graph)
 	{
 		return undirected(graph, true);
-	}	
+	}
+	
 	public static <N> double undirected(Graph<N> graph, boolean withPrior)
 	{
 

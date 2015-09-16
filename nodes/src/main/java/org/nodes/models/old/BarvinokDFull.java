@@ -1,4 +1,4 @@
-package org.nodes.models;
+package org.nodes.models.old;
 
 import static java.lang.Math.exp;
 import static org.nodes.util.Series.series;
@@ -12,16 +12,16 @@ import org.nodes.DGraph;
 import org.nodes.DNode;
 
 /**
- * This class computes bounds for the number of directed graphs (self loops 
+ * These class computes bounds for the number of directed graphs (self loops 
  * allowed) with given in and out sequences.
  *  
  * @author Peter
  *
  */
-public class BarvinokDSimple extends AbstractBarvinok
+public class BarvinokDFull extends AbstractBarvinok
 {
 
-	public BarvinokDSimple(
+	public BarvinokDFull(
 			List<Integer> inSequence, 
 			List<Integer> outSequence,
 			int memory)
@@ -30,7 +30,7 @@ public class BarvinokDSimple extends AbstractBarvinok
 		search();
 	}
 	
-	public BarvinokDSimple(
+	public BarvinokDFull(
 			DGraph<?> graph,
 			int memory)
 	{		
@@ -57,8 +57,7 @@ public class BarvinokDSimple extends AbstractBarvinok
 		int nn = 2 * n;
 		for(int i = 0; i < n; i++)
 			for(int j = n; j < nn; j++)
-				if(i != j)
-					value += Math.log1p( exp(xa[i] + xa[j]));
+				value += Math.log1p( exp(xa[i] + xa[j]));
 		
 		for(int i = 0; i < n; i++)
 			value -= x.getEntry(s(i)) * inSequence.get(i);
@@ -78,11 +77,10 @@ public class BarvinokDSimple extends AbstractBarvinok
 		{
 			double sum = 0.0;
 			for(int j : series(n))
-				if(i != j) {
-					double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
-					sum += part / (1 + part);
-				}
-			
+			{
+				double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
+				sum += part / (1 + part);
+			}
 			gradient.setEntry(s(i), sum - inSequence.get(i));
 		}
 		
@@ -90,11 +88,10 @@ public class BarvinokDSimple extends AbstractBarvinok
 		{
 			double sum = 0.0;
 			for(int i : series(n))
-				if(i != j) {
-					double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
-					sum += part / (1 + part);
-				}
-			
+			{
+				double part = exp(x.getEntry(t(j)) + x.getEntry(s(i)));
+				sum += part / (1 + part);
+			}
 			gradient.setEntry(t(j), sum - outSequence.get(j) );
 		}
 		

@@ -6,7 +6,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static org.nodes.models.USequenceModel.CIMethod.STANDARD;
+import static org.nodes.models.USequenceEstimator.CIMethod.STANDARD;
 import static org.nodes.util.Functions.choose;
 import static org.nodes.util.Functions.exp2;
 import static org.nodes.util.Functions.log2;
@@ -55,7 +55,7 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class USequenceModel<L> implements Model<L, UGraph<L>>
+public class USequenceEstimator<L>
 {	
 	public static final boolean PICK_CANDIDATE_BY_DEGREE = true;
 	private L label = null;
@@ -63,7 +63,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	
 	private List<Double> logSamples = new Vector<Double>();
 
-	public USequenceModel(Graph<?> data, int samples)
+	public USequenceEstimator(Graph<?> data, int samples)
 	{
 		this(data);
 		
@@ -77,7 +77,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		System.out.println();
 	}
 	
-	public USequenceModel(Graph<?> data)
+	public USequenceEstimator(Graph<?> data)
 	{
 
 		sequence = new ArrayList<Integer>(data.size());
@@ -86,7 +86,7 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 			sequence.add(node.degree());
 	}
 	
-	public USequenceModel(List<Integer> sequence, int samples)
+	public USequenceEstimator(List<Integer> sequence, int samples)
 	{
 		this(sequence);
 
@@ -99,10 +99,9 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		}
 	}
 	
-	public USequenceModel(List<Integer> sequence)
+	public USequenceEstimator(List<Integer> sequence)
 	{
 		this.sequence = new ArrayList<Integer>(sequence);
-			
 	}
 	
 	public List<Double> logSamples()
@@ -223,7 +222,6 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 		return pow(2.0, logNumGraphsNaive());
 	}
 	
-	@Override
 	public double logProb(UGraph<L> graph)
 	{
 		// TODO: check if graph matches sequence
@@ -574,13 +572,15 @@ public class USequenceModel<L> implements Model<L, UGraph<L>>
 	public void nonuniform(final int samples, final int numThreads)
 	{
 		final int perThread = samples/numThreads;
+		final int rem = samples - perThread * numThreads;
+		
 		List<Thread> threads = new ArrayList<Thread>(numThreads);
-		for(int t : series(numThreads))
+		for(final int t : series(numThreads))
 		{
 			Thread thread = new Thread() {
 				public void run()
 				{
-					for(int i : series(perThread))
+					for(int i : series(perThread + (t==0 ? rem : 0) ))
 						nonuniform();
 				}
 			};

@@ -56,16 +56,15 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class DSequenceModel<L> implements Model<L, UGraph<L>>
+public class DSequenceEstimator<L> 
 {	
 	public static final boolean PICK_CANDIDATE_BY_DEGREE = true;
 	private L label = null;
 	private List<D> sequence;
 	
-	
 	private List<Double> logSamples = new Vector<Double>();
 
-	public DSequenceModel(DGraph<?> data, int samples)
+	public DSequenceEstimator(DGraph<?> data, int samples)
 	{
 		this(data);
 		
@@ -79,7 +78,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		System.out.println();
 	}
 	
-	public DSequenceModel(DGraph<?> data)
+	public DSequenceEstimator(DGraph<?> data)
 	{
 
 		sequence = new ArrayList<D>(data.size());
@@ -91,7 +90,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		}
 	}
 	
-	public DSequenceModel(List<Integer> inSequence, List<Integer> outSequence, int samples)
+	public DSequenceEstimator(List<Integer> inSequence, List<Integer> outSequence, int samples)
 	{
 		this(inSequence, outSequence);
 
@@ -104,12 +103,17 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		}
 	}
 	
-	public DSequenceModel(List<Integer> inSequence, List<Integer> outSequence)
+	public DSequenceEstimator(List<Integer> inSequence, List<Integer> outSequence)
 	{
 		this.sequence = new ArrayList<D>(inSequence.size());
 		
 		for(int i : series(inSequence.size()))
 			sequence.add(new D(inSequence.get(i), outSequence.get(i)));
+	}
+	
+	public DSequenceEstimator(List<D> sequence)
+	{
+		this.sequence = new ArrayList<D>(sequence);
 	}
 	
 	public List<Double> logSamples()
@@ -186,7 +190,6 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		return pow(2.0, logNumGraphsML());
 	}
 	
-	@Override
 	public double logProb(UGraph<L> graph)
 	{
 		// TODO: check if graph matches sequence
@@ -203,13 +206,15 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 	public void nonuniform(final int samples, final int numThreads)
 	{
 		final int perThread = samples/numThreads;
+		final int rem = samples - perThread * numThreads;
+		
 		List<Thread> threads = new ArrayList<Thread>(numThreads);
-		for(int t : series(numThreads))
+		for(final int t : series(numThreads))
 		{
 			Thread thread = new Thread() {
 				public void run()
 				{
-					for(int i : series(perThread))
+					for(int i : series(perThread + (t == 0 ? rem : 0)))
 						nonuniform();
 				}
 			};
@@ -221,6 +226,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 			thread.start();
 		}
 
+		// * Wait until all threads are finished
 		try
 		{
 			for(Thread thread : threads)
@@ -356,8 +362,8 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		
 		int n = seq.size();
 		
-		List<Integer> out = out(seq);
-		List<Integer> in  = in(seq);
+		List<Integer> out = outI(seq);
+		List<Integer> in  = inI(seq);
 		
 		List<Integer> g1 = g1(out);
 		List<Integer> s  = s(out);
@@ -401,7 +407,7 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		return new D(-1, -1);
 	} 
 	
-	private static List<Integer> out(final List<Index> seq)
+	private static List<Integer> outI(final List<Index> seq)
 	{
 		return new AbstractList<Integer>()
 		{
@@ -417,13 +423,45 @@ public class DSequenceModel<L> implements Model<L, UGraph<L>>
 		};
 	}
 			
-	private static List<Integer> in(final List<Index> seq)
+	private static List<Integer> inI(final List<Index> seq)
 	{
 		return new AbstractList<Integer>()
 		{
 			public Integer get(int index)
 			{
 				return seq.get(index).degree.in();
+			}
+
+			public int size()
+			{
+				return seq.size();
+			}
+		};
+	}	
+	
+	public static List<Integer> out(final List<D> seq)
+	{
+		return new AbstractList<Integer>()
+		{
+			public Integer get(int index)
+			{
+				return seq.get(index).out();
+			}
+
+			public int size()
+			{
+				return seq.size();
+			}
+		};
+	}
+			
+	public static List<Integer> in(final List<D> seq)
+	{
+		return new AbstractList<Integer>()
+		{
+			public Integer get(int index)
+			{
+				return seq.get(index).in();
 			}
 
 			public int size()

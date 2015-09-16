@@ -1,15 +1,16 @@
 package org.nodes.models;
 
 import org.nodes.Graph;
+import org.nodes.util.Compressor;
 
-public interface Model<L, G extends Graph<L>>
+/**
+ * 
+ * @author Peter
+ *
+ * @param <L>
+ * @param <G>
+ */
+public interface Model<T> 
 {
-
-	/**
-	 * Returns the binary logarithm of the probability of the graph under this
-	 * model
-	 * 
-	 * @return
-	 */
-	public double logProb(G graph);
+	public double logProb(T token);
 }
