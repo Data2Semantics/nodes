@@ -22,20 +22,25 @@ import java.util.Set;
 import org.gephi.io.generator.plugin.RandomGraph;
 import org.junit.Test;
 import org.nodes.DGraph;
+import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Graphs;
 import org.nodes.Link;
+import org.nodes.Subgraph;
 import org.nodes.UGraph;
+import org.nodes.algorithms.Nauty;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
 import org.nodes.models.DegreeSequenceModel.Prior;
 import org.nodes.motifs.DPlainMotifExtractor;
 import org.nodes.motifs.UPlainMotifExtractor;
 import org.nodes.random.RandomGraphs;
+import org.nodes.util.BitString;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
 import org.nodes.util.OnlineModel;
 import org.nodes.util.Pair;
+import org.nodes.util.Series;
 import org.nodes.util.bootstrap.LogNormalCI;
 
 public class MotifModelTest
@@ -326,4 +331,51 @@ public class MotifModelTest
 		return ci.upperBound(alpha) + rest.total();
 	}
 
+	@Test
+	public void overcompression()
+	{
+		// Global.secureRandom(42);
+		
+		int n = 3000, m = 3000;
+		
+		int bsLength = (n * n - n) / 2;
+		System.out.println(bsLength);
+		BitString bs = BitString.zeros(bsLength);
+		
+		int set = 0;
+		while(set < m)
+		{
+			int i = Global.random().nextInt(bsLength);
+			if(! bs.get(i))
+			{
+				bs.set(i, true);
+				set++;
+			}
+		}
+			
+		UGraph<String> graph = Graphs.fromBits(bs, "");
+		
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(graph, 5000, 5);
+		
+		double baseline = log2Choose(m, bsLength);
+		System.out.println("baseline " +  baseline);
+		
+		for(UGraph<String> sub : ex.subgraphs())
+		{
+			System.out.println(sub);
+			double motifSize  = MotifSearchModel.sizeER(graph, sub, ex.occurrences(sub), true);
+			assertTrue(baseline < motifSize);
+			
+			for(List<Integer> instance : ex.occurrences(sub))
+			{
+				Collections.shuffle(instance);
+				UGraph<String> inst = Subgraph.uSubgraphIndices(graph, instance);
+				inst = (UGraph)Nauty.canonize(inst);
+				
+				assertEquals(sub, inst);
+			}
+			
+		}
+		
+	}
 }

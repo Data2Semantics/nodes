@@ -90,7 +90,10 @@ public class MotifModel
 			bits.add("multiple-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 			bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
 		}
-				
+		
+		// * Store the labels
+		bits.add("labels", log2Choose(occurrences.size(), subbed.size())); 
+								
 		bits.add("sub", nullModel.codelength(sub));
 
 		bits.add("subbed", nullModel.codelength(subbed));
@@ -433,6 +436,9 @@ public class MotifModel
 		// * Store the insertion order, to preserve the precise ordering of the
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
+		
+		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
 		
 		return bits.total();
@@ -453,6 +459,9 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
+		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+		
+		// bits.print(System.out);
 		
 		return bits.total();
 	}
@@ -633,6 +642,7 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
+		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
 		
 		return bits.total();
 	}
@@ -652,6 +662,7 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
+		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
 		
 		return bits.total();
 	}
