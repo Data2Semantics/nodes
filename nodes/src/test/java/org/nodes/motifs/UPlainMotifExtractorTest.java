@@ -3,6 +3,7 @@ package org.nodes.motifs;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -114,6 +115,20 @@ public class UPlainMotifExtractorTest
 			
 			assertEquals(total, nodes.size());
 		}
+	}
+	
+	@Test
+	public void testuniqueNodes()
+	{		
+		UGraph<String> data = RandomGraphs.random(1000, 2000);
+
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 50000, 3, 6);
+		for(UGraph<String> sub : ex.subgraphs())
+			for(List<Integer> occ : ex.occurrences(sub))
+			{
+				Set<Integer> set = new LinkedHashSet<Integer>(occ);
+				assertEquals(set.size(), occ.size());
+			}
 	}
 	
 	@Test

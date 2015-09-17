@@ -1,20 +1,27 @@
 package org.nodes.random;
 
 import static org.junit.Assert.*;
+import static org.nodes.util.Functions.dot;
 import static org.nodes.util.Functions.tic;
 import static org.nodes.util.Functions.toc;
 import static org.nodes.util.Series.series;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.nodes.DGraph;
 import org.nodes.Graph;
 import org.nodes.Graphs;
+import org.nodes.MapUTGraph;
 import org.nodes.Subgraph;
+import org.nodes.UGraph;
+import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.data.Data;
 import org.nodes.util.FrequencyModel;
@@ -73,6 +80,99 @@ public class SimpleSubgraphGeneratorTest
 //		
 //		System.out.println("\ntime taken : " + toc());
 		
+	}
+	
+	@Test
+	public void testUniqueness()
+	{
+		for(int i : series(1000000))
+		{
+			UGraph<String> graph = RandomGraphs.random(5, 4);
+			SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(3, 4));
+			
+			List<Integer> sub = gen.generate();
+			Set<Integer>  set = new LinkedHashSet<Integer>(sub);
+			
+			assertEquals(3, sub.size());
+			assertEquals(set.size(), sub.size());
+		}
+	}
+	
+	@Test
+	public void testUniquenessBig()
+	{
+		for(int i : series(1000))
+		{
+			UGraph<String> graph = RandomGraphs.random(100, 200);
+			SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(2, 7));
+			
+			List<Integer> sub = gen.generate();
+			Set<Integer>  set = new LinkedHashSet<Integer>(sub);
+			
+			assertEquals(set.size(), sub.size());
+			
+			dot(i, 1000);
+		}
+		
+		for(int i : series(5))
+		{
+			UGraph<String> graph = RandomGraphs.random(1000, 2000);
+			SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(2, 7));
+			for(int j : series(100))
+			{
+				List<Integer> sub = gen.generate();
+				Set<Integer>  set = new LinkedHashSet<Integer>(sub);
+				
+				assertEquals(set.size(), sub.size());
+			}
+			
+			dot(i, 5);
+		}
+	}
+	
+	@Test
+	public void testSmall()
+	{
+		UGraph<String> graph = new MapUTGraph<String, String>();
+		
+		UNode<String> a = graph.add("");
+		UNode<String> b = graph.add("");
+		UNode<String> c = graph.add("");
+		UNode<String> d = graph.add("");
+		UNode<String> e = graph.add("");
+		
+		a.connect(b);
+		b.connect(c);
+		c.connect(a);
+		
+		d.connect(e);
+		
+		SimpleSubgraphGenerator gen = 
+				new SimpleSubgraphGenerator(graph, Generators.uniform(3, 3));
+				
+		assertNull(gen.randomNeighborExhaustive(Arrays.asList(3, 4)));
+		assertNull(gen.randomNeighborExhaustive(Arrays.asList(0, 1, 2)));
+
+		graph = new MapUTGraph<String, String>();
+		
+		a = graph.add("");
+		b = graph.add("");
+		c = graph.add("");
+		d = graph.add("");
+		e = graph.add("");
+		
+		b.connect(c);
+		c.connect(d);
+		d.connect(e);
+		e.connect(b);
+		
+		gen = new SimpleSubgraphGenerator(graph, Generators.uniform(3, 3));
+		
+		System.out.println(gen.addNeighbor(Arrays.asList(0)));
+		
+		gen = new SimpleSubgraphGenerator(graph, Generators.uniform(5, 6));
+
+		System.out.println(gen.generate());
 	}
 
 }

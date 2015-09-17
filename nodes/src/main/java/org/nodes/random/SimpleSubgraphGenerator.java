@@ -18,14 +18,13 @@ import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.Subgraph;
+import org.nodes.clustering.ConnectionClusterer;
 import org.nodes.random.LinkGenerators.LinkGenerator;
 import org.nodes.util.Functions;
 import org.nodes.util.Permutations;
 import org.nodes.util.Series;
 
 /**
- * Samples subgraphs 
- * 
  * @author Peter
  *
  * @param <L>
@@ -33,6 +32,7 @@ import org.nodes.util.Series;
 public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 {
 	private static final int REJECTION_TRIES = 10;
+	private static final int RESTARTS = 1000;
 
 	private Generator<Integer> ints;
 	
@@ -47,13 +47,21 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 	@Override
 	public List<Integer> generate()
 	{
+		int restarts = 0;
+		
 		int depth = ints.generate();
 		List<Integer> result = new ArrayList<Integer>(depth);
 		
 		boolean success;
 		do {
 			success = true;
+			
+			result.clear();
 			result.add(Global.random().nextInt(graph.size()));
+			restarts ++;
+			if(restarts > RESTARTS)
+				checkLCC(depth);
+			
 			while(result.size() < depth)
 				if(! addNeighbor(result))
 				{
@@ -65,7 +73,15 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 		return result;
 	}
 	
-	private boolean addNeighbor(List<Integer> indices)
+	private void checkLCC(int depth)
+	{
+		int lccSize = ConnectionClusterer.largest(graph).size();
+		
+		if(lccSize < depth)
+			throw new RuntimeException("The largest connected component of the graph has size ("+lccSize+"). This means that subgraphs of size "+depth+" cannot be generated.");
+	}
+
+	protected boolean addNeighbor(List<Integer> indices)
 	{
 		Node<?> randomNeighbor = randomNeighbor(indices);
 		
@@ -92,7 +108,7 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 	 * @param result
 	 * @return
 	 */
-	private Node<?> randomNeighborExhaustive(List<Integer> indices)
+	protected Node<?> randomNeighborExhaustive(List<Integer> indices)
 	{
 		List<Node<?>> candidates = new ArrayList<Node<?>>();
 		for(int index : indices)
@@ -109,7 +125,12 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 		return choose(candidates);
 	}
 
-	private Node<?> randomNeighbor(List<Integer> indices)
+	/**
+	 * Quickly selects a random neighbor of a random node in indices. 
+	 * 
+	 * The resulting neighbor may be contained in indices.
+	 */
+	protected Node<?> randomNeighbor(List<Integer> indices)
 	{
 		Node<?> randomNode = graph.get(choose(indices));
 		Collection<? extends Node<?>> neighbors = randomNode.neighbors();

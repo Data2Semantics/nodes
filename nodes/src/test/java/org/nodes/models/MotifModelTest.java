@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.gephi.io.generator.plugin.RandomGraph;
@@ -26,8 +27,10 @@ import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Graphs;
 import org.nodes.Link;
+import org.nodes.MapUTGraph;
 import org.nodes.Subgraph;
 import org.nodes.UGraph;
+import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
@@ -47,10 +50,9 @@ public class MotifModelTest
 {
 	public static final int N = 20;
 
-	@Test
 	public void testBetaD()
 	{
-		int iterations = 10;
+		int iterations = 20;
 		DGraph<String> data = Examples.physicians();
 		
 		DPlainMotifExtractor<String> ex = new DPlainMotifExtractor<String>(data, 1000, 2, 7, 1);
@@ -77,8 +79,7 @@ public class MotifModelTest
 			double sizeFast = MotifModel.sizeBeta(data, sub, ex.occurrences(sub), true, iterations, 0.05);
 			
 			assertEquals(sizeSlow, sizeFast, 50.0);
-			
-			System.out.print('.');
+	
 		}
 	}
 	
@@ -109,7 +110,7 @@ public class MotifModelTest
 			
 			double sizeSlow = MotifModelTest.sizeBetaCopying(data, sub, ex.occurrences(sub), true, iterations, 0.05);
 			double sizeFast = MotifModel.sizeBeta(data, sub, ex.occurrences(sub), true, iterations, 0.05);
-			assertEquals(sizeSlow, sizeFast, 3.0);
+			assertEquals(sizeSlow, sizeFast, 4.0);
 			
 			System.out.print('.');
 		}
@@ -376,6 +377,147 @@ public class MotifModelTest
 			}
 			
 		}
+	}
+	
+	@Test
+	public void overcompression2()
+	{
+		for(int i : Series.series(10))
+		{
+			System.out.println(i);
+			int n = 100;
+			int m = Global.random().nextInt((n*n-n)/2);
+					
+			UGraph<String> graph = RandomGraphs.random(n, m);
+			
+			UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(graph, 10000, 2, 6);
+			
+			double baseline = new ERSimpleModel(false).codelength(graph);
+			System.out.println("baseline " +  baseline);
+			
+			for(UGraph<String> sub : ex.subgraphs())
+			{
+				System.out.println(sub);
+				double motifSize  = MotifSearchModel.sizeER(graph, sub, ex.occurrences(sub), true);
+				assertTrue(baseline < motifSize);
+				
+				motifSize = MotifSearchModel.sizeEL(graph, sub, ex.occurrences(sub), true);
+				assertTrue(baseline < motifSize);
+
+				for(List<Integer> instance : ex.occurrences(sub))
+				{
+					Collections.shuffle(instance);
+					UGraph<String> inst = Subgraph.uSubgraphIndices(graph, instance);
+					inst = (UGraph)Nauty.canonize(inst);
+					
+					assertEquals(sub, inst);
+				}
+			}
+		}
+	}
+	
+	@Test
+	public void overcompression3()
+	{
+		for(int i : Series.series(10))
+		{
+			System.out.println(i);
+			int n = 100;
+					
+			DGraph<String> graph = RandomGraphs.randomDirected(n, Global.random().nextDouble());
+			
+			DPlainMotifExtractor<String> ex = new DPlainMotifExtractor<String>(graph, 10000, 2, 5, 2);
+			
+			double baseline = new ERSimpleModel(false).codelength(graph);
+			System.out.println("baseline " +  baseline);
+			
+			for(DGraph<String> sub : ex.subgraphs())
+			{
+				double motifSize  = MotifSearchModel.sizeER(graph, sub, ex.occurrences(sub), true);
+				assertTrue(baseline < motifSize);
+				
+				motifSize = MotifSearchModel.sizeEL(graph, sub, ex.occurrences(sub), true);
+				assertTrue(baseline < motifSize);
+
+				for(List<Integer> instance : ex.occurrences(sub))
+				{
+					Collections.shuffle(instance);
+					DGraph<String> inst = Subgraph.dSubgraphIndices(graph, instance);
+					inst = (DGraph<String>)Nauty.canonize(inst);
+					
+					assertEquals(sub, inst);
+				}
+			}
+		}
+	}
+	
+	@Test
+	public void sumtest()
+	{
+		int n = 20;
+		Set<BitString> set = new LinkedHashSet<BitString>();
 		
+		for(double p : Series.series(0.05, 0.05, 1.0))
+			for(int i : Series.series(100))
+				set.add(BitString.random((n*n-n)/2, p));
+		
+		List<Double> valuesER = new ArrayList<Double>(set.size());
+		List<Double> valuesEL = new ArrayList<Double>(set.size());
+		
+		for(BitString bs : set)
+		{
+			UGraph<String> graph = Graphs.fromBits(bs, "");
+			
+			try {
+				UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(graph, 5000, 2, 3);
+			
+				for(UGraph<String> sub : ex.subgraphs())
+				{
+					valuesER.add(- MotifSearchModel.sizeER(graph, sub, ex.occurrences(sub), true));
+					valuesEL.add(- MotifSearchModel.sizeEL(graph, sub, ex.occurrences(sub), true));
+				}
+			} catch(Exception e)
+			{
+				System.out.println("EXCEPTION CAUGHT " + e);
+			}
+		}
+		
+		double sumER = - Functions.log2Sum(valuesER);
+		double sumEL = - Functions.log2Sum(valuesEL);
+		
+		System.out.println("sum ER: " + sumER);
+		System.out.println("sum EL: " + sumEL);
+		
+		assertTrue(sumER > 0.0);
+		assertTrue(sumEL > 0.0);
+	}
+	
+	@Test
+	public void sparseTest()
+	{
+		Global.setSeed(-3424742445458275675l);
+		
+		UGraph<String> graph = RandomGraphs.random(20, 6);
+		
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(graph, 10000, 3);
+
+		UGraph<String> sub = new MapUTGraph<String, String>();
+		
+		UNode<String> a = sub.add("x");
+		UNode<String> b = sub.add("x");		
+		UNode<String> c = sub.add("x");
+		
+		a.connect(b);
+		b.connect(c);
+		
+		sub = (UGraph<String>)Nauty.canonize(sub);
+		
+		System.out.println(graph);
+		System.out.println(
+				MotifModel.subbedGraph(graph, ex.occurrences(sub), 
+				new ArrayList<List<Integer>>(), new HashSet<Integer>()));
+		System.out.println(ex.occurrences(sub));
+		
+		MotifModel.sizeEL(graph, sub, ex.occurrences(sub), true);
 	}
 }

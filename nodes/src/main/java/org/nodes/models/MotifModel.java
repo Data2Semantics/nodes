@@ -736,6 +736,9 @@ public class MotifModel
 				bits.add("subbed",  -Functions.log2(p));
 			}
 		}
+		
+		if(subbedNumLinks < 0)
+			System.out.println("!");
 	
 		bits.add("subbed", - logFactorial(subbedNumLinks, 2.0));
 	}
