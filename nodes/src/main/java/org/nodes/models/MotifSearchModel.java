@@ -19,8 +19,13 @@ import org.nodes.util.Pair;
  */
 public class MotifSearchModel
 {
-	
+
 	public static <L> double size(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, final StructureModel<Graph<?>> model, boolean resetWiring)
+	{
+		return size(graph, sub, occurrences, model, resetWiring, -1);
+	}
+	
+	public static <L> double size(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, final StructureModel<Graph<?>> model, boolean resetWiring, int depth)
 	{
 		Function<Graph<L>> function = new Function<Graph<L>>()
 		{
@@ -32,12 +37,17 @@ public class MotifSearchModel
 		};
 		
 		FindPhi<Graph<L>> find 
-			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, function);
+			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, depth, function);
 		
 		return find.size();
 	}
-	
+
 	public static <L> double sizeBeta(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, boolean resetWiring, final int iterations, final double alpha)
+	{
+		return sizeBeta(graph, sub, occurrences, resetWiring, iterations, alpha, -1);
+	}
+	
+	public static <L> double sizeBeta(Graph<L> graph, Graph<L> sub, List<List<Integer>> occurrences, boolean resetWiring, final int iterations, final double alpha, int depth)
 	{
 		Function<Graph<L>> function = new Function<Graph<L>>()
 		{
@@ -49,12 +59,17 @@ public class MotifSearchModel
 		};
 		
 		FindPhi<Graph<L>> find 
-			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, function);
+			= new FindPhi<Graph<L>>(graph, sub, occurrences, resetWiring, depth, function);
 		
 		return find.size();
 	}
 	
 	public static double sizeER(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring)
+	{
+		return sizeER(graph, sub, occurrences, resetWiring, -1);
+	}
+	
+	public static double sizeER(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring, int depth)
 	{
 		Function<Graph<?>> function = new Function<Graph<?>>()
 		{
@@ -66,13 +81,17 @@ public class MotifSearchModel
 		};
 		
 		FindPhi<Graph<?>> find 
-			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, function);
+			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, depth, function);
 		
 		return find.size();
 	}
-	
-	
+
 	public static double sizeEL(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring)
+	{
+		return sizeEL(graph, sub, occurrences, resetWiring, -1);
+	}
+	
+	public static double sizeEL(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring, int depth)
 	{
 		Function<Graph<?>> function = new Function<Graph<?>>()
 		{
@@ -84,7 +103,7 @@ public class MotifSearchModel
 		};
 		
 		FindPhi<Graph<?>> find 
-			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, function);
+			= new FindPhi<Graph<?>>(graph, sub, occurrences, resetWiring, depth, function);
 		
 		return find.size();
 	}
@@ -95,6 +114,8 @@ public class MotifSearchModel
 	
 	private static class FindPhi<G extends Graph<? extends Object>> 
 	{
+		int maxDepth = -1;
+		
 		G data; 
 		G motif;
 		List<List<Integer>> occurrences; 
@@ -107,6 +128,7 @@ public class MotifSearchModel
 		public FindPhi(G data, G motif,
 				List<List<Integer>> occurrences, 
 				boolean resetWiring,
+				int maxDepth,
 				Function<G> function)
 		{
 			this.data = data;
@@ -114,13 +136,12 @@ public class MotifSearchModel
 			this.occurrences = occurrences;
 			this.resetWiring = resetWiring;
 			this.function = function;
+			this.maxDepth = maxDepth;
 			
 			int n = occurrences.size();
 			int to = Fibonacci.isFibonacci(n) ? n : (int)Fibonacci.get((int) Math.ceil(Fibonacci.getIndexApprox(n)));
 
-			Pair<Integer, Double> res = find(0, to);
-			cutoff = res.first();
-			size = res.second();
+			find(0, to, 0);
 		}
 
 		public double size()
@@ -133,7 +154,7 @@ public class MotifSearchModel
 			return cutoff;
 		}
 		
-		private Pair<Integer, Double> find(int from, int to)
+		private void find(int from, int to, int depth)
 		{
 			int range = to - from;
 			
@@ -144,9 +165,41 @@ public class MotifSearchModel
 				double y0 = sample(x0),
 					   y1 = sample(x1),
 					   y2 = sample(x2);
-				return y0 < y1 && y0 < y2 ? new Pair<Integer, Double>(x0, y0) : 
-				                 (y1 < y2 ? new Pair<Integer, Double>(x1, y1) : 
-					                        new Pair<Integer, Double>(x2, y2));
+				if(y0 < y1 && y0 < y2) 
+				{
+					cutoff = x0;
+					size = y0;
+					return;
+				}
+				              
+				if(y1 < y2) 
+				{
+					cutoff = x1;
+					size = y1;
+					return;
+				}
+				
+				cutoff = x2;
+				size = y2;
+				return;
+			}
+			
+			if(maxDepth >= 0 && depth > maxDepth)
+			{
+				size = Double.POSITIVE_INFINITY;
+				cutoff = -1;
+				
+				for(int key : cache.keySet())
+				{
+					double value = cache.get(key);
+					if(size > value)
+					{
+						size = value;
+						cutoff = key;
+					}
+				}
+			
+				return;
 			}
 			
 			int r0 = (int)Fibonacci.previous(range);
@@ -157,8 +210,9 @@ public class MotifSearchModel
 			double y2 = sample(mid2);
 			
 			if(y1 > y2)
-				return find(mid1, to);
-			return find(from, mid2);
+				find(mid1, to, depth + 1);
+			else
+				find(from, mid2, depth + 1);
 		}
 		
 		private Map<Integer, Double> cache = new HashMap<Integer, Double>();
