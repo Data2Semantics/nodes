@@ -61,11 +61,11 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 		double priorBits = graph instanceof DGraph<?> ? prior((DGraph<?>) graph, prior) : prior((UGraph<?>) graph, prior);
 
 		if(margin == Margin.LOWERBOUND)
-			return priorBits + ci.lowerBound(priorBits);
+			return priorBits + ci.lowerBound(alpha);
 		if(margin == Margin.MEAN)
 			return priorBits + ci.mlMean();
 		if(margin == Margin.UPPERBOUND)
-			return priorBits + ci.lowerBound(priorBits);
+			return priorBits + ci.lowerBound(alpha);
 		
 		throw new IllegalStateException();
 	}
