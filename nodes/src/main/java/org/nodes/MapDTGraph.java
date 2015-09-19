@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.nodes.exceptions.AccessedDeadElementException;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
 import org.nodes.util.Pair;
@@ -47,7 +48,7 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class MapDTGraph<L, T> implements DTGraph<L, T>
+public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasPersistentLinks
 {
 	protected List<MapDTNode> nodeList = new ArrayList<MapDTNode>();
 	protected Map<L, Set<MapDTNode>> nodes = new LinkedHashMap<L, Set<MapDTNode>>();
@@ -80,7 +81,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			int i = link.first().index(), 
 			    j = link.second().index();
 			
-			copy.nodes().get(i).connect(copy.nodes().get(j), link.tag());
+			copy.get(i).connect(copy.get(j), link.tag());
 		}
 		
 		return copy;
@@ -102,7 +103,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 			int i = link.first().index(), 
 			    j = link.second().index();
 			
-			copy.nodes().get(i).connect(copy.nodes().get(j), null);
+			copy.get(i).connect(copy.get(j), null);
 		}
 		
 		return copy;
@@ -144,6 +145,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<MapDTNode> neighbors()
 		{
+			checkDead();
+			
 			Set<MapDTNode> set = new LinkedHashSet<MapDTNode>();
 			set.addAll(neighborsTo);
 			set.addAll(neighborsFrom);
@@ -154,6 +157,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public MapDTNode neighbor(L label)
 		{
+			checkDead();
+			
 			for(MapDTNode node : neighborsTo)
 				if((label == null && node.label == null)
 						|| (label != null && node.label().equals(label)))
@@ -170,12 +175,16 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public L label()
 		{
+			checkDead();
+			
 			return label;
 		}
 
 		@Override
 		public Set<MapDTNode> neighbors(L label)
 		{
+			checkDead();
+			
 			Set<MapDTNode> result = new LinkedHashSet<MapDTNode>();
 			for(MapDTNode node : neighborsTo)
 				if((label == null && node.label == null)
@@ -193,6 +202,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public MapDTLink connect(Node<L> other)
 		{
+			checkDead();
+			
 			if(MapDTGraph.this != other.graph())
 				throw new IllegalArgumentException("Can only connect nodes that belong to the same graph.");
 			
@@ -204,6 +215,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public MapDTLink connect(TNode<L, T> other, T tag)
 		{
+			checkDead();
+			
 			if(this.graph().hashCode() != other.graph().hashCode())
 				throw new IllegalArgumentException("Can only connect to nodes from the same graph (arguments: this="+this+", other="+other+")");
 			
@@ -237,6 +250,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public void disconnect(Node<L> other)
 		{	
+			checkDead();
+			
 			if(MapDTGraph.this != other.graph())
 				throw new IllegalArgumentException("Can only disconnect nodes that belong to the same graph.");
 
@@ -275,6 +290,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connected(Node<L> other)
 		{
+			checkDead();
+			
 			if(!(other instanceof DNode<?>))
 				return false;
 			
@@ -285,17 +302,23 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connectedTo(DNode<L> other)
 		{
+			checkDead();
+			
 			return neighborsTo.contains(other);
 		}
 
 		@Override
 		public DTGraph<L, T> graph()
 		{
+			checkDead();
+			
 			return MapDTGraph.this;
 		}
 		
 		public int id()
 		{
+			checkDead();
+			
 			return ((Object) this).hashCode();
 		}
 		
@@ -305,6 +328,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		 */
 		public int labelId()
 		{
+			checkDead();
+			
 			if(labelIdMod == null || labelIdMod != modCount)
 			{
 				Collection<MapDTNode> others = nodes.get(label);
@@ -327,6 +352,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		
 		public String toString()
 		{
+			checkDead();
+			
 			boolean unique = nodes.get(label).size() <= 1;
 
 			return label + (unique ? "" : "_" + labelId());
@@ -353,6 +380,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		 */
 		public void remove()
 		{	
+			checkDead();
+			
 			// * Disconnect from the graph
 			// ** Copy the nodes over to avoid a concurrentmodificationexception
 			List<MapDTNode> ns = new ArrayList<MapDTNode>(neighborsTo);
@@ -379,12 +408,16 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Set<MapDTNode> out()
 		{
+			checkDead();
+			
 			return Collections.unmodifiableSet(neighborsTo);
 		}
 
 		@Override
 		public Set<MapDTNode> out(L label)
 		{
+			checkDead();
+			
 			Set<MapDTNode> set = new LinkedHashSet<MapDTNode>();
 			for(MapDTNode node : neighborsTo)
 				if( (label == null && node.label() == null) 
@@ -397,12 +430,16 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Set<? extends DTNode<L, T>> in()
 		{
+			checkDead();
+			
 			return Collections.unmodifiableSet(neighborsFrom);
 		}
 
 		@Override
 		public Set<? extends DTNode<L, T>> in(L label)
 		{
+			checkDead();
+			
 			Set<MapDTNode> set = new LinkedHashSet<MapDTNode>();
 			for(MapDTNode node : neighborsFrom)
 				if( (label == null && node.label() == null) || (label != null && label.equals(node.label)))
@@ -414,12 +451,16 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public int index()
 		{
+			checkDead();
+			
 			return index;
 		}
 
 		@Override
 		public DTLink<L, T> link(TNode<L, T> other)
-		{			
+		{	
+			checkDead();
+					
 			MapDTNode o = (MapDTNode) other;
 			
 			if(!connected(o))
@@ -435,6 +476,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connected(TNode<L, T> other, T tag)
 		{
+			checkDead();
+			
 			if(!(other instanceof MapDTGraph<?, ?>.MapDTNode))
 				return false;
 			
@@ -446,6 +489,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public boolean connectedTo(TNode<L, T> other, T tag)
 		{
+			checkDead();
+			
 			if(! linksOut.containsKey(tag))
 				return false;
 			
@@ -459,6 +504,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<MapDTNode> toTag(T tag)
 		{
+			checkDead();
+			
 			List<MapDTNode> nodes = new LinkedList<MapDTNode>();
 			
 			if(! linksOut.containsKey(tag))
@@ -473,6 +520,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<MapDTNode> fromTag(T tag)
 		{
+			checkDead();
+			
 			List<MapDTNode> nodes = new LinkedList<MapDTNode>();
 			
 			if(! linksIn.containsKey(tag))
@@ -487,6 +536,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public int inDegree()
 		{
+			checkDead();
+			
 			int n = 0;
 			for(T tag : linksIn.keySet())
 				n += linksIn.get(tag).size();
@@ -497,6 +548,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public int outDegree()
 		{
+			checkDead();
+			
 			int n = 0;
 			for(T tag : linksOut.keySet())
 				n += linksOut.get(tag).size();
@@ -507,18 +560,24 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public int degree()
 		{
+			checkDead();
+			
 			return inDegree() + outDegree();
 		}
 
 		@Override
 		public List<DTLink<L, T>> links()
 		{
+			checkDead();
+			
 			List<DTLink<L, T>> list = new ArrayList<DTLink<L,T>>(degree());
 			for(T tag : linksOut.keySet())
 				list.addAll(linksOut.get(tag));
 			
 			for(T tag : linksIn.keySet())
-				list.addAll(linksIn.get(tag));
+				for(DTLink<L, T> link : linksIn.get(tag))
+					if(link.first().index() != link.second().index())
+						list.add(link);
 			
 			return list;
 		}
@@ -526,6 +585,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public List<DTLink<L, T>> linksOut()
 		{
+			checkDead();
+			
 			List<DTLink<L, T>> list = new ArrayList<DTLink<L,T>>(outDegree());
 			for(T tag : linksOut.keySet())
 				list.addAll(linksOut.get(tag));
@@ -536,6 +597,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public List<DTLink<L, T>> linksIn()
 		{
+			checkDead();
+			
 			List<DTLink<L, T>> list = new ArrayList<DTLink<L,T>>(inDegree());
 			for(T tag : linksIn.keySet())
 				list.addAll(linksIn.get(tag));
@@ -546,6 +609,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<T> tags()
 		{
+			checkDead();
+			
 			HashSet<T> tags = new HashSet<T>();
 			tags.addAll(linksOut.keySet());
 			tags.addAll(linksIn.keySet());
@@ -556,6 +621,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<? extends DTLink<L, T>> linksOut(DNode<L> other)
 		{
+			checkDead();
+			
 			if(! (other instanceof DTNode<?, ?>))
 				return Collections.emptyList(); 	
 			
@@ -576,6 +643,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<? extends DTLink<L, T>> linksIn(DNode<L> other)
 		{
+			checkDead();
+			
 			if(! (other instanceof DTNode<?, ?>))
 				return Collections.emptyList();
 			
@@ -596,6 +665,8 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public int hashCode()
 		{
+			checkDead();
+			
 			// NOTE: We do not include the links in the calculation of the 
 			// hashcode. We want the hashcode to remain invariant to 
 			// modifications of the graph. 
@@ -614,20 +685,35 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>
 		@Override
 		public Collection<? extends DTLink<L, T>> links(Node<L> other)
 		{
+			checkDead();
+			
 			if(! (other instanceof DTNode<?, ?>))
 				return Collections.emptyList(); 		
 			
 			List<DTLink<L, T>> links = new ArrayList<DTLink<L, T>>(degree());
 			
 			links.addAll(linksOut( (DTNode<L, T>) other));
-			links.addAll(linksIn(  (DTNode<L, T>) other));
+			for(DTLink<L, T> link : linksIn(  (DTNode<L, T>) other))
+				if(link.first().index() != link.second().index()) // don't add reflexive links twice
+					links.add(link);
 			
 			return links;
 		}
 		
 		public boolean equals(Object other)
 		{
+			checkDead();
+			
 			return this == other;
+		}
+		
+		/**
+		 * Checks if the node is dead, and fails if it is.
+		 */
+		private void checkDead()
+		{
+			if(dead)
+				throw new AccessedDeadElementException("This node (last index "+index+") has been removed, accessing any of its methods (except dead()) will cause en exception.");
 		}
 	}
 

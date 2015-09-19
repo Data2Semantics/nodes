@@ -1,6 +1,7 @@
 package org.nodes;
 
 import static org.nodes.util.Functions.concat;
+import static org.nodes.util.Series.series;
 
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -12,6 +13,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -34,7 +36,7 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class LightDGraph<L> implements DGraph<L>
+public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 {
 	// * the initial capacity reserved for neighbors
 	public static final int NEIGHBOR_CAPACITY = 5;
@@ -174,9 +176,12 @@ public class LightDGraph<L> implements DGraph<L>
 		{
 			check();
 			
-			List<Integer> indices = concat(in.get(this.index), out.get(this.index));
+			Set<Integer> indices = new LinkedHashSet<Integer>();
 			
-			return new NodeList(indices);
+			indices.addAll(in.get(this.index));
+			indices.addAll(out.get(this.index));
+			
+			return new NodeList(new ArrayList<Integer>(indices));
 		}
 
 		@Override
@@ -197,7 +202,7 @@ public class LightDGraph<L> implements DGraph<L>
 		public Collection<? extends DNode<L>> neighbors(L label)
 		{
 			check();
-			List<Integer> indices = new ArrayList<Integer>(degree());
+			Set<Integer> indices = new LinkedHashSet<Integer>();
 	
 			for(int i : in.get(this.index))
 				if(eq(labels.get(i), label))
@@ -206,7 +211,7 @@ public class LightDGraph<L> implements DGraph<L>
 				if(eq(labels.get(i), label))
 					indices.add(i);
 			
-			return new NodeList(indices);
+			return new NodeList(new ArrayList<Integer>(indices));
 		}
 
 		@Override
@@ -282,6 +287,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public void disconnect(Node<L> other)
 		{
+			check();
+			
 			int mine = index, his = other.index();
 			
 			int links = 0;
@@ -303,6 +310,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public boolean connected(Node<L> other)
 		{
+			check();
+			
 			if(!(other instanceof DNode<?>))
 				return false;
 			
@@ -314,6 +323,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public boolean connectedTo(DNode<L> to)
 		{
+			check();
+			
 			int mine = index, his = to.index();
 			
 			if(out.get(mine).contains(his))
@@ -325,30 +336,40 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public DGraph<L> graph()
 		{
+			check();
+			
 			return LightDGraph.this;
 		}
 
 		@Override
 		public int index()
 		{
+			check();
+			
 			return index;
 		}
 
 		@Override
 		public int inDegree()
 		{
+			check();
+			
 			return in.get(index).size();
 		}
 
 		@Override
 		public int outDegree()
 		{
+			check();
+			
 			return out.get(index).size();
 		}
 
 		@Override
 		public int hashCode()
 		{
+			check();
+			
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + (dead ? 1231 : 1237);
@@ -360,6 +381,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public boolean equals(Object obj)
 		{
+			check();
+			
 			if (this == obj)
 				return true;
 			
@@ -381,13 +404,18 @@ public class LightDGraph<L> implements DGraph<L>
 		
 		public String toString()
 		{
+			check();
+			
 			return label() == null ? ("n"+index()) : label().toString() + "_" +index();
 		}
 
 		@Override
 		public List<DLink<L>> links()
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>(degree());
+			
 			for(int neighbor : out.get(index))
 				list.add(new LightDLink(index, neighbor));
 			
@@ -401,6 +429,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public List<DLink<L>> linksOut()
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>(outDegree());
 			for(int neighbor : out.get(index))
 				list.add(new LightDLink(index, neighbor));
@@ -411,6 +441,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public List<DLink<L>> linksIn()
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>(inDegree());
 			for(int neighbor : in.get(index))
 				list.add(new LightDLink(neighbor, index));
@@ -421,6 +453,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public Collection<? extends DLink<L>> links(Node<L> other)
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>();
 			
 			int o = other.index();
@@ -428,10 +462,10 @@ public class LightDGraph<L> implements DGraph<L>
 				if(neighbor == o)
 					list.add(new LightDLink(index, neighbor));
 			
-			o = other.index();
-			for(int neighbor : in.get(index))
-				if(index != o && neighbor == 0) // no double reflexive
-					list.add(new LightDLink(neighbor, index));
+			if(index != o)
+				for(int neighbor : in.get(index))
+					if(neighbor == o)
+						list.add(new LightDLink(neighbor, index));
 			
 			return list;
 		}
@@ -439,6 +473,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public Collection<? extends DLink<L>> linksOut(DNode<L> other)
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>(outDegree());
 			
 			int o = other.index();
@@ -452,6 +488,8 @@ public class LightDGraph<L> implements DGraph<L>
 		@Override
 		public Collection<? extends DLink<L>> linksIn(DNode<L> other)
 		{
+			check();
+			
 			List<DLink<L>> list = new ArrayList<DLink<L>>(inDegree());
 			
 			int o = other.index();
@@ -868,9 +906,9 @@ public class LightDGraph<L> implements DGraph<L>
 	
 	
 	/**
-	 * Creates a copy of the given graph as a LightDGraph object. If the argument
-	 * is directional, the links will be copied, if it is not directional, every
-	 * link in the original will be represented by two links in the result.
+	 * Creates a copy of the given graph as a LightDGraph object. 
+	 * 
+	 * If the argument is undirectional, the link direction will be arbitrary.
 	 * 
 	 * @param graph
 	 * @return
@@ -881,12 +919,8 @@ public class LightDGraph<L> implements DGraph<L>
 		for(Node<L> node : graph.nodes())
 			copy.add(node.label());
 		
-		for(int i : Series.series(graph.size()))
-			for(int j : Series.series(graph.size()))
-			{
-				if(graph.nodes().get(i).connected(graph.nodes().get(j)))
-					copy.nodes().get(i).connect(copy.nodes().get(j));
-			}
+		for(Link<L> link : graph.links())
+			copy.get(link.first().index()).connect(copy.get(link.second().index()));
 		
 		copy.compact(0);
 		
@@ -964,5 +998,18 @@ public class LightDGraph<L> implements DGraph<L>
 	{
 		Object obj = DGraph.class;
 		return (Class<? extends DGraph<L>>) obj;
+	}
+
+	@Override
+	public List<DNode<L>> neighborsFast(Node<L> node)
+	{
+		if(node.graph() != this)
+			throw new IllegalArgumentException("Cannot call with node from another graph.");
+		
+		int index = node.index();
+		
+		List<Integer> indices = concat(in.get(index), out.get(index));
+		
+		return new NodeList(indices);
 	}
 }

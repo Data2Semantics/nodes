@@ -14,6 +14,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,7 +38,7 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class LightUGraph<L> implements UGraph<L>
+public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 {
 	// * the initial capacity reserved for neighbors
 	public static final int NEIGHBOR_CAPACITY = 5;
@@ -50,7 +51,7 @@ public class LightUGraph<L> implements UGraph<L>
 	private long modCount = 0;
 	
 	// * changes for any edit which causes the node indices to change 
-	//   (currently just removal). If this happens, all existing Node and Link 
+	//   (currently just node removal). If this happens, all existing Node and Link 
 	//   objects lose persistence 
 	private long nodeModCount = 0;
 
@@ -109,6 +110,7 @@ public class LightUGraph<L> implements UGraph<L>
 		public L label()
 		{
 			check();
+			
 			return labels.get(index);
 		}
 
@@ -134,6 +136,7 @@ public class LightUGraph<L> implements UGraph<L>
 			numLinks -= linksRemoved;
 			
 			dead = true;
+			
 			modCount++;
 			nodeModCount++;
 			
@@ -159,20 +162,25 @@ public class LightUGraph<L> implements UGraph<L>
 		public int degree()
 		{
 			check();
+			
 			return neighbors.get(index).size();
 		}
 
 		@Override
 		public Collection<? extends UNode<L>> neighbors()
 		{
-			check();			
-			return new NodeList(unmodifiableList(neighbors.get(index)));
+			check();
+			
+			Set<Integer> set = new LinkedHashSet<Integer>(neighbors.get(index));
+			
+			return new NodeList(new ArrayList<Integer>(set));
 		}
 
 		@Override
 		public UNode<L> neighbor(L label)
 		{
 			check();
+			
 			for(int i : neighbors.get(this.index))
 				if(eq(labels.get(i), label))
 					return new LightUNode(index);
@@ -184,6 +192,7 @@ public class LightUGraph<L> implements UGraph<L>
 		public Collection<? extends UNode<L>> neighbors(L label)
 		{
 			check();
+			
 			List<Integer> indices = new ArrayList<Integer>(degree());
 	
 			for(int i : neighbors.get(this.index))
@@ -197,10 +206,12 @@ public class LightUGraph<L> implements UGraph<L>
 		public ULink<L> connect(Node<L> to)
 		{
 			check();
+			
 			int fromIndex = index, toIndex = to.index();
 			
 			neighbors.get(fromIndex).add(toIndex);
-			neighbors.get(toIndex).add(fromIndex);
+			if(fromIndex != toIndex)
+				neighbors.get(toIndex).add(fromIndex);
 						
 			modCount++;			
 			numLinks++;
@@ -213,6 +224,8 @@ public class LightUGraph<L> implements UGraph<L>
 		@Override
 		public void disconnect(Node<L> other)
 		{
+			check();
+			
 			int mine = index, his = other.index();
 		
 			while(neighbors.get(mine).remove((Integer)his))
@@ -226,6 +239,8 @@ public class LightUGraph<L> implements UGraph<L>
 		@Override
 		public boolean connected(Node<L> other)
 		{
+			check();
+			
 			if(this.graph() != other.graph())
 				return false;
 			
@@ -240,18 +255,24 @@ public class LightUGraph<L> implements UGraph<L>
 		@Override
 		public UGraph<L> graph()
 		{
+			check();
+			
 			return LightUGraph.this;
 		}
 
 		@Override
 		public int index()
 		{
+			check();
+			
 			return index;
 		}
 
 		@Override
 		public int hashCode()
 		{
+			check();
+			
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + (dead ? 1231 : 1237);
@@ -263,6 +284,8 @@ public class LightUGraph<L> implements UGraph<L>
 		@Override
 		public boolean equals(Object obj)
 		{
+			check();
+			
 			if (this == obj)
 				return true;
 			
@@ -285,12 +308,16 @@ public class LightUGraph<L> implements UGraph<L>
 		
 		public String toString()
 		{
+			check();
+			
 			return label() == null ? ("n"+index()) : label().toString();
 		}
 
 		@Override
 		public List<ULink<L>> links()
 		{
+			check();
+			
 			List<ULink<L>> list = new ArrayList<ULink<L>>(degree());
 			for(int neighbor : neighbors.get(index))
 				list.add(new LightULink(index, neighbor));
@@ -301,6 +328,8 @@ public class LightUGraph<L> implements UGraph<L>
 		@Override
 		public Collection<? extends ULink<L>> links(Node<L> other)
 		{
+			check();
+			
 			List<ULink<L>> list = new ArrayList<ULink<L>>();
 			
 			int o = other.index();
@@ -703,16 +732,25 @@ public class LightUGraph<L> implements UGraph<L>
 		{
 			LightUGraph<L> other = (LightUGraph<L>) graph;
 			LightUGraph<L> copy = new LightUGraph<L>();
+			
 			copy.labels = new ArrayList<L>(other.labels);
 			copy.neighbors = new ArrayList<List<Integer>>(other.neighbors.size());
 			for(List<Integer> nb : other.neighbors)
 				copy.neighbors.add(new ArrayList<Integer>(nb));
 			
+			copy.numLinks = other.numLinks;
+			copy.hash = other.hash;
+			
 			copy.modCount++;
 			copy.nodeModCount++;
 			
-			copy.compact(3);
-			copy.sort();
+			if(other.hashMod == null)
+				copy.hashMod = null;
+			else
+				copy.hashMod = 
+					other.hashMod == other.modCount ? copy.modCount : copy.modCount - 1;
+			
+			copy.sorted = other.sorted;
 			
 			return copy;
 		}
@@ -721,12 +759,8 @@ public class LightUGraph<L> implements UGraph<L>
 		for(Node<L> node : graph.nodes())
 			copy.add(node.label());
 		
-		for(int i : Series.series(graph.size()))
-			for(int j : Series.series(graph.size()))
-			{
-				if(graph.nodes().get(i).connected(graph.nodes().get(j)))
-					copy.nodes().get(i).connect(copy.nodes().get(j));
-			}
+		for(Link<L> link : graph.links())
+			copy.get(link.first().index()).connect(copy.get(link.second().index()));
 		
 		copy.compact(0);
 		
@@ -755,6 +789,8 @@ public class LightUGraph<L> implements UGraph<L>
 			Collections.sort(nbIndices);
 			hash = 31 * hash + nbIndices.hashCode();
 		}
+		
+		hashMod = modCount;
 		
 		return hash;
 	}	
@@ -812,5 +848,16 @@ public class LightUGraph<L> implements UGraph<L>
 	{
 		Object obj = DGraph.class;
 		return (Class<? extends UGraph<L>>) obj;
+	}
+
+	@Override
+	public List<UNode<L>> neighborsFast(Node<L> node)
+	{
+		if(node.graph() != this)
+			throw new IllegalArgumentException("Cannot call with node from another graph.");
+		
+		List<Integer> indices = neighbors.get(node.index());
+		
+		return new NodeList(indices);
 	}
 }

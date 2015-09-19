@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.nodes.exceptions.AccessedDeadElementException;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
 import org.nodes.util.Pair;
@@ -46,7 +47,7 @@ import org.nodes.util.Series;
  *
  * @param <L>
  */
-public class MapUTGraph<L, T> implements UTGraph<L, T>
+public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasPersistentLinks
 {
 	protected List<MapUTNode> nodeList = new ArrayList<MapUTNode>();
 	protected Map<L, Set<MapUTNode>> nodes = new LinkedHashMap<L, Set<MapUTNode>>();
@@ -137,12 +138,16 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public Collection<MapUTNode> neighbors()
 		{
+			checkDead();
+			
 			return Collections.unmodifiableSet(neighbors);
 		}
 
 		@Override
 		public MapUTNode neighbor(L label)
 		{
+			checkDead();
+			
 			for(MapUTNode node : neighbors)
 				if((label == null && node.label == null)
 						|| (label != null && node.label().equals(label)))
@@ -154,12 +159,16 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public L label()
 		{
+			checkDead();
+			
 			return label;
 		}
 
 		@Override
 		public Set<MapUTNode> neighbors(L label)
 		{
+			checkDead();
+			
 			Set<MapUTNode> result = new LinkedHashSet<MapUTNode>();
 			for(MapUTNode node : neighbors)
 				if((label == null && node.label == null)
@@ -173,6 +182,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public MapUTLink connect(Node<L> other)
 		{
+			checkDead();
+			
 			if(MapUTGraph.this != other.graph())
 				throw new IllegalArgumentException("Can only connect nodes that belong to the same graph.");
 			
@@ -184,16 +195,15 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public MapUTLink connect(TNode<L, T> other, T tag)
 		{
+			checkDead();
+			
 			if(this.graph().hashCode() != other.graph().hashCode())
 				throw new IllegalArgumentException("Can only connect to nodes from the same graph (arguments: this="+this+", other="+other+")");
 			
 			// * This graph can only contain MapDTNodes, so this is a safe cast
-			MapUTNode mdtOther = (MapUTNode) other;
+			MapUTNode mutOther = (MapUTNode) other;
 			
-//			if(connected(mdtOther, tag))
-//				return;
-			
-			MapUTLink link = new MapUTLink(tag, this, mdtOther);
+			MapUTLink link = new MapUTLink(tag, this, mutOther);
 			
 			// * Add to this node's neighbors
 			if(! links.containsKey(tag))
@@ -201,12 +211,15 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 			links.get(tag).add(link);
 			
 			// * Add this  in other's neighbors
-			if(! mdtOther.links.containsKey(tag))
-				mdtOther.links.put(tag, new LinkedList<MapUTLink>());
-			mdtOther.links.get(tag).add(link);
+			if(! mutOther.equals(this))
+			{
+				if(! mutOther.links.containsKey(tag))
+					mutOther.links.put(tag, new LinkedList<MapUTLink>());
+				mutOther.links.get(tag).add(link);
+			}
 			
-			neighbors.add(mdtOther);
-			mdtOther.neighbors.add(this);
+			neighbors.add(mutOther);
+			mutOther.neighbors.add(this);
 			
 			numEdges++;
 			modCount++;
@@ -217,6 +230,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public void disconnect(Node<L> other)
 		{	
+			checkDead();
+			
 			if(MapUTGraph.this != other.graph())
 				throw new IllegalArgumentException("Can only disconnect nodes that belong to the same graph.");
 
@@ -245,17 +260,23 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public boolean connected(Node<L> other)
 		{
+			checkDead();
+			
 			return neighbors.contains(other);
 		}
 
 		@Override
 		public UTGraph<L, T> graph()
 		{
+			checkDead();
+			
 			return MapUTGraph.this;
 		}
 		
 		public int id()
 		{
+			checkDead();
+			
 			return ((Object) this).hashCode();
 		}
 		
@@ -265,6 +286,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		 */
 		public int labelId()
 		{
+			checkDead();
+			
 			if(labelIdMod == null || labelIdMod != modCount)
 			{
 				Collection<MapUTNode> others = nodes.get(label);
@@ -287,6 +310,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		
 		public String toString()
 		{
+			checkDead();
+		
 			boolean unique = nodes.get(label).size() <= 1;
 
 			return label + (unique ? "" : "_" + labelId());
@@ -313,6 +338,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		 */
 		public void remove()
 		{	
+			checkDead();
+		
 			// * Disconnect from the graph
 			
 			// * Copy the nodes over to avoid a ConcurrentModificationException
@@ -338,12 +365,17 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public int index()
 		{
+			checkDead();
+			
 			return index;
 		}
 
 		@Override
 		public TLink<L, T> link(TNode<L, T> other)
-		{			
+		{	
+			checkDead();
+			checkDead();
+				
 			MapUTNode o = (MapUTNode) other;
 			
 			if(!connected(o))
@@ -360,6 +392,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public Collection<? extends UTLink<L, T>> links(TNode<L, T> other)
 		{
+			checkDead();
+			
 			MapUTNode o = (MapUTNode) other;
 			
 			if(! connected(o))
@@ -377,6 +411,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public boolean connected(TNode<L, T> other, T tag)
 		{
+			checkDead();
+			
 			if(! links.containsKey(tag))
 				return false;
 			
@@ -390,6 +426,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public int degree()
 		{
+			checkDead();
+			
 			int n = 0;
 			for(T tag : links.keySet())
 				n += links.get(tag).size();
@@ -400,6 +438,8 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public List<UTLink<L, T>> links()
 		{
+			checkDead();
+			
 			List<UTLink<L, T>> list = new ArrayList<UTLink<L,T>>(degree());
 			for(T tag : links.keySet())
 				list.addAll(links.get(tag));
@@ -410,12 +450,16 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public Collection<T> tags()
 		{
+			checkDead();
+			
 			return Collections.unmodifiableCollection(links.keySet());
 		}
 		
 		@Override
 		public int hashCode()
 		{
+			checkDead();
+			
 			// * We base the hashcode on just the label. If adding links changes
 			//   the hashcode, our maps will get messed up. 
 			// * Even the node index is _not_ persistent.
@@ -429,6 +473,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		@Override
 		public Collection<? extends UTLink<L, T>> links(Node<L> other)
 		{
+			checkDead();
 			List<UTLink<L, T>> result = new ArrayList<UTLink<L, T>>();
 			
 			for(T tag : links.keySet())
@@ -441,7 +486,17 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 		
 		public boolean equals(Object other)
 		{
+			checkDead();
 			return this == other;
+		}
+		
+		/**
+		 * Checks if the node is dead, and fails if it is.
+		 */
+		private void checkDead()
+		{
+			if(dead)
+				throw new AccessedDeadElementException("This node (last index "+index+") has been removed, accessing any of its methods (except dead()) will cause en exception.");
 		}
 	}
 
@@ -704,10 +759,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 			private Iterator<MapUTNode> nodeIt = nodeList.iterator();
 			private Iterator<MapUTNode> neighborIt;
 
-			LCIterator()
-			{
-				
-			}
+			LCIterator() {}
 			
 			@Override
 			public boolean hasNext()
@@ -738,16 +790,12 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>
 						break;
 					
 					current = nodeIt.next();
-					
+
 					for(T tag : current.links.keySet())
 						for(MapUTLink link : current.links.get(tag))
 						{
-							int curr = current.index(), oth;
-							
-							if(current == link.first())
-								oth = link.second().index();
-							else
-								oth = link.first().index();
+							int curr = current.index(), 
+							    oth = link.other(current).index();
 														 
 							if(curr <= oth)
 								buffer.add(link);

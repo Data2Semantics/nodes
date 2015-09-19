@@ -5,6 +5,14 @@ import java.util.Set;
 
 public interface Node<L>
 {
+	/**
+	 * The neighbors of this node. Each node occurs once, even if there are
+	 * multiple links.
+	 * 
+	 * Will include the node itself if there are multiple links.
+	 * 
+	 * @return
+	 */
 	public Collection<? extends Node<L>> neighbors();
 	
 	/**

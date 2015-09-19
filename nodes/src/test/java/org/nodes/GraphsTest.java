@@ -10,6 +10,8 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.nodes.algorithms.Nauty;
+import org.nodes.data.Examples;
+import org.nodes.random.RandomGraphs;
 import org.nodes.util.Series;
 
 public class GraphsTest
@@ -126,6 +128,36 @@ public class GraphsTest
 		assertEquals(6, Graphs.allIsoConnected(4, "").size());
 		assertEquals(21, Graphs.allIsoConnected(5, "").size());
 		assertEquals(112, Graphs.allIsoConnected(6, "").size());
+	}
+	
+	@Test
+	public void testSimple()
+	{
+		UGraph<String> graph = RandomGraphs.random(50, 75);
+		
+		assertTrue(Graphs.isSimple(graph));
+		
+		DGraph<String> dgraph = RandomGraphs.randomDirected(50, 0.2);
+		
+		assertTrue(Graphs.isSimple(dgraph));
+
+	}
+	
+	@Test
+	public void testSimpleExamples()
+	{
+		// System.out.println("kingjames: " +  Graphs.isSimple(Examples.kingjames()));
+		UGraph<String> graph = Examples.yeast();
+		System.out.println("yeast: " +      Graphs.hasSelfLoops(graph));
+		System.out.println("yeast: " +      Graphs.hasMultiEdges(graph));
+		
+		for(ULink<String> link : graph.links())
+			if(link.first().index() == link.second().index())
+				System.out.println(link);
+
+		// System.out.println("physicians: " + Graphs.isSimple(Examples.physicians()));
+		// System.out.println("citations: " +  Graphs.isSimple(Examples.citations()));
+		
 	}
 
 //	@Test

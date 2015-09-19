@@ -4,9 +4,19 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 import org.nodes.data.Data;
+import org.nodes.data.Examples;
+import org.nodes.util.Functions;
+import org.nodes.util.Series;
 
 public class LightDGraphTest
 {
@@ -178,7 +188,6 @@ public class LightDGraphTest
 		assertFalse(g2.equals(g1));	
 	}
 	
-	@Test
 	public void testImportBig()
 			throws IOException
 	{
@@ -186,5 +195,253 @@ public class LightDGraphTest
 		System.out.println(graph.size());
 		System.out.println(graph.numLinks());
 
+	}
+	
+	@Test
+	public void testCopy()
+	{
+		DGraph<String> graph = new MapDTGraph<String, String>();
+		
+		DNode<String> a = graph.add("a");
+		DNode<String> b = graph.add("b");
+		DNode<String> c = graph.add("c");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		{
+			int numLinks = 0;
+			for(Link<String> link : graph.links())
+				numLinks++;
+	
+			assertEquals(5, numLinks);
+			assertEquals(graph.numLinks(), numLinks);
+		}
+
+		graph = LightDGraph.copy(graph);
+
+		{
+			int numLinks = 0;
+			for(Link<String> link : graph.links())
+				numLinks++;
+	
+			assertEquals(5, numLinks);
+			assertEquals(graph.numLinks(), numLinks);
+		}
+	}
+	
+	@Test
+	public void testCopy2()
+	{
+		DGraph<String> graph = Examples.physicians();
+		{
+			int numLinks = 0;
+			for(Link<String> link : graph.links())
+				numLinks++;
+			
+			assertEquals(1098, numLinks);
+			assertEquals(graph.numLinks(), numLinks);
+		}
+
+		graph = LightDGraph.copy(graph);
+		
+		{
+			int numLinks = 0;
+			for(Link<String> link : graph.links())
+				numLinks++;
+			
+			assertEquals(1098, numLinks);
+			assertEquals(graph.numLinks(), numLinks);
+		}
+	}		
+	
+	@Test
+	public void testNumLinks2()
+	{
+		DGraph<String> graph = new LightDGraph<String>();
+		
+		DNode<String> a = graph.add("a");
+		DNode<String> b = graph.add("b");
+		DNode<String> c = graph.add("c");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		int numLinks = 0;
+		for(Link<String> link : graph.links())
+			numLinks++;
+		
+		assertEquals(5, numLinks);
+		assertEquals(graph.numLinks(), numLinks);
+	}
+	
+	@Test
+	public void testIndices2()
+	{		
+		// Note that light graphs have non-persistent nodes, so the indices 
+		// don't update after removal  
+		
+		DGraph<String> graph = Examples.physicians();
+		graph = LightDGraph.copy(graph);
+		
+		Node<String> node = graph.get(145);
+		assertEquals(145, node.index());
+		
+		graph.get(150).remove(); // edit causes an exception
+		
+		boolean exThrown = false;
+		try {
+			System.out.println(node.index());
+		} catch(Exception e)
+		{
+			exThrown = true;
+		}
+
+		assertTrue(exThrown);
+		
+		// * Do some random removals
+		for(int i : Series.series(10))
+		{
+			// - random node
+			graph.get(Global.random().nextInt(graph.size())).remove();
+			
+			// - random link
+			Node<String> a = graph.get(Global.random().nextInt(graph.size()));
+			Node<String> b = Functions.choose(a.neighbors());
+			
+			Link<String> link = Functions.choose(a.links(b));
+			link.remove();
+		}
+		
+		int i = 0;
+		for(Node<String> n : graph.nodes())
+			assertEquals(i++, n.index());
+	}
+	
+	@Test
+	public void testNodeLinks()
+	{
+		DGraph<String> graph = Examples.physicians();
+		graph = LightDGraph.copy(graph);
+	
+		for(Node<String> node : graph.nodes())
+		{
+			Collection<? extends Node<String>> nbs = node.neighbors();
+						
+			for(Node<String> neighbor : nbs)
+				assertTrue(node.links(neighbor).size() > 0);
+		}
+	}
+	
+	@Test
+	public void testNodeLinks2()
+	{
+		DGraph<String> graph = new LightDGraph<String>();
+		
+		DNode<String> a = graph.add("");
+		DNode<String> b = graph.add("");
+		DNode<String> c = graph.add("");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		{
+			Node<String> node = graph.get(0);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(2, nbs.size());
+			
+			assertEquals(1, node.links(graph.get(0)).size());
+			assertEquals(0, node.links(graph.get(1)).size());			
+			assertEquals(3, node.links(graph.get(2)).size());
+		}
+		
+		{
+			Node<String> node = graph.get(1);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(1, nbs.size());
+			
+			assertEquals(0, node.links(graph.get(0)).size());
+			assertEquals(0, node.links(graph.get(1)).size());			
+			assertEquals(1, node.links(graph.get(2)).size());
+		}
+		
+		{
+			Node<String> node = graph.get(2);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(2, nbs.size());
+			
+			assertEquals(3, node.links(graph.get(0)).size());
+			assertEquals(1, node.links(graph.get(1)).size());			
+			assertEquals(0, node.links(graph.get(2)).size());
+		}
+	}
+	
+	@Test
+	public void testNeighbors()
+	{
+		DGraph<String> graph = new LightDGraph<String>();
+		
+		DNode<String> a = graph.add("a");
+		DNode<String> b = graph.add("b");
+		DNode<String> c = graph.add("c");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		Set<Node<String>> aNbsExpected = new HashSet<Node<String>>(Arrays.asList(a, c));
+		Set<Node<String>> bNbsExpected = new HashSet<Node<String>>(Arrays.asList(c));
+		Set<Node<String>> cNbsExpected = new HashSet<Node<String>>(Arrays.asList(b, a));
+		
+		Set<Node<String>> aNbsActual = new HashSet<Node<String>>(a.neighbors());
+		Set<Node<String>> bNbsActual = new HashSet<Node<String>>(b.neighbors());
+		Set<Node<String>> cNbsActual = new HashSet<Node<String>>(c.neighbors());
+
+		assertEquals(aNbsExpected, aNbsActual);
+		assertEquals(bNbsExpected, bNbsActual);
+		assertEquals(cNbsExpected, cNbsActual);
+	}
+	
+	@Test
+	public void testNeighborsFast()
+	{
+		DGraph<String> graph = Examples.physicians();
+		graph = LightDGraph.copy(graph);
+	
+		assertTrue(graph instanceof FastWalkable);
+		
+		for(Node<String> node : graph.nodes())
+		{
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			
+			Collection<? extends Node<String>> col = ((FastWalkable<String,? extends Node<String>>)graph).neighborsFast(node);
+			Set<Node<String>> nbsFast = new HashSet<Node<String>>(col);
+			
+			assertTrue(col instanceof List<?>);
+			
+			List<Integer> nbsList = new ArrayList<Integer>();
+			for(Node<String> nod : nbs)
+				nbsList.add(nod.index());
+			
+			List<Integer> nbsFastList = new ArrayList<Integer>();
+			for(Node<String> nod : nbsFast)
+				nbsFastList.add(nod.index());
+			
+			Collections.sort(nbsList);
+			Collections.sort(nbsFastList);
+			
+			assertEquals(nbsList, nbsFastList);			
+		}
 	}
 }

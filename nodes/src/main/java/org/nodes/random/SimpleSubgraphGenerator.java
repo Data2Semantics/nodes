@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.nodes.util.AbstractGenerator;
 import org.nodes.util.Generator;
+import org.nodes.FastWalkable;
 import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Link;
@@ -25,6 +26,9 @@ import org.nodes.util.Permutations;
 import org.nodes.util.Series;
 
 /**
+ * A fast and simple extractor of subgraphs.
+ * 
+ * For the best performance, make sure to use a FastWalkable graph.
  * @author Peter
  *
  * @param <L>
@@ -133,7 +137,15 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 	protected Node<?> randomNeighbor(List<Integer> indices)
 	{
 		Node<?> randomNode = graph.get(choose(indices));
-		Collection<? extends Node<?>> neighbors = randomNode.neighbors();
+		
+		Collection<? extends Node<?>> neighbors;
+		
+		if(graph instanceof FastWalkable<?, ?>)
+			neighbors = ((FastWalkable) graph).neighborsFast(randomNode);
+		else
+			neighbors = randomNode.neighbors();
+		
+		
 		if(neighbors.isEmpty())
 			return null;
 		

@@ -2,13 +2,18 @@ package org.nodes;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.nodes.data.Examples;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
+import org.nodes.util.Series;
 
 public class MapDTGraphTest
 {
@@ -281,5 +286,164 @@ public class MapDTGraphTest
 			outDegreeSum += node.linksOut(neighbor).size();
 
 		assertEquals(node.outDegree(), outDegreeSum);
-	}	
+	}
+	
+	@Test
+	public void testNumLinks()
+	{
+		DTGraph<String, String> graph = new MapDTGraph<String, String>();
+		
+		DTNode<String, String> a = graph.add("a");
+		DTNode<String, String> b = graph.add("b");
+		DTNode<String, String> c = graph.add("c");
+		
+		a.connect(a, "self");
+		b.connect(c, "1");
+		c.connect(a, "2");
+		a.connect(c, "2");
+		a.connect(c, "2");
+		
+		int numLinks = 0;
+		for(Link<String> link : graph.links())
+			numLinks++;
+		
+		assertEquals(5, numLinks);
+		assertEquals(graph.numLinks(), numLinks);
+		
+	}
+	
+	@Test
+	public void testIndices2()
+	{		
+		DGraph<String> graph = Examples.physicians();
+		
+		Node<String> node = graph.get(145);
+		
+		graph.get(146).remove();
+		
+		assertEquals(145, node.index());
+		
+		graph.get(144).remove();
+		
+		assertEquals(144, node.index());
+		
+		graph.get(144).remove();
+		
+		boolean exThrown = false;
+		try {
+			System.out.println(node.index());
+		} catch(Exception e)
+		{
+			exThrown = true;
+		}
+
+		assertTrue(exThrown);
+		
+		// * Do some random removals
+		for(int i : Series.series(10))
+		{
+			// - random node
+			graph.get(Global.random().nextInt(graph.size())).remove();
+			
+			// - random link
+			Node<String> a = graph.get(Global.random().nextInt(graph.size()));
+			Node<String> b = Functions.choose(a.neighbors());
+			
+			Link<String> link = Functions.choose(a.links(b));
+			link.remove();
+		}
+		
+		int i = 0;
+		for(Node<String> n : graph.nodes())
+			assertEquals(i++, n.index());
+	}
+	
+	@Test
+	public void testNodeLinks()
+	{
+		DGraph<String> graph = Examples.physicians();
+		graph = MapDTGraph.copy(graph);
+	
+		for(Node<String> node : graph.nodes())
+		{
+			Collection<? extends Node<String>> nbs = node.neighbors();
+						
+			for(Node<String> neighbor : nbs)
+				assertTrue(node.links(neighbor).size() > 0);
+		}
+	}
+	
+	@Test
+	public void testNodeLinks2()
+	{
+		DGraph<String> graph = new MapDTGraph<String, String>();
+		
+		DNode<String> a = graph.add("");
+		DNode<String> b = graph.add("");
+		DNode<String> c = graph.add("");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		{
+			Node<String> node = graph.get(0);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(2, nbs.size());
+			
+			assertEquals(1, node.links(graph.get(0)).size());
+			assertEquals(0, node.links(graph.get(1)).size());			
+			assertEquals(3, node.links(graph.get(2)).size());
+		}
+		
+		{
+			Node<String> node = graph.get(1);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(1, nbs.size());
+			
+			assertEquals(0, node.links(graph.get(0)).size());
+			assertEquals(0, node.links(graph.get(1)).size());			
+			assertEquals(1, node.links(graph.get(2)).size());
+		}
+		
+		{
+			Node<String> node = graph.get(2);
+			Collection<? extends Node<String>> nbs = node.neighbors();
+			assertEquals(2, nbs.size());
+			
+			assertEquals(3, node.links(graph.get(0)).size());
+			assertEquals(1, node.links(graph.get(1)).size());			
+			assertEquals(0, node.links(graph.get(2)).size());
+		}
+	}
+	
+	@Test
+	public void testNeighbors()
+	{
+		DGraph<String> graph = new MapDTGraph<String, String>();
+		
+		DNode<String> a = graph.add("a");
+		DNode<String> b = graph.add("b");
+		DNode<String> c = graph.add("c");
+
+		a.connect(a);
+		b.connect(c);
+		c.connect(a);
+		a.connect(c);
+		a.connect(c);
+		
+		Set<Node<String>> aNbsExpected = new HashSet<Node<String>>(Arrays.asList(a, c));
+		Set<Node<String>> bNbsExpected = new HashSet<Node<String>>(Arrays.asList(c));
+		Set<Node<String>> cNbsExpected = new HashSet<Node<String>>(Arrays.asList(b, a));
+		
+		Set<Node<String>> aNbsActual = new HashSet<Node<String>>(a.neighbors());
+		Set<Node<String>> bNbsActual = new HashSet<Node<String>>(b.neighbors());
+		Set<Node<String>> cNbsActual = new HashSet<Node<String>>(c.neighbors());
+
+		assertEquals(aNbsExpected, aNbsActual);
+		assertEquals(bNbsExpected, bNbsActual);
+		assertEquals(cNbsExpected, cNbsActual);
+	}
 }

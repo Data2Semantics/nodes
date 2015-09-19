@@ -1,5 +1,8 @@
 package org.nodes;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static org.nodes.util.Pair.p;
 import static org.nodes.util.Series.series;
 
 import java.awt.PageAttributes.OriginType;
@@ -536,16 +539,6 @@ public class Graphs
 			nodesAdded.get(i).connect(nodesAdded.get(j), link.tag());
 		}
 	}
-
-	public static <L> boolean hasSelfLoops(Graph<L> graph)
-	{
-		for(Node<L> node : graph.nodes())
-			if(node.connected(node))
-				return true;
-		
-		return false;
-	}
-	
 	
 	/**
 	 * Returns a copy of a graph with the labels and tags replaced by canonical 
@@ -788,6 +781,36 @@ public class Graphs
 	{
 		return "";
 	}
+	
+	public static <L> boolean isSimple(Graph<L> graph)
+	{
+		return !(hasSelfLoops(graph) || hasMultiEdges(graph));
+	}
+	
+	public static <L> boolean hasSelfLoops(Graph<L> graph)
+	{
+		for(Link<L> link : graph.links())
+			if(link.first().index() == link.second().index())
+				return true;
+		return false;
+	}
+
+	public static <L> boolean hasMultiEdges(Graph<L> graph)
+	{
+		Set<Pair<Integer, Integer>> set = new HashSet<Pair<Integer, Integer>>();
+		
+		for(Link<L> link : graph.links())
+		{
+			int i = link.first().index();
+			int j = link.second().index();
+			
+			Pair<Integer, Integer> p = graph instanceof DGraph ? p(i, j) : p(min(i, j), max(i, j));
+			set.add(p);
+		}
+		
+		return graph.numLinks() > set.size();
+	}
+
 	
 	/**
 	 * Converts the input to a simple u graph. Any self-loops and dual links are 

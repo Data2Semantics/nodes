@@ -94,4 +94,58 @@ public class Examples
 			throw new RuntimeException("Could not load the file for the jazz graph from the classpath.", e);
 		}
 	}
+	
+	/**	
+	 * 
+	 * This undirected network contains protein interactions contained in yeast. 
+	 * Research showed that proteins with a high degree were more important for 
+	 * the surivial of the yeast than others. A node represents a protein and an
+	 * edge represents a metabolic interaction between two proteins.
+	 * 
+	 * More information about the network is provided here: 
+	 *   http://konect.uni-koblenz.de/networks/moreno_propro 
+	 * 
+	 * Complete documentation about the file format can be found in the KONECT
+	 * handbook, in the section File Formats, available at: 
+	 * 		http://konect.uni-koblenz.de/publications
+	 * 
+	 * All files are licensed under a Creative Commons Attribution-ShareAlike 2.0 Germany License
+	 * For more information concerning license visit http://konect.uni-koblenz.de/license.
+	 */
+	public static UGraph<String> yeast()
+	{
+		ClassLoader classLoader = Examples.class.getClassLoader();
+		File file = new File(classLoader.getResource("graphs/yeast/yeast.txt").getFile());
+		
+		try
+		{
+			return Data.edgeList(file, false, true);
+		} catch (IOException e)
+		{
+			throw new RuntimeException("Could not load the file for the yeast graph from the classpath.", e);
+		}
+	}
+	
+	/**
+	 * A small citations graph extracted from the larger KDD Cup 2003 dataset:
+	 *   http://www.cs.cornell.edu/projects/kddcup/datasets.html
+	 *   
+	 * Includes only papers from before 1994, citation into the future are 
+	 * removed.
+	 * 
+	 * @return
+	 */
+	public static UGraph<String> citations()
+	{
+		ClassLoader classLoader = Examples.class.getClassLoader();
+		File file = new File(classLoader.getResource("graphs/citations/citations.txt").getFile());
+		
+		try
+		{
+			return Data.edgeList(file, false, true);
+		} catch (IOException e)
+		{
+			throw new RuntimeException("Could not load the file for the citations graph from the classpath.", e);
+		}
+	}
 }

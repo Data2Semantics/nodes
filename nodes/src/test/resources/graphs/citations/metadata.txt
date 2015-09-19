@@ -1,0 +1,4 @@
+Data from the 2003 KDD cup: http://www.cs.cornell.edu/projects/kddcup/datasets.html
+
+The dataset includes only papers from before 1994, does not include self-links 
+or links to future papers.
