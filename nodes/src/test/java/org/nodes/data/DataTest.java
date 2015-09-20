@@ -192,6 +192,6 @@ public class DataTest {
 		System.out.println("Graph size " + graph.size() + ".");
 		System.out.println("num links: " + graph.numLinks());		
 		
-		Data.writeEdgeList(graph, new File("/Users/Peter/Documents/datasets/graphs/cit/simple.txt"));
+		Data.writeEdgeList(graph, new File("/Users/Peter/Documents/datasets/graphs/cit/simple2.txt"));
 	}
 }
