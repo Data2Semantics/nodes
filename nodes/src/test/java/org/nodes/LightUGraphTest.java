@@ -15,7 +15,9 @@ import java.util.Set;
 import org.junit.Test;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
+import org.nodes.util.FrequencyModel;
 import org.nodes.util.Functions;
+import org.nodes.util.Pair;
 import org.nodes.util.Series;
 
 public class LightUGraphTest
@@ -479,5 +481,32 @@ public class LightUGraphTest
 			Collections.sort(nbsFastList);
 			assertEquals(nbsList, nbsFastList);			
 		}
+	}
+	
+	@Test
+	public void temp() throws IOException
+	{
+		UGraph<String> yeast = Data.edgeList(new File("/Users/Peter/Documents/datasets/graphs/yeast-lit/yeast-lit.txt"), false, false);
+
+		
+		int numSelfLoops = 0;
+		for(Link<String> link : yeast.links())
+			if(link.first().index() == link.second().index())
+				numSelfLoops ++;
+		System.out.println("num self loops " + numSelfLoops);
+		
+		FrequencyModel<Pair<Integer, Integer>> fm = new FrequencyModel<Pair<Integer,Integer>>();
+		yeast = Graphs.toSimpleUGraph(yeast, fm);
+
+		System.out.println("num multi edges " + fm.total());
+		
+		Data.writeEdgeList(yeast, new File("/Users/Peter/Documents/datasets/graphs/yeast-lit/yeast-lit-simple.txt"));
+		yeast = Data.edgeList(new File("/Users/Peter/Documents/datasets/graphs/yeast-lit/yeast-lit-simple.txt"), false, false);
+		
+		assertTrue(Graphs.isSimple(yeast));
+		
+		System.out.println("size " + yeast.size());
+		System.out.println("num links " + yeast.numLinks());
+
 	}
 }
