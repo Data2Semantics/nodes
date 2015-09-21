@@ -1,10 +1,12 @@
 package org.nodes.models;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.nodes.DGraph;
+import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.UGraph;
 import org.nodes.util.Fibonacci;
@@ -142,6 +144,8 @@ public class MotifSearchModel
 			int to = Fibonacci.isFibonacci(n) ? n : (int)Fibonacci.get((int) Math.ceil(Fibonacci.getIndexApprox(n)));
 
 			find(0, to, 0);
+			
+			Global.log().info("Search finished. Samples taken: " + cache.size());
 		}
 
 		public double size()
@@ -215,7 +219,7 @@ public class MotifSearchModel
 				find(from, mid2, depth + 1);
 		}
 		
-		private Map<Integer, Double> cache = new HashMap<Integer, Double>();
+		private Map<Integer, Double> cache = new LinkedHashMap<Integer, Double>();
 		
 		public double sample(int n)
 		{
