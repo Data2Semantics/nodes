@@ -22,6 +22,7 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
+import org.nodes.FastWalkable;
 import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Link;
@@ -579,10 +580,37 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		return -1.0;
 	}
 
+	/**
+	 * NB: This is currently only correct for graphs without multiple edges !! 
+	 * @param graph
+	 * @param occurrence
+	 * @return
+	 */
 	public static <L> int exDegree(Graph<L> graph, List<Integer> occurrence)
 	{
-		int sum = 0;
 		Set<Integer> occSet = new HashSet<Integer>(occurrence);
+		
+		if(graph instanceof FastWalkable<?, ?>)
+		{
+			FastWalkable<L, Node<L>> g = (FastWalkable<L, Node<L>>)graph;
+			
+			int sum = 0;
+			List<Integer> neighbs = new ArrayList<Integer>();
+			
+			for (int i : Series.series(occurrence.size()))
+			{
+				int nodeIndex = occurrence.get(i);
+				Node<L> node = graph.get(nodeIndex);
+		
+				for(Node<L> neighb : g.neighborsFast(node))
+					if (!occSet.contains(neighb.index()))
+						sum++;
+			}
+			
+			return sum;
+		}
+		
+		int sum = 0;
 	
 		for (int i : Series.series(occurrence.size()))
 		{

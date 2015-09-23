@@ -273,6 +273,92 @@ public class Data {
 		return graph;
 	}
 	
+	/**
+	 * Reads a file in edge-list representation into a string-labeled directed 
+	 * graph. Requires that the edges are represented using _consecutive_ 
+	 * integers. Ignores multiple edges and self-loops.
+	 *  
+	 * @param file
+	 * @return 
+	 * @throws IOException
+	 */
+	public static DGraph<String> edgeListDirectedUnlabeledSimple(File file)
+			throws IOException
+	{
+		BufferedReader reader = new BufferedReader(new FileReader(file));
+		LightDGraph<String> graph = new LightDGraph<String>();
+				
+		String line;
+		int i = 0;
+		
+		do
+		 {
+			line = reader.readLine();
+			i++;
+		
+			if(line == null)
+				continue;
+			if(line.trim().isEmpty())
+				continue;
+			if(line.trim().startsWith("#"))
+				continue;
+			if(line.trim().startsWith("%"))
+				continue;
+			
+			String[] split = line.split("\\s");
+			if(split.length < 2)
+				throw new IllegalArgumentException("Line "+i+" does not split into two elements.");
+			
+			Integer a, b, c = null;
+			try {
+				a = Integer.parseInt(split[0]);
+			} catch(NumberFormatException e)
+			{
+				throw new RuntimeException("The first element on line "+i+" ("+split[0]+") cannot be parsed into an integer.", e);
+			}
+			
+			try {
+				b = Integer.parseInt(split[1]);
+			} catch(NumberFormatException e)
+			{
+				throw new RuntimeException("The second element on line "+i+" ("+split[1]+") cannot be parsed into an integer.", e);
+			}
+			
+			if(!a.equals(b))
+			{	
+				ensure(graph, Math.max(a, b));
+				
+				DNode<String> nodeA = graph.get(a);
+				DNode<String> nodeB = graph.get(b);
+				
+				if(!nodeA.connectedTo(nodeB))
+					nodeA.connect(nodeB);
+			}
+			
+			int links = graph.numLinks();
+			if(links%500000 == 0)
+				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
+			if(links%5000000 == 0)
+			{			
+				Global.log().info("Compacting");
+				graph.compact(5);
+				Global.log().info("Done");
+			}
+			
+		} while(line != null);
+		
+		Global.log().info("Graph loaded (n="+graph.size()+", l="+graph.numLinks()+").");
+
+		Global.log().info("Sorting");
+		graph.sort();
+
+		Global.log().info("Compacting");
+		graph.compact(0);
+		Global.log().info("Done");
+		
+		return graph;
+	}
+	
 	
 	/**
 	 * Reads a file in edge-list representation into a string-labeled directed 

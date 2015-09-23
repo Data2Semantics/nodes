@@ -784,7 +784,7 @@ public class Graphs
 	
 	public static <L> boolean isSimple(Graph<L> graph)
 	{
-		return !(hasSelfLoops(graph) || hasMultiEdges(graph));
+		return (!hasSelfLoops(graph)) && (!hasMultiEdges(graph));
 	}
 	
 	public static <L> boolean hasSelfLoops(Graph<L> graph)
