@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.logChoose;
 
@@ -13,7 +13,7 @@ import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.draw.Draw;
-
+import org.nodes.util.Functions;
 import org.nodes.util.Series;
 
 public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
@@ -40,7 +40,7 @@ public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 		
 		long bits = 0;
 		
-		bits+= prefix(n);
+		bits+= Functions.prefix(n);
 		
 		int entries = (n * (n + 1)) / 2;
 		bits += log2(entries); // Encode total number of ones (k)
@@ -67,7 +67,7 @@ public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 		int n = graph.size();
 		int k = graph.numLinks();
 				
-		double sizeBits = prefix(n);
+		double sizeBits = Functions.prefix(n);
 		sizeBits += 2 * log2(n);
 
 		double kBits = logChoose(k, k + n - 1);

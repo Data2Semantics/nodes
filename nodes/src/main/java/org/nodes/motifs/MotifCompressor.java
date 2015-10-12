@@ -1,7 +1,7 @@
 package org.nodes.motifs;
 
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.compression.Functions.toc;
 import static org.nodes.util.Functions.logFactorial;
 import static org.nodes.util.Series.series;
@@ -259,9 +259,9 @@ public class MotifCompressor extends AbstractGraphCompressor<String>
 		}
 
 		// Size of the subbed graph
-		bits += prefix(graph.size() - replacedNodes + occurrences.size());
+		bits += Functions.prefix(graph.size() - replacedNodes + occurrences.size());
 		// Num links in the subbed graph
-		bits += prefix(subbedNumLinks);
+		bits += Functions.prefix(subbedNumLinks);
 
 		OnlineModel<Object> tagModel = null;
 		double tagBits = 0.0;

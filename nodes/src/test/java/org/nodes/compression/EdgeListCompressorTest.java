@@ -2,7 +2,7 @@ package org.nodes.compression;
 
 import static org.junit.Assert.*;
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.compression.Functions.tic;
 import static org.nodes.util.Series.series;
 
@@ -33,7 +33,7 @@ public class EdgeListCompressorTest
 		EdgeListCompressor<String> comp = new EdgeListCompressor<String>();
 				
 		assertEquals(
-				prefix(3) + prefix(3)
+				org.nodes.util.Functions.prefix(3) + org.nodes.util.Functions.prefix(3)
 				- log2(1.0/9) + - log2(1.0/25) - log2(1.0/49)
 				- 2.58496250072, 
 				comp.directed(data), 0.001);		

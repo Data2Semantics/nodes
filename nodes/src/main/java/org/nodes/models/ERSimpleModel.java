@@ -1,12 +1,12 @@
 package org.nodes.models;
 
-import static org.nodes.compression.Functions.prefix;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.log2Choose;
 
 import org.nodes.DGraph;
 import org.nodes.Graph;
 import org.nodes.UGraph;
+import org.nodes.util.Functions;
 
 public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
 {
@@ -31,14 +31,14 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 			double n = graph.size();
 			double t = n * (n - 1) / 2;
 			
-			return (withPrior ? prefix((int)n) + log2(t): 0) + log2Choose(graph.numLinks(), t);	
+			return (withPrior ? Functions.prefix((int)n) + log2(t): 0) + log2Choose(graph.numLinks(), t);	
 		} else
 		{
 		
 			double n = graph.size();
 			double t = n * n - n;
 			
-			return (withPrior ? prefix(graph.size()) + log2(t) : 0) + log2Choose(graph.numLinks(), t);
+			return (withPrior ? Functions.prefix(graph.size()) + log2(t) : 0) + log2Choose(graph.numLinks(), t);
 		}
 	}
 	

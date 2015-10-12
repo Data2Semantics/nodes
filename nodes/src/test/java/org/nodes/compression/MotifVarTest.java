@@ -3,7 +3,7 @@ package org.nodes.compression;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +14,7 @@ import org.nodes.DNode;
 import org.nodes.MapDTGraph;
 import org.nodes.motifs.MotifVar;
 import org.nodes.motifs.MotifVarTags;
+import org.nodes.util.Functions;
 
 public class MotifVarTest
 {
@@ -58,15 +59,15 @@ public class MotifVarTest
 		
 		double motifExpected = 0.0;
 		
-		motifExpected += 2.0 * prefix(3) + 2.0 * log2(105.0) - log2(6.0); 
+		motifExpected += 2.0 * Functions.prefix(3) + 2.0 * log2(105.0) - log2(6.0); 
 		motifExpected += log2(315.0);
 		
 		assertEquals(motifExpected, mv.motif(), 0.0001);
 		
-		assertEquals(2.0 * prefix(2) + 2.0 * - log2((1/2.0)*(1/4.0)) - log2(2.0), mv.silhouetteStructure(), 0.0);
+		assertEquals(2.0 * Functions.prefix(2) + 2.0 * - log2((1/2.0)*(1/4.0)) - log2(2.0), mv.silhouetteStructure(), 0.0);
 		assertEquals(- log2(1.0/5.0) - log2(3.0/7.0), mv.silhouetteLabels(), 0.0);
 		
-		assertEquals(prefix(2) + 2.0 * log2(4.0) + log2(8.0), mv.substitutions(), 0.0);
+		assertEquals(Functions.prefix(2) + 2.0 * log2(4.0) + log2(8.0), mv.substitutions(), 0.0);
 		
 		assertEquals(- log2(9.0) + log2(945.0), mv.wiring(), 0.00001);		
 		

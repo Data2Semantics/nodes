@@ -2,7 +2,7 @@ package org.nodes.models;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.motifs.MotifCompressor.MOTIF_SYMBOL;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.log2Choose;
@@ -87,7 +87,7 @@ public class MotifModel
 					additions.add((int)removals.frequency(pair));
 				}
 						
-			bits.add("multiple-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
+			bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 			bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
 		}
 		
@@ -255,7 +255,7 @@ public class MotifModel
 		for(Pair<Integer, Integer> token : instanceToInstance.tokens())
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 		
-		rest.add("multi-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
+		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
 		
 		return degrees;
@@ -389,7 +389,7 @@ public class MotifModel
 		for(Pair<Integer, Integer> token : instanceToInstance.tokens())
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 		
-		rest.add("multi-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
+		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
 		
 		return result;
@@ -532,7 +532,7 @@ public class MotifModel
 		double n = subbedSize;
 		double t = n * n - n;
 		
-		bits.add("subbed", prefix((int)n) + Functions.log2(t) + log2Choose(subbedLinks, t));
+		bits.add("subbed", Functions.prefix((int)n) + Functions.log2(t) + log2Choose(subbedLinks, t));
 		
 		List<Integer> additions = new ArrayList<Integer>(graph.size());
 		for(Pair<Integer, Integer> token : nodeToInstance.tokens())
@@ -542,7 +542,7 @@ public class MotifModel
 		for(Pair<Integer, Integer> token : instanceToInstance.tokens())
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 				
-		bits.add("multiple-edges", prefix(additions.isEmpty() ? 0 : max(additions)));
+		bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : max(additions)));
 		bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
 	}
 	
@@ -606,7 +606,7 @@ public class MotifModel
 		double n = subbedSize;
 		double t = (n * n - n)/2;
 		
-		bits.add("subbed", prefix((int)n) + Functions.log2(t) + log2Choose(subbedLinks, t));
+		bits.add("subbed", Functions.prefix((int)n) + Functions.log2(t) + log2Choose(subbedLinks, t));
 		
 		List<Integer> additions = new ArrayList<Integer>(graph.size());
 		for(Pair<Integer, Integer> token : nodeToInstance.tokens())
@@ -614,7 +614,7 @@ public class MotifModel
 		for(Pair<Integer, Integer> token : instanceToInstance.tokens())
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 				
-		bits.add("multiple-edges", prefix(additions.isEmpty() ? 0 : max(additions)));
+		bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : max(additions)));
 		bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
 	}	
 
@@ -703,9 +703,9 @@ public class MotifModel
 		int subbedNumLinks = graph.numLinks() - sub.numLinks() * occurrences.size();
 	
 		// * Size of the subbed graph
-		bits.add("subbed", prefix(graph.size() - (sub.size() - 1) * occurrences.size()));
+		bits.add("subbed", Functions.prefix(graph.size() - (sub.size() - 1) * occurrences.size()));
 		// * Num links in the subbed graph
-		bits.add("subbed",  prefix(subbedNumLinks));
+		bits.add("subbed",  Functions.prefix(subbedNumLinks));
 	
 		for (Link<?> link : graph.links())
 		{

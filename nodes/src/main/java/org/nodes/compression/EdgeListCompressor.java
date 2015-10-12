@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Functions.logFactorial;
 import static org.nodes.util.Series.series;
@@ -14,10 +14,18 @@ import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.util.FrequencyModel;
+import org.nodes.util.Functions;
 import org.nodes.util.Compressor;
 import org.nodes.util.OnlineModel;
 import org.nodes.util.Series;
 
+/**
+ * INCORRECT IMPLEMENTATION for non-simple graphs.
+ * @author Peter
+ *
+ * @param <N>
+ */
+@Deprecated
 public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 {
 	public EdgeListCompressor()
@@ -59,8 +67,8 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		
 		if(withPrior)
 		{
-			bits += prefix(graph.size());
-			bits += prefix(graph.numLinks());
+			bits += Functions.prefix(graph.size());
+			bits += Functions.prefix(graph.numLinks());
 		}
 						
 		for(Link<N> link : graph.links())
@@ -89,8 +97,8 @@ public class EdgeListCompressor<N> extends AbstractGraphCompressor<N>
 		
 		if(withPrior)
 		{
-			bits += prefix(graph.size());
-			bits += prefix(graph.numLinks());
+			bits += Functions.prefix(graph.size());
+			bits += Functions.prefix(graph.numLinks());
 		}
 
 		for(Link<N> link : graph.links())

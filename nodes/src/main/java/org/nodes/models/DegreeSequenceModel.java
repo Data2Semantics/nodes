@@ -1,6 +1,6 @@
 package org.nodes.models;
 
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.models.DSequenceEstimator.in;
 import static org.nodes.models.DSequenceEstimator.out;
 
@@ -103,7 +103,7 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 			int maxOut = Functions.max(out);
 	
 			return 
-				prefix(maxIn) + prefix(maxOut) + 
+				Functions.prefix(maxIn) + Functions.prefix(maxOut) + 
 				OnlineModel.storeSequence(Graphs.inDegrees(graph)) + 
 				OnlineModel.storeSequence(Graphs.outDegrees(graph));
 		}
@@ -125,7 +125,7 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 			
 			int max = Functions.max(degrees);
 	
-			return prefix(max) + OnlineModel.storeSequence(Graphs.degrees(graph)) ;
+			return Functions.prefix(max) + OnlineModel.storeSequence(Graphs.degrees(graph)) ;
 		}
 		
 		throw new IllegalStateException();
@@ -143,7 +143,7 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 		{
 			int max = Functions.max(degrees);
 	
-			return prefix(max) + OnlineModel.storeSequence(degrees);
+			return Functions.prefix(max) + OnlineModel.storeSequence(degrees);
 		}
 		
 		throw new IllegalStateException();
@@ -163,7 +163,7 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 			int maxIn = Functions.max(in(degrees));
 			int maxOut = Functions.max(out(degrees));
 			
-			return prefix(maxIn) + prefix(maxOut) + 
+			return Functions.prefix(maxIn) + Functions.prefix(maxOut) + 
 			       OnlineModel.storeSequence(in(degrees)) + 
 			       OnlineModel.storeSequence(out(degrees));
 		}

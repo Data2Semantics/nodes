@@ -1,7 +1,7 @@
 package org.nodes.motifs;
 
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.compression.Functions.toc;
 import static org.nodes.util.Functions.logFactorial;
 import static org.nodes.util.Series.series;
@@ -229,10 +229,10 @@ public class MotifVarTags
 		}
 		
 		// Size of the subbed graph
-		bits += prefix(graph.size() - replacedNodes + occurrences.size());
+		bits += Functions.prefix(graph.size() - replacedNodes + occurrences.size());
 				
 		// Num links in the subbed graph
-		bits += prefix(subbedNumLinks);
+		bits += Functions.prefix(subbedNumLinks);
 		
 		// * Now we store the actual links
 		for (Link<String> link : graph.links())
@@ -339,7 +339,7 @@ public class MotifVarTags
 			if(specifySubstitutions)
 			{
 				// - Store the set of terminals
-				bits += prefix(terminals.size());
+				bits += Functions.prefix(terminals.size());
 				bits += log2(numLabels) * terminals.size();
 			}
 			
@@ -428,7 +428,7 @@ public class MotifVarTags
 			
 			if(specifySubstitutions)
 			{
-				bits += prefix(set.size());
+				bits += Functions.prefix(set.size());
 				bits += set.size() * log2(graph.tags().size());
 			}
 			

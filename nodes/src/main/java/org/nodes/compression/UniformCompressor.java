@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.util.Functions.log2;
 
 import java.util.List;
@@ -12,6 +12,8 @@ import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.util.FrequencyModel;
+import org.nodes.util.Functions;
+
 
 /**
  * TODO: Check for self-loops, use one bit to encode
@@ -37,12 +39,12 @@ public class UniformCompressor<N> extends AbstractGraphCompressor<N>
 	public double undirected(Graph<N> graph)
 	{
 		int n = graph.size();
-		return prefix(n) + n * (n + 1) / 2; 
+		return Functions.prefix(n) + n * (n + 1) / 2; 
 	}
 	
 	public double directed(DGraph<N> graph)
 	{
 		int n = graph.size();
-		return prefix(n) + n * n;
+		return Functions.prefix(n) + n * n;
 	}
 }

@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.util.Functions.log2;
 import static org.nodes.util.Series.series;
 
@@ -79,7 +79,7 @@ public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 		double bits = 0;
 		double pBits = 0;
 		
-		bits += prefix(graph.size()); 
+		bits += Functions.prefix(graph.size()); 
 		for(Node<N> node : graph.nodes())
 			nodes.add(node, 0.0);
 		
@@ -122,7 +122,7 @@ public class NeighborListCompressor<N> extends AbstractGraphCompressor<N>
 			
 			// * encode the size
 			// bits += prefix(size);
-			pBits += prefix(size); 
+			pBits += Functions.prefix(size); 
 			
 			// * Instead of the size
 			bits += -log2(p(true, delimiter));

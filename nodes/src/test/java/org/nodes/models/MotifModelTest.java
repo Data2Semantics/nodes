@@ -3,7 +3,7 @@ package org.nodes.models;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.junit.Assert.*;
-import static org.nodes.compression.Functions.prefix;
+import static org.nodes.util.Functions.prefix;
 import static org.nodes.util.Functions.log2Choose;
 import static org.nodes.util.Functions.log2Factorial;
 import static org.nodes.util.Functions.tic;
@@ -246,7 +246,7 @@ public class MotifModelTest
 					additions.add((int)removals.frequency(pair));
 				}
 			
-			rest.add("multi-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
+			rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 			rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
 					
 			// * Store the rewiring information
@@ -316,7 +316,7 @@ public class MotifModelTest
 				additions.add((int)removals.frequency(pair));
 			}
 		
-		rest.add("multi-edges", prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
+		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
 		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
 				
 		// * Store the rewiring information

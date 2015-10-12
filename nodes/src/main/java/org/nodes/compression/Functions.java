@@ -32,12 +32,6 @@ public class Functions
 		return Math.log10(x) / Math.log10(2.0);
 	}
 	
-	public static double prefix(int n)
-	{
-		double prob = 1.0/ ((n + 1.0)*(n + 2.0));
-		return - org.nodes.util.Functions.log2(prob);
-	}
-
 	/**
 	 * The cost of storing the given value in prefix coding
 	 * 
