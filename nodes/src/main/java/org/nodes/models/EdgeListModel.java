@@ -1,11 +1,17 @@
 package org.nodes.models;
 
+import static org.nodes.Graphs.degrees;
+import static org.nodes.Graphs.inDegrees;
+import static org.nodes.Graphs.outDegrees;
+
 import java.util.List;
 
 import org.nodes.DGraph;
 import org.nodes.Graph;
+import org.nodes.Graphs;
 import org.nodes.UGraph;
 import org.nodes.compression.EdgeListCompressor;
+import org.nodes.models.DSequenceEstimator.D;
 import org.nodes.models.DegreeSequenceModel.Prior;
 import org.nodes.util.Functions;
 import org.nodes.util.OnlineModel;
@@ -23,22 +29,35 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 	@Override
 	public double codelength(Graph<? extends Object> graph)
 	{
-		if(graph instanceof UGraph<?>)
-			return EdgeListCompressor.undirected((UGraph<?>) graph, withPrior);
-		
-		if(graph instanceof DGraph<?>)
-			return EdgeListCompressor.directed((DGraph<?>) graph, withPrior);
-		
-		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");
+		return codelength(graph, DegreeSequenceModel.Prior.COMPLETE);
 	}
 	
-	private static double undirected(List<Integer> degrees, DegreeSequenceModel.Prior prior)
+	public static double codelength(Graph<?> graph, DegreeSequenceModel.Prior prior)
+	{
+		if(graph instanceof UGraph<?>)
+		{
+			List<Integer> degrees = degrees(graph);
+			return undirected(degrees, prior);
+		}
+		
+		if(graph instanceof DGraph<?>)
+		{
+			DGraph<?> dgraph = (DGraph<?>)graph;
+			List<Integer> inDegrees = inDegrees(dgraph);
+			List<Integer> outDegrees = outDegrees(dgraph);
+			
+			return directed(inDegrees, outDegrees, prior);
+		}
+		
+		throw new IllegalArgumentException("Can only handle graphs of type UGraph or DGraph");	
+	}
+	
+	public static double undirected(List<Integer> degrees, DegreeSequenceModel.Prior prior)
 	{
 		// * number of links
 		int m = 0;
 		for(int degree : degrees)
 			m += degree;
-		
 		
 		double bits = 0.0;		
 		bits += Functions.log2Factorial(m);
@@ -64,7 +83,7 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 		return bits;
 	}
 	
-	private static double undirected(List<Integer> degreesIn, List<Integer> degreesOut, DegreeSequenceModel.Prior prior)
+	public static double directed(List<Integer> degreesIn, List<Integer> degreesOut, DegreeSequenceModel.Prior prior)
 	{
 		// * number of links
 		int m = 0;
@@ -90,14 +109,21 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 				break;
 			case COMPLETE:
 				bits += Functions.prefix(degreesIn.size());
+				
 				bits += Functions.prefix(Functions.max(degreesIn));
 				bits += OnlineModel.storeSequence(degreesIn);
+				
 				bits += Functions.prefix(Functions.max(degreesOut));
 				bits += OnlineModel.storeSequence(degreesOut);
 				break;
 		}
 		
 		return bits;
+	}
+
+	public static double directed(List<D> degrees, Prior prior) 
+	{
+		return directed(DSequenceEstimator.in(degrees), DSequenceEstimator.out(degrees), prior);
 	}
 
 }

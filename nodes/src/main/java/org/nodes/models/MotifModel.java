@@ -633,7 +633,9 @@ public class MotifModel
 		FrequencyModel<String> bits = new FrequencyModel<String>();
 		
 		bits.add("sub", elModel.codelength(sub));
-		sizeSubbedEL(graph, sub, occurrences, bits);
+
+		List<D> degrees = subbedDegrees(graph, occurrences, bits);
+		bits.add("subbed", EdgeListModel.directed(degrees, Prior.COMPLETE));
 		
 		// * Store the rewiring information
 		bits.add("wiring", wiringBitsDirect(graph, sub, occurrences, resetWiring));
@@ -653,7 +655,9 @@ public class MotifModel
 		FrequencyModel<String> bits = new FrequencyModel<String>();
 		
 		bits.add("sub", elModel.codelength(sub));
-		sizeSubbedEL(graph, sub, occurrences, bits);
+
+		List<Integer> degrees = subbedDegrees(graph, occurrences, bits);
+		bits.add("subbed", EdgeListModel.undirected(degrees, Prior.COMPLETE));
 		
 		// * Store the rewiring information
 		bits.add("wiring", wiringBitsDirect(graph, sub, occurrences, resetWiring));
