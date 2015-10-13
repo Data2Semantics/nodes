@@ -168,7 +168,6 @@ public class MotifModel
 		return ci.upperBound(alpha) + rest.total();
 	}	
 	
-	
 	public static List<D> subbedDegrees(
 			DGraph<?> graph, List<List<Integer>> occurrences, 
 			FrequencyModel<String> rest)
