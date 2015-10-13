@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.nodes.Graph;
+import org.nodes.Graphs;
+import org.nodes.models.DegreeSequenceModel.Prior;
 import org.nodes.random.RandomGraphs;
 
 public class EdgeListModelTest
@@ -16,7 +18,7 @@ public class EdgeListModelTest
 		
 		System.out.println("er " + new ERSimpleModel(false).codelength(graph));
 		
-		System.out.println("el ");
+		System.out.println("el " + EdgeListModel.undirected(Graphs.degrees(graph), Prior.COMPLETE));
 	}
 
 }

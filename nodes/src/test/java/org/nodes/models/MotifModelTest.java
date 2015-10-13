@@ -159,7 +159,7 @@ public class MotifModelTest
 		
 		for(DGraph<String> sub : ex.subgraphs().subList(0, N))
 		{
-			double sizeSlow = MotifModel.size(data, sub, ex.occurrences(sub), new EdgeListModel(true), true);
+			double sizeSlow = MotifModel.size(data, sub, ex.occurrences(sub), new EdgeListModel(Prior.COMPLETE), true);
 			double sizeFast = MotifModel.sizeEL(data, sub, ex.occurrences(sub),  true);
 			
 			assertEquals(sizeSlow, sizeFast, 0.000001);
@@ -176,7 +176,7 @@ public class MotifModelTest
 		for(UGraph<String> sub : ex.subgraphs().subList(0, N))
 		{
 			System.out.println(sub);
-			double sizeSlow = MotifModel.size(data, sub, ex.occurrences(sub), new EdgeListModel(true), true);
+			double sizeSlow = MotifModel.size(data, sub, ex.occurrences(sub), new EdgeListModel(Prior.COMPLETE), true);
 			double sizeFast = MotifModel.sizeEL(data, sub, ex.occurrences(sub), true);
 
 			

@@ -625,7 +625,7 @@ public class MotifModel
 			return sizeEL((UGraph<?>) graph, (UGraph<?>) sub, occurrences, resetWiring); 
 	}
 	
-	private static EdgeListModel elModel = new EdgeListModel(true);
+	private static EdgeListModel elModel = new EdgeListModel(Prior.COMPLETE);
 	public static double sizeEL(DGraph<?> graph, DGraph<?> sub,
 			List<List<Integer>> occurrences, boolean resetWiring)
 	{		

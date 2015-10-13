@@ -18,18 +18,18 @@ import org.nodes.util.OnlineModel;
 
 public class EdgeListModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
 {
-	private boolean withPrior;
+	private DegreeSequenceModel.Prior prior;
 	
-	public EdgeListModel(boolean withPrior)
+	public EdgeListModel(DegreeSequenceModel.Prior prior)
 	{
 		super();
-		this.withPrior = withPrior;
+		this.prior = prior;
 	}
 
 	@Override
 	public double codelength(Graph<? extends Object> graph)
 	{
-		return codelength(graph, DegreeSequenceModel.Prior.COMPLETE);
+		return codelength(graph, prior);
 	}
 	
 	public static double codelength(Graph<?> graph, DegreeSequenceModel.Prior prior)
