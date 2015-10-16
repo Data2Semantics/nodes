@@ -3,6 +3,7 @@ package org.nodes.models;
 import static org.nodes.Graphs.degrees;
 import static org.nodes.Graphs.inDegrees;
 import static org.nodes.Graphs.outDegrees;
+import static org.nodes.util.Functions.log2Factorial;
 
 import java.util.List;
 
@@ -58,13 +59,17 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 		int m = 0;
 		for(int degree : degrees)
 			m += degree;
+		m = m / 2;
+		
 		
 		double bits = 0.0;		
-		bits += Functions.log2Factorial(m);
+		bits += log2Factorial(2 * m);
+		bits -= log2Factorial(m);
 		bits -= m;
 		
 		for(int degree : degrees)
-			bits -= 2 * Functions.log2Factorial(degree);
+			bits -= log2Factorial(degree);
+		
 		
 		switch(prior)
 		{
@@ -76,7 +81,7 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 			case COMPLETE:
 				bits += Functions.prefix(degrees.size());
 				bits += Functions.prefix(Functions.max(degrees));
-				bits += OnlineModel.storeSequence(degrees);
+				bits += OnlineModel.storeIntegers(degrees);
 				break;
 		}
 		
@@ -89,7 +94,6 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 		int m = 0;
 		for(int degree : degreesIn)
 			m += degree;
-		
 		
 		double bits = 0.0;		
 		bits += Functions.log2Factorial(m);
@@ -111,10 +115,10 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 				bits += Functions.prefix(degreesIn.size());
 				
 				bits += Functions.prefix(Functions.max(degreesIn));
-				bits += OnlineModel.storeSequence(degreesIn);
+				bits += OnlineModel.storeIntegers(degreesIn);
 				
 				bits += Functions.prefix(Functions.max(degreesOut));
-				bits += OnlineModel.storeSequence(degreesOut);
+				bits += OnlineModel.storeIntegers(degreesOut);
 				break;
 		}
 		

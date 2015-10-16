@@ -1,6 +1,8 @@
 package org.nodes.util.bootstrap;
 
+import static java.lang.Math.log;
 import static org.junit.Assert.*;
+import static org.nodes.util.Functions.logSum;
 import static org.nodes.util.Series.series;
 import static org.nodes.util.bootstrap.LogNormalCI.LOGE;
 import static org.nodes.util.bootstrap.LogNormalCI.LN2;
@@ -82,7 +84,39 @@ public class LogNormalCITest
 			System.out.println("	ml2 estimator " + ml2 * LN2);
 			System.out.println("	fancy estimator " + fancy);
 		}
+		
+		for(int mult : Arrays.asList(1, 10, 100, 1000, 10000))
+		{
+			double sum = Double.NEGATIVE_INFINITY;
+			double n = 0;
+		
+			for(int i : series(mult))
+			{
+				int num = 1000000;
+				double[] sample = normal.sample(num);
+	
+				sum = logSum(Math.E, sum, logSum(Math.E, sample));
+				n += num;	
+			}
+			
+			System.out.println(mult + ":" + (sum - log(n)));
+		}
 				
+		System.out.println("1000 unbiased estimates: ");
+		for(int i : series(1000000))
+		{
+			int num = 1000000;
+			double[] sample = normal.sample(num);
+
+			// * Naive estimator
+			double naive = logSum(Math.E, sample) - log(sample.length);
+			double diff = 250 - naive;
+			if(diff < 0.0)
+				System.out.println("\n!!!! " + diff);
+			
+			Functions.dot(i, 1000000);
+		}
+		
 //		double gold = lnXMean * LOGE; 
 //		
 //		for(int n : Series.series(10, 10, 150))

@@ -1,5 +1,7 @@
 package org.nodes.util;
 
+import static org.nodes.util.Functions.log2;
+
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -104,11 +106,35 @@ public class OnlineModel<T> extends FrequencyModel<T>
 	{
 		return total() > 0.0;
 	}
+	
+	/**
+	 * This uses an online model to store a sequence of (positive) integers, assuming that 
+	 * the maximum value and length of the sequence are known. 
+	 * @param sequence
+	 * @return
+	 */
+	public static double storeIntegers(List<Integer> sequence)
+	{
+		if(sequence.isEmpty())
+			return 0.0;
+		
+		int max = Functions.max(sequence);
+		
+		OnlineModel<Integer> model = new OnlineModel<Integer>(Series.series(max + 1));
+		
+		double bits = 0.0;
+		for(int symbol : sequence)
+			bits += - log2(model.observe(symbol)); 
+		
+		return bits;
+	}
 
 	/**
 	 * Returns the number of bits required to store the given sequence.
 	 * 
-	 * Does not include the cost of storing the symbols themselves.
+	 * Does not include the cost of storing the symbols themselves or the length
+	 * of the sequence.
+	 * 
 	 * @param sequence
 	 * @return
 	 */

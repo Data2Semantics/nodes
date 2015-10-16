@@ -88,7 +88,7 @@ public class MotifModel
 				}
 						
 			bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
-			bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
+			bits.add("multiple-edges", OnlineModel.storeIntegers(additions)); 
 		}
 		
 		// * Store the labels
@@ -255,7 +255,7 @@ public class MotifModel
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 		
 		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
-		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
+		rest.add("multi-edges", OnlineModel.storeIntegers(additions)); 
 		
 		return degrees;
 	}
@@ -389,7 +389,7 @@ public class MotifModel
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 		
 		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
-		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
+		rest.add("multi-edges", OnlineModel.storeIntegers(additions)); 
 		
 		return result;
 	}	
@@ -542,7 +542,7 @@ public class MotifModel
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 				
 		bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : max(additions)));
-		bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
+		bits.add("multiple-edges", OnlineModel.storeIntegers(additions)); 
 	}
 	
 	private static void sizeSubbedER(UGraph<?> graph, UGraph<?> sub,
@@ -614,7 +614,7 @@ public class MotifModel
 			additions.add((int)instanceToInstance.frequency(token) - 1);
 				
 		bits.add("multiple-edges", Functions.prefix(additions.isEmpty() ? 0 : max(additions)));
-		bits.add("multiple-edges", OnlineModel.storeSequence(additions)); 
+		bits.add("multiple-edges", OnlineModel.storeIntegers(additions)); 
 	}	
 
 	public static double sizeEL(Graph<?> graph, Graph<?> sub, List<List<Integer>> occurrences, boolean resetWiring)
@@ -670,112 +670,6 @@ public class MotifModel
 		return bits.total();
 	}
 
-	private static void sizeSubbedEL(Graph<?> graph, Graph<?> sub,
-			List<List<Integer>> occurrences, FrequencyModel<String> bits)
-	{
-		boolean directed = graph instanceof DGraph<?>;
-		
-		// - This list holds the index of the occurrence the node belongs to
-		List<Integer> inOccurrence = new ArrayList<Integer>(graph.size());
-		for (int i : Series.series(graph.size()))
-			inOccurrence.add(null);
-	
-		for (int occIndex : Series.series(occurrences.size()))
-			for (Integer i : occurrences.get(occIndex))
-				inOccurrence.set(i, occIndex);
-	
-		OnlineModel<Integer> source = new OnlineModel<Integer>(Collections.EMPTY_LIST);
-		OnlineModel<Integer> target = new OnlineModel<Integer>(Collections.EMPTY_LIST);
-	
-		// - observe all symbols
-		for (Node<?> node : graph.nodes())
-			if (inOccurrence.get(node.index()) == null)
-			{
-				source.add(node.index(), 0.0);
-				target.add(node.index(), 0.0);
-			}
-	
-		// - negative numbers represent symbol nodes
-		for (int i : Series.series(1, occurrences.size() + 1))
-		{
-			source.add(-i, 0.0);
-			target.add(-i, 0.0);
-		}
-	
-		// * count the number of links in the subbed graph
-		int subbedNumLinks = graph.numLinks() - sub.numLinks() * occurrences.size();
-	
-		// * Size of the subbed graph
-		bits.add("subbed", Functions.prefix(graph.size() - (sub.size() - 1) * occurrences.size()));
-		// * Num links in the subbed graph
-		bits.add("subbed",  Functions.prefix(subbedNumLinks));
-	
-		for (Link<?> link : graph.links())
-		{
-			Integer firstOcc = inOccurrence.get(link.first().index());
-			Integer secondOcc = inOccurrence.get(link.second().index());
-	
-			//* If link exists in subbed graph
-			if ((firstOcc == null && secondOcc == null)
-					|| firstOcc != secondOcc)
-			{
-				int first = link.first().index();
-				int second = link.second().index();
-	
-				first = inOccurrence.get(first) == null ? first
-						: -(inOccurrence.get(first) + 1);
-				second = inOccurrence.get(second) == null ? second
-						: -(inOccurrence.get(second) + 1);
-				
-				double p;
-				if(directed)
-				{
-					p = source.observe(first) * target.observe(second);
-				} else {
-					p = source.observe(first) * source.observe(second);
-					if(first != second)
-						p *= 2.0;
-				}
-				bits.add("subbed",  -Functions.log2(p));
-			}
-		}
-		
-		if(subbedNumLinks < 0)
-			System.out.println("!");
-	
-		bits.add("subbed", - logFactorial(subbedNumLinks, 2.0));
-	}
-//
-//	public static double wiringBits(DGraph<String> graph, DGraph<String> sub, List<List<Integer>> occurrences,
-//			boolean reset)
-//	{
-//		OnlineModel<Integer> om = new OnlineModel<Integer>(Series.series(sub.size()));
-//		
-//		double wiringBits = 0.0;
-//		
-//		for (List<Integer> occurrence : occurrences)
-//		{			
-//			if(reset)
-//				om = new OnlineModel<Integer>(Series.series(sub.size()));
-//			
-//			// * The index of the node within the occurrence
-//			for (int indexInSubgraph : series(occurrence.size()))
-//			{
-//				DNode<String> node = graph.get(occurrence.get(indexInSubgraph));
-//				
-//				for(DLink<String> link : node.links())
-//				{
-//					DNode<String> neighbor = link.other(node);
-//					
-//					if(! occurrence.contains(neighbor.index()))
-//						wiringBits += - log2(om.observe(indexInSubgraph));
-//				}
-//			}
-//		}	
-//		
-//		return wiringBits;
-//	}
-//	
 	public static <L> double wiringBitsDirect(Graph<L> graph, Graph<?> sub, List<List<Integer>> occurrences,
 			boolean reset)
 	{

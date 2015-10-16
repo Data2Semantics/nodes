@@ -247,7 +247,7 @@ public class MotifModelTest
 				}
 			
 			rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
-			rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
+			rest.add("multi-edges", OnlineModel.storeIntegers(additions)); 
 					
 			// * Store the rewiring information
 			rest.add("wiring", MotifModel.wiringBits(sub, wiring, resetWiring));
@@ -317,7 +317,7 @@ public class MotifModelTest
 			}
 		
 		rest.add("multi-edges", Functions.prefix(additions.isEmpty() ? 0 : Functions.max(additions)));
-		rest.add("multi-edges", OnlineModel.storeSequence(additions)); 
+		rest.add("multi-edges", OnlineModel.storeIntegers(additions)); 
 				
 		// * Store the rewiring information
 		rest.add("wiring", MotifModel.wiringBits(sub, wiring, resetWiring));
