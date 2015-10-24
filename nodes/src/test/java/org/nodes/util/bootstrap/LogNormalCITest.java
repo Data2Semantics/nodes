@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.junit.Test;
+import org.nodes.Global;
 import org.nodes.util.Functions;
 import org.nodes.util.Pair;
 import org.nodes.util.Series;
@@ -142,5 +143,4 @@ public class LogNormalCITest
 //			System.out.println("coverage at n="+n+": "+ (hits/(double)repeats));
 //		}
 	}
-
 }
