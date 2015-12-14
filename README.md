@@ -5,16 +5,35 @@ Nodes is a general purpose graph library. It focuses on simple creation and trav
 
 ## Installation
 
-The simplest way to use nodes is to reference its maven package. To do so, include the repository http://ducktape.wongiseng.com/nexus/content/repositories/releases, and the artifact 'nodes' with group-id 'data2semantics'.
+The simplest way to use nodes is to reference its maven package. We do not build releases for nodes (yet), but the latest snapshot can be included using [jitpack](https://jitpack.io). Simply inclide the following repository:
+
+```xml
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+```
+
+And the following dependency:
+
+```xml
+	<dependency>
+	    <groupId>com.github.data2semantics</groupId>
+	    <artifactId>nodes</artifactId>
+	    <version>undefined</version>
+	</dependency>
+```
 
 ## The basics
 
 ### Terminology
-In order to keep object names and variable dscriptors short, Nodes uses some non-standard terminology:
+In order to keep object names and variable descriptors short, Nodes uses some non-standard terminology:
 
 <dl>
   <dt>node</dt><dd>A node is an element in a graph, also known as a vertex.</dd>
-  <dt>link</dt><dd>A link is what connects node, also known as an edge.</dd>
+  <dt>link</dt><dd>A link is what connects nodes, also known as an edge.</dd>
   <dt>label</dt><dd>Labels are the objects that annotate nodes.</dd>
   <dt>tag</dt><dd>Tags are the objects that annotate links.</dd>
   <dt>U</dt><dd>Undirected, a graph for which the links do not have a specific direction.</dd>
