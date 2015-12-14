@@ -22,7 +22,7 @@ And the following dependency:
 	<dependency>
 	    <groupId>com.github.data2semantics</groupId>
 	    <artifactId>nodes</artifactId>
-	    <version>undefined</version>
+	    <version>-SNAPSHOT</version>
 	</dependency>
 ```
 
@@ -94,6 +94,9 @@ For feedback please use the issues on github, or if that's not an option, send a
 ### Known problems
 
 * Relabeling nodes and links is currently not possible and would be an expensive operation in the implementations available. We're working on a solution. As a workaround, the best option is to copy the graph over to a new graph. A wrapper object around the original object is a solution, but should be used with care, since these will be stored in hashtables.
+
+## Javadoc
+API documentation can be found [here](http://pbloem.github.io/nodes_javadoc/nodes/). Note that this may be out-of-date. For the most recent version, the code should be checked out.
 
 ## Acknowledgements
 
