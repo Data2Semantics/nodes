@@ -51,7 +51,6 @@ import org.nodes.util.Generators;
 import org.nodes.util.Order;
 import org.nodes.util.Series;
 
-import com.itextpdf.text.log.SysoLogger;
 
 import au.com.bytecode.opencsv.CSVWriter;
 

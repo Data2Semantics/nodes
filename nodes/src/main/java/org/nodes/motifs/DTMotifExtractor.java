@@ -40,7 +40,6 @@ import org.nodes.util.Generator;
 import org.nodes.util.Order;
 import org.nodes.util.Series;
 
-import com.itextpdf.text.log.SysoLogger;
 
 import au.com.bytecode.opencsv.CSVWriter;
 

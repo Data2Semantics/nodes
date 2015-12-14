@@ -14,8 +14,6 @@ import java.util.ListIterator;
 
 import org.nodes.util.LogNum.LogNumList;
 
-import com.itextpdf.text.log.SysoLogger;
-
 /**
  * A number stored as the logarithm of its magnitude and its sign.
  * 

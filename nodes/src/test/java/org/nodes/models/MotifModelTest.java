@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.gephi.io.generator.plugin.RandomGraph;
 import org.junit.Test;
 import org.nodes.DGraph;
 import org.nodes.Global;
