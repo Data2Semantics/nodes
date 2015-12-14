@@ -105,32 +105,5 @@
      	<version>0.8.2</version>
      </dependency>
   </dependencies>
-	<!-- Where we deploy stuff so that people can use, for the time being in internal ducktape server -->
-	<distributionManagement>
-	   <repository>
-	       <id>ducktape-nexus</id>
-	       <name>Ducktape Nexus repository releases </name>
-	       <url>http://ducktape.wongiseng.com/nexus/content/repositories/releases</url>
-	   </repository>
-
-	   <snapshotRepository>
-	       <id>ducktape-nexus</id>
-	       <name>Ducktape Nexus repository internal releases</name>
-	       <url>http://ducktape.wongiseng.com/nexus/content/repositories/snapshots</url>
-       	   </snapshotRepository>
-	</distributionManagement>
-
-   <repositories>
-      <repository>
-         <id>gephi-snapshots</id>
-         <name>Gephi Snapshots</name>
-         <url>http://nexus.gephi.org/nexus/content/repositories/snapshots/</url>
-      </repository>
-      <repository>
-         <id>gephi-releases</id>
-         <name>Gephi Releases</name>
-         <url>http://nexus.gephi.org/nexus/content/repositories/releases/</url>
-      </repository>
-   </repositories>
    
 </project>
