@@ -1,23 +1,24 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Functions.prefix;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.logFactorial;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.logFactorial;
+import static nl.peterbloem.kit.Functions.prefix;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.List;
 
-import org.nodes.Global;
 import org.nodes.DGraph;
 import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.UGraph;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
 import org.nodes.util.Compressor;
-import org.nodes.util.OnlineModel;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.OnlineModel;
+import nl.peterbloem.kit.Series;
 
 /**
  * INCORRECT IMPLEMENTATION for non-simple graphs.

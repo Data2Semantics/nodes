@@ -3,9 +3,6 @@ package org.nodes.random;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nodes.Global;
-import org.nodes.util.AbstractGenerator;
-import org.nodes.util.Generator;
 import org.nodes.DGraph;
 import org.nodes.DLink;
 import org.nodes.DTGraph;
@@ -17,6 +14,10 @@ import org.nodes.UGraph;
 import org.nodes.ULink;
 import org.nodes.UTGraph;
 import org.nodes.UTLink;
+
+import nl.peterbloem.kit.AbstractGenerator;
+import nl.peterbloem.kit.Generator;
+import nl.peterbloem.kit.Global;
 
 /**
  * A linkgenerator produces a random link from a given graph

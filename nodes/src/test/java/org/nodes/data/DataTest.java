@@ -197,7 +197,7 @@ public class DataTest {
 		Data.writeEdgeList(graph, new File("/Users/Peter/Documents/datasets/graphs/cit/simple2.txt"));
 	}
 	
-	@Test
+	// @Test
 	public void loadDBPedia()
 		throws IOException
 	{

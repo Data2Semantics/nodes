@@ -1,20 +1,21 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Functions.prefix;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.logChoose;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.logChoose;
+import static nl.peterbloem.kit.Functions.prefix;
 
 import java.util.List;
 
-import org.nodes.Global;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.draw.Draw;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 {

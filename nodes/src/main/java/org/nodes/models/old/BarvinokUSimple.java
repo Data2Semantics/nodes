@@ -1,7 +1,7 @@
 package org.nodes.models.old;
 
 import static java.lang.Math.exp;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.List;

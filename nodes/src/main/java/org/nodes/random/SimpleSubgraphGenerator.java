@@ -1,7 +1,7 @@
 package org.nodes.random;
 
-import static org.nodes.util.Functions.choose;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.choose;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,19 +11,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.util.AbstractGenerator;
-import org.nodes.util.Generator;
 import org.nodes.FastWalkable;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.Subgraph;
 import org.nodes.clustering.ConnectionClusterer;
 import org.nodes.random.LinkGenerators.LinkGenerator;
-import org.nodes.util.Functions;
-import org.nodes.util.Permutations;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.AbstractGenerator;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Generator;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Permutations;
+import nl.peterbloem.kit.Series;
 
 /**
  * A fast and simple extractor of subgraphs.

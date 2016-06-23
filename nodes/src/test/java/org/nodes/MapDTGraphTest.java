@@ -11,9 +11,11 @@ import java.util.Set;
 import org.junit.Test;
 import org.nodes.data.Examples;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class MapDTGraphTest
 {

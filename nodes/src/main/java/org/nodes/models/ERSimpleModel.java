@@ -1,12 +1,13 @@
 package org.nodes.models;
 
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.log2Choose;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2Choose;
 
 import org.nodes.DGraph;
 import org.nodes.Graph;
 import org.nodes.UGraph;
-import org.nodes.util.Functions;
+
+import nl.peterbloem.kit.Functions;
 
 public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
 {

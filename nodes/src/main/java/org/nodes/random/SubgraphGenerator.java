@@ -1,6 +1,6 @@
 package org.nodes.random;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,16 +10,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.util.AbstractGenerator;
-import org.nodes.util.Generator;
 import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.Subgraph;
 import org.nodes.random.LinkGenerators.LinkGenerator;
-import org.nodes.util.Functions;
-import org.nodes.util.Permutations;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.AbstractGenerator;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Generator;
+import nl.peterbloem.kit.Permutations;
+import nl.peterbloem.kit.Series;
 
 /**
  * Samples subgraphs from a given graph by the algorithm of Kashtan et al (2004)

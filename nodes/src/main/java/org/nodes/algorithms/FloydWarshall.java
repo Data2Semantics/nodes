@@ -1,6 +1,6 @@
 package org.nodes.algorithms;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,11 +9,12 @@ import java.util.Map;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Node;
-import org.nodes.util.Series;
 import org.nodes.util.Distance;
+
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 /**
  * TODO: Check graph modcount

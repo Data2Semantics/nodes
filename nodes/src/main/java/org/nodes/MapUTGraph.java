@@ -1,6 +1,6 @@
 package org.nodes;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -21,10 +21,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.nodes.exceptions.AccessedDeadElementException;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 
 

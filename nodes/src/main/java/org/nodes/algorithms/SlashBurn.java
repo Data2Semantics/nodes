@@ -1,7 +1,7 @@
 package org.nodes.algorithms;
 
-import static org.nodes.util.Series.series;
-import static org.nodes.util.Functions.Dir;
+import static nl.peterbloem.kit.Functions.Dir;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,20 +13,21 @@ import java.util.Random;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
-import org.nodes.Global;
 import org.nodes.DegreeComparator;
 import org.nodes.DegreeIndexComparator;
 import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.clustering.ConnectionClusterer.ConnectionClustering;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.BitString;
-import org.nodes.util.Functions;
-import org.nodes.util.MaxObserver;
-import org.nodes.util.Order;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.MaxObserver;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * An implementation of the Slash-and-burn algorithm of Kang and Faloutsos.

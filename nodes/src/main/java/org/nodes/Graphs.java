@@ -2,8 +2,8 @@ package org.nodes;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.nodes.util.Pair.p;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Pair.p;
+import static nl.peterbloem.kit.Series.series;
 
 import java.awt.PageAttributes.OriginType;
 import java.util.AbstractCollection;
@@ -17,15 +17,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.Global;
 import org.nodes.algorithms.Nauty;
 import org.nodes.draw.Draw;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.BitString;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Order;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class Graphs
 {

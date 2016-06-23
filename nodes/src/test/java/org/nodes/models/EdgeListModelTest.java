@@ -14,7 +14,7 @@ public class EdgeListModelTest
 	@Test
 	public void test()
 	{
-		Graph<String> graph = RandomGraphs.random(1000, 10000);
+		Graph<String> graph = RandomGraphs.random(10, 25);
 		
 		System.out.println("er " + new ERSimpleModel(false).codelength(graph));
 		

@@ -1,19 +1,23 @@
 package org.nodes.util;
 
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
-import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.nodes.Global;
 import org.nodes.UGraph;
 import org.nodes.models.USequenceEstimator;
 import org.nodes.models.USequenceEstimator.CIMethod;
 import org.nodes.models.USequenceEstimator.CIType;
 import org.nodes.random.RandomGraphs;
 import org.nodes.util.bootstrap.PercentileCI;
+
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
+
 import org.nodes.util.bootstrap.BCaCI;
 import org.nodes.util.bootstrap.LogBCaCI;
 import org.nodes.util.bootstrap.LogPercentileCI;
@@ -24,7 +28,7 @@ public class BootstrapCITest
 	@Test
 	public void test()
 	{
-		int tries = 1000;
+		int tries = 100;
 		int n = 500;
 		
 		double var = 1.5;
@@ -55,14 +59,14 @@ public class BootstrapCITest
 		double coverage = (hits/ (double)tries);
 		System.out.println("coverage: " + coverage);
 		
-		assertEquals(0.95, coverage, 0.05);	
+		assertEquals(0.95, coverage, 0.1);	
 	}
 
 	
 	@Test
 	public void testBCa()
 	{
-		int tries = 1000;
+		int tries = 100;
 		int n = 500;
 		
 		double var = 1.5;
@@ -93,13 +97,13 @@ public class BootstrapCITest
 		double coverage = (hits/ (double)tries);
 		System.out.println("coverage: " + coverage);
 		
-		assertEquals(0.95, coverage, 0.05);	
+		assertEquals(0.95, coverage, 0.1);	
 	}
 	
 	@Test
 	public void testTransform()
 	{
-		UGraph<String> graph = RandomGraphs.random(100, 100);
+		UGraph<String> graph = RandomGraphs.random(10, 25);
 		
 		USequenceEstimator<String> model = new USequenceEstimator<String>(graph, 10);
 		

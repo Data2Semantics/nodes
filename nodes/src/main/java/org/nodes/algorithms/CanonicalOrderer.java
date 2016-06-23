@@ -3,7 +3,8 @@ package org.nodes.algorithms;
 import java.util.List;
 
 import org.nodes.Graph;
-import org.nodes.util.Order;
+
+import nl.peterbloem.kit.Order;
 
 public interface CanonicalOrderer
 {

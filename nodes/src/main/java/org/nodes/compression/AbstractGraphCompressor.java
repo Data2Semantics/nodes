@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,9 +14,11 @@ import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
 import org.nodes.util.GZIPCompressor;
-import org.nodes.util.OnlineModel;
+
+import nl.peterbloem.kit.OnlineModel;
+import nl.peterbloem.kit.Series;
+
 import org.nodes.util.Compressor;
-import org.nodes.util.Series;
 
 public abstract class AbstractGraphCompressor<N> implements Compressor<Graph<N>>
 {	

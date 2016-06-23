@@ -1,7 +1,8 @@
 package org.nodes;
 
 import static java.util.Collections.unmodifiableList;
-import static org.nodes.util.Functions.equals;
+import static nl.peterbloem.kit.Functions.equals;
+import static nl.peterbloem.kit.Series.series;
 
 import java.io.File;
 import java.util.AbstractCollection;
@@ -21,10 +22,11 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.nodes.data.Data;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * A light-weight (ie. low memory) implementation of a directed graph.
@@ -45,7 +47,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 	
 	private List<L> labels;
 	
-	private List<List<Integer>> neighbors;
+	List<List<Integer>> neighbors;
 	
 	private int numLinks = 0;
 	private long modCount = 0;
@@ -129,6 +131,16 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 					if(it.next() == index)
 						it.remove();
 			}
+			
+			// * move through all neighbor lists and decrement every index that 
+			//   is higher than the one we just removed.  
+			for(List<Integer> list : neighbors)
+				for(int i : series(list.size()))
+				{
+					Integer value = list.get(i);
+					if(value > index)
+						list.set(i, value - 1);
+				}		
 			
 			neighbors.remove((int)index);
 			labels.remove((int)index);

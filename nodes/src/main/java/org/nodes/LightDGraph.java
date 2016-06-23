@@ -1,7 +1,7 @@
 package org.nodes;
 
-import static org.nodes.util.Functions.concat;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.concat;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.AbstractCollection;
 import java.util.AbstractList;
@@ -19,10 +19,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * A light-weight (ie. low memory) implementation of a directed graph.
@@ -130,6 +130,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 					if(it.next() == index)
 						it.remove();
 			}
+			
 			for(List<Integer> neighbors : in)
 			{
 				Iterator<Integer> it = neighbors.iterator();
@@ -137,6 +138,23 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 					if(it.next() == index)
 						it.remove();
 			}
+			
+			// * move through all neighbor lists and decrement every index that 
+			//   is higher than the one we just removed.  
+			for(List<Integer> list : in)
+				for(int i : series(list.size()))
+				{
+					Integer value = list.get(i);
+					if(value > index)
+						list.set(i, value - 1);
+				}
+			for(List<Integer> list : out)
+				for(int i : series(list.size()))
+				{
+					Integer value = list.get(i);
+					if(value > index)
+						list.set(i, value - 1);
+				}			
 			
 			in.remove((int)index);
 			out.remove((int)index);
@@ -155,7 +173,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 				throw new IllegalStateException("Node is dead (index was "+index+")");
 			
 			if(nodeModCount != nodeModState)
-				throw new IllegalStateException("Graph was modified since node creation.");
+				throw new IllegalStateException("Graph was modified since node creation. The node objects should be re-requested from the graph object.");
 		}
 
 		@Override

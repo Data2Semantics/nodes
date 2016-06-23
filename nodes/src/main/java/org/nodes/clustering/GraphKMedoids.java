@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.nodes.classification.Classified;
 import org.nodes.clustering.KMedioids;
+
+import nl.peterbloem.kit.Series;
+
 import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.algorithms.FloydWarshall;
-import org.nodes.util.Series;
 
 public class GraphKMedoids<L> implements Clusterer<L>
 {

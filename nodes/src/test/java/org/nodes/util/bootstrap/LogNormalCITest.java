@@ -1,9 +1,9 @@
 package org.nodes.util.bootstrap;
 
 import static java.lang.Math.log;
+import static nl.peterbloem.kit.Functions.logSum;
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
-import static org.nodes.util.Functions.logSum;
-import static org.nodes.util.Series.series;
 import static org.nodes.util.bootstrap.LogNormalCI.LOGE;
 import static org.nodes.util.bootstrap.LogNormalCI.LN2;
 
@@ -13,15 +13,20 @@ import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.junit.Test;
-import org.nodes.Global;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class LogNormalCITest
 {
 
-	@Test
+	/**
+	 * Tests the behavior of different estimators for the mean of a log-normal 
+	 * distribution
+	 */
+	// @Test
 	public void test()
 	{
 		int repeats = 100;

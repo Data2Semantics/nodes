@@ -1,12 +1,11 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Functions.prefix;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.prefix;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.List;
 
-import org.nodes.Global;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.Graph;
@@ -14,9 +13,11 @@ import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.UGraph;
 import org.nodes.draw.Draw;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 
 /**

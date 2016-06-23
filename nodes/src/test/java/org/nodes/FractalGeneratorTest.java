@@ -4,7 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.nodes.random.FractalGenerator;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Series;
 
 public class FractalGeneratorTest
 {
@@ -23,7 +24,7 @@ public class FractalGeneratorTest
 		
 	}
 
-	@Test
+	// @Test
 	public void testPredictors()
 	{
 		int offspring = 4;

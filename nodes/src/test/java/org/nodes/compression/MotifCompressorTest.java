@@ -31,14 +31,15 @@ import org.nodes.motifs.MotifCompressor;
 import org.nodes.motifs.UPlainMotifExtractor;
 import org.nodes.random.SimpleSubgraphGenerator;
 import org.nodes.random.SubgraphGenerator;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Order;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Series;
 
 public class MotifCompressorTest
 {
 
-	@Test
+	// @Test
 	public void fastVsSlow()
 	{
 		boolean correct = true;
@@ -122,7 +123,7 @@ public class MotifCompressorTest
 		System.out.println("Bits no occurrences: " + bitsFast + ".");
 	}
 	
-	@Test
+	// @Test
 	public void speed()
 	{
 		DGraph<String> data = org.nodes.random.RandomGraphs.preferentialAttachmentDirected(10000, 3);

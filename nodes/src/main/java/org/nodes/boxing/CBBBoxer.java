@@ -1,6 +1,6 @@
 package org.nodes.boxing;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,10 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Node;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class CBBBoxer<L> implements BoxingAlgorithm<L>
 {

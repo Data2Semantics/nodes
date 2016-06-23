@@ -2,14 +2,14 @@ package org.nodes.models;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.nodes.util.Functions.prefix;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2Choose;
+import static nl.peterbloem.kit.Functions.log2Factorial;
+import static nl.peterbloem.kit.Functions.logFactorial;
+import static nl.peterbloem.kit.Functions.max;
+import static nl.peterbloem.kit.Functions.prefix;
+import static nl.peterbloem.kit.Series.series;
 import static org.nodes.motifs.MotifCompressor.MOTIF_SYMBOL;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.log2Choose;
-import static org.nodes.util.Functions.log2Factorial;
-import static org.nodes.util.Functions.logFactorial;
-import static org.nodes.util.Functions.max;
-import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,12 +35,13 @@ import org.nodes.UNode;
 import org.nodes.models.DegreeSequenceModel.Prior;
 import org.nodes.motifs.MotifCompressor;
 import org.nodes.models.DSequenceEstimator.D;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.OnlineModel;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
 import org.nodes.util.bootstrap.LogNormalCI;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.OnlineModel;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * 
@@ -92,7 +93,7 @@ public class MotifModel
 		}
 		
 		// * Store the labels
-		bits.add("labels", log2Choose(occurrences.size(), subbed.size())); 
+		bits.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), subbed.size())); 
 								
 		bits.add("sub", nullModel.codelength(sub));
 
@@ -153,7 +154,7 @@ public class MotifModel
 		rest.add("subbed", DegreeSequenceModel.prior(degrees, Prior.COMPLETE));
 		
 		// * Store the labels
-		rest.add("labels", log2Choose(occurrences.size(), degrees.size())); 
+		rest.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), degrees.size())); 
 				
 		// * Store the rewiring information
 		rest.add("wiring", wiringBitsDirect(graph, sub, occurrences, resetWiring));
@@ -294,7 +295,7 @@ public class MotifModel
 		rest.add("subbed", DegreeSequenceModel.priorDegrees(degrees, Prior.COMPLETE));
 		
 		// * Store the labels
-		rest.add("labels", log2Choose(occurrences.size(), degrees.size())); 
+		rest.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), degrees.size())); 
 				
 		// * Store the rewiring information
 		rest.add("wiring", wiringBitsDirect(graph, sub, occurrences, resetWiring));
@@ -436,7 +437,7 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		
-		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+		bits.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), subbedSize)); 
 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
 		
@@ -458,7 +459,7 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
-		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+		bits.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), subbedSize)); 
 		
 		// bits.print(System.out);
 		
@@ -643,7 +644,10 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
-		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+		bits.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), subbedSize)); 
+		
+		if(occurrences.size() == 0)
+			bits.print(System.out);
 		
 		return bits.total();
 	}
@@ -665,7 +669,7 @@ public class MotifModel
 		//   nodes in the data
 		int subbedSize = graph.size() - (sub.size() - 1) * occurrences.size(); 
 		bits.add("insertions", log2Factorial(graph.size()) - log2Factorial(subbedSize));
-		bits.add("labels", log2Choose(occurrences.size(), subbedSize)); 
+		bits.add("labels", Functions.prefix(occurrences.size()) + log2Choose(occurrences.size(), subbedSize)); 
 		
 		return bits.total();
 	}

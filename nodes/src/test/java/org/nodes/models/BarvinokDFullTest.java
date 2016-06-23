@@ -9,7 +9,7 @@ import org.nodes.random.RandomGraphs;
 
 public class BarvinokDFullTest
 {
-	@Test
+	// @Test
 	public void test1()
 	{
 		DGraph<?> graph = RandomGraphs.randomDirected(1000, 0.1);

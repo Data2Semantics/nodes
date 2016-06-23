@@ -15,7 +15,8 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
-import org.nodes.util.MaxObserver;
+
+import nl.peterbloem.kit.MaxObserver;
 
 /** 
  * A beamwidth search for the best nodes to represent instances.

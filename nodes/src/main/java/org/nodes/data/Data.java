@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.nodes.Global;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.DTGraph;
@@ -25,6 +24,8 @@ import org.nodes.UGraph;
 import org.nodes.UNode;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
+
+import nl.peterbloem.kit.Global;
 
 public class Data {
 

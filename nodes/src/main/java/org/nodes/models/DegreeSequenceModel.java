@@ -1,6 +1,6 @@
 package org.nodes.models;
 
-import static org.nodes.util.Functions.prefix;
+import static nl.peterbloem.kit.Functions.prefix;
 import static org.nodes.models.DSequenceEstimator.in;
 import static org.nodes.models.DSequenceEstimator.out;
 
@@ -13,9 +13,10 @@ import org.nodes.UGraph;
 import org.nodes.compression.EdgeListCompressor;
 import org.nodes.models.DSequenceEstimator.D;
 import org.nodes.models.DegreeSequenceModel.Prior;
-import org.nodes.util.Functions;
-import org.nodes.util.OnlineModel;
 import org.nodes.util.bootstrap.LogNormalCI;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.OnlineModel;
 
 public class DegreeSequenceModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
 {

@@ -1,10 +1,10 @@
 package org.nodes.random;
 
+import static nl.peterbloem.kit.Functions.dot;
+import static nl.peterbloem.kit.Functions.tic;
+import static nl.peterbloem.kit.Functions.toc;
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
-import static org.nodes.util.Functions.dot;
-import static org.nodes.util.Functions.tic;
-import static org.nodes.util.Functions.toc;
-import static org.nodes.util.Series.series;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +24,12 @@ import org.nodes.UGraph;
 import org.nodes.UNode;
 import org.nodes.algorithms.Nauty;
 import org.nodes.data.Data;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Generators;
-import org.nodes.util.Order;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Generators;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Series;
 
 public class SimpleSubgraphGeneratorTest
 {
@@ -37,7 +38,7 @@ public class SimpleSubgraphGeneratorTest
 	public void test() throws IOException
 	{
 		
-		int n = 50000; 
+		int n = 500; 
 		
 		tic();
 		DGraph<String> graph = Data.edgeListDirectedUnlabeled(new File("/Users/Peter/Documents/datasets/graphs/p2p/p2p.30.txt"), true);
@@ -85,7 +86,7 @@ public class SimpleSubgraphGeneratorTest
 	@Test
 	public void testUniqueness()
 	{
-		for(int i : series(1000000))
+		for(int i : series(100))
 		{
 			UGraph<String> graph = RandomGraphs.random(5, 4);
 			SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(3, 4));
@@ -101,7 +102,7 @@ public class SimpleSubgraphGeneratorTest
 	@Test
 	public void testUniquenessBig()
 	{
-		for(int i : series(1000))
+		for(int i : series(2))
 		{
 			UGraph<String> graph = RandomGraphs.random(100, 200);
 			SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(2, 7));
@@ -170,9 +171,29 @@ public class SimpleSubgraphGeneratorTest
 		
 		System.out.println(gen.addNeighbor(Arrays.asList(0)));
 		
-		gen = new SimpleSubgraphGenerator(graph, Generators.uniform(5, 6));
 
-		System.out.println(gen.generate());
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void testTooSmall()
+	{
+		UGraph<String> graph = new MapUTGraph<String, String>();
+		
+		UNode<String> a = graph.add("");
+		UNode<String> b = graph.add("");
+		UNode<String> c = graph.add("");
+		UNode<String> d = graph.add("");
+		UNode<String> e = graph.add("");
+		
+		b.connect(c);
+		c.connect(d);
+		d.connect(e);
+		e.connect(b);
+		
+		SimpleSubgraphGenerator gen = new SimpleSubgraphGenerator(graph, Generators.uniform(5, 6));
+
+		// - This should throw a RuntimeException
+		gen.generate();
 	}
 
 }

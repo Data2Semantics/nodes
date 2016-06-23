@@ -1,18 +1,19 @@
 package org.nodes.random;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.nodes.Global;
 import org.nodes.MapUTGraph;
 import org.nodes.UTGraph;
 import org.nodes.UTLink;
 import org.nodes.UTNode;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class FractalGenerator
 {

@@ -10,7 +10,8 @@ import java.util.*;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.nodes.Global;
+
+import nl.peterbloem.kit.Global;
 
 public class Point 
 	extends AbstractList<Double>

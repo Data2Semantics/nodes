@@ -1,21 +1,22 @@
 package org.nodes.random;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.Global;
 import org.nodes.DTGraph;
 import org.nodes.Graph;
 import org.nodes.Graphs;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.UTGraph;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class DBAGenerator
 {

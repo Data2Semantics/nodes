@@ -1,15 +1,14 @@
 package org.nodes;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.util.Series;
-
 import cern.colt.list.AbstractList;
+import nl.peterbloem.kit.Series;
 
 /**
  * @author Peter

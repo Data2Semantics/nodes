@@ -2,7 +2,7 @@ package org.nodes.draw;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.floor;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -30,8 +30,6 @@ import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.util.BufferedImageTranscoder;
-import org.nodes.util.Series;
-
 import org.apache.batik.svggen.SVGGraphics2D;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
@@ -52,6 +50,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Element;
 import org.w3c.dom.svg.SVGDocument;
+
+import nl.peterbloem.kit.Series;
 
 
 public class Draw

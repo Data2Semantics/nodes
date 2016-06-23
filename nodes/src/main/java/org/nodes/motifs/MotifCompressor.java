@@ -1,10 +1,10 @@
 package org.nodes.motifs;
 
+import static nl.peterbloem.kit.Functions.logFactorial;
+import static nl.peterbloem.kit.Functions.prefix;
+import static nl.peterbloem.kit.Series.series;
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.util.Functions.prefix;
 import static org.nodes.compression.Functions.toc;
-import static org.nodes.util.Functions.logFactorial;
-import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +23,6 @@ import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
 import org.nodes.FastWalkable;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.MapDTGraph;
@@ -36,13 +35,15 @@ import org.nodes.ULink;
 import org.nodes.UNode;
 import org.nodes.compression.AbstractGraphCompressor;
 import org.nodes.compression.EdgeListCompressor;
-import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
 import org.nodes.util.GZIPCompressor;
-import org.nodes.util.OnlineModel;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.OnlineModel;
+import nl.peterbloem.kit.Series;
 
 /**
  * 

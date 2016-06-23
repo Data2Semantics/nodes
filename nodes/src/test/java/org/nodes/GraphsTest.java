@@ -1,7 +1,7 @@
 package org.nodes;
 
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
-import static org.nodes.util.Series.series;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,7 +12,8 @@ import org.junit.Test;
 import org.nodes.algorithms.Nauty;
 import org.nodes.data.Examples;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Series;
 
 public class GraphsTest
 {

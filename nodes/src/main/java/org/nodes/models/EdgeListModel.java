@@ -1,9 +1,9 @@
 package org.nodes.models;
 
+import static nl.peterbloem.kit.Functions.log2Factorial;
 import static org.nodes.Graphs.degrees;
 import static org.nodes.Graphs.inDegrees;
 import static org.nodes.Graphs.outDegrees;
-import static org.nodes.util.Functions.log2Factorial;
 
 import java.util.List;
 
@@ -14,8 +14,9 @@ import org.nodes.UGraph;
 import org.nodes.compression.EdgeListCompressor;
 import org.nodes.models.DSequenceEstimator.D;
 import org.nodes.models.DegreeSequenceModel.Prior;
-import org.nodes.util.Functions;
-import org.nodes.util.OnlineModel;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.OnlineModel;
 
 public class EdgeListModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
 {

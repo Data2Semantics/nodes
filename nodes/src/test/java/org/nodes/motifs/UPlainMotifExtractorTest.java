@@ -13,7 +13,8 @@ import org.nodes.Subgraph;
 import org.nodes.UGraph;
 import org.nodes.UNode;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.FrequencyModel;
+
+import nl.peterbloem.kit.FrequencyModel;
 
 public class UPlainMotifExtractorTest
 {
@@ -84,7 +85,7 @@ public class UPlainMotifExtractorTest
 	{
 		UGraph<String> data = RandomGraphs.random(100, 0.5);
 		
-		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 10000, 3, 7);
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 500, 3, 7);
 		
 		for(UGraph<String> sub : ex.subgraphs())
 		{
@@ -101,7 +102,7 @@ public class UPlainMotifExtractorTest
 	{
 		UGraph<String> data = RandomGraphs.random(1000, 2000);
 		
-		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 300000, 3, 6);
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 3000, 3, 6);
 		
 		for(UGraph<String> sub : ex.subgraphs())
 		{
@@ -120,7 +121,7 @@ public class UPlainMotifExtractorTest
 	@Test
 	public void testuniqueNodes()
 	{		
-		UGraph<String> data = RandomGraphs.random(1000, 2000);
+		UGraph<String> data = RandomGraphs.random(100, 400);
 
 		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 50000, 3, 6);
 		for(UGraph<String> sub : ex.subgraphs())
@@ -136,7 +137,7 @@ public class UPlainMotifExtractorTest
 	{
 		UGraph<String> data = RandomGraphs.random(1000, 2000);
 		
-		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 300000, 3, 6);
+		UPlainMotifExtractor<String> ex = new UPlainMotifExtractor<String>(data, 3000, 3, 6);
 		
 		for(UGraph<String> sub : ex.subgraphs())
 			for(List<Integer> occ : ex.occurrences(sub))

@@ -1,6 +1,6 @@
 package org.nodes.clustering;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -15,12 +15,14 @@ import java.util.Set;
 
 import org.nodes.classification.Classification;
 import org.nodes.classification.Classified;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Series;
+
 import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.Subgraph;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.BitString;
-import org.nodes.util.Series;
 
 /**
  * Clusters a graph by (weakly) connected components

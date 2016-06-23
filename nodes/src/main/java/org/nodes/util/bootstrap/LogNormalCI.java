@@ -1,16 +1,16 @@
 package org.nodes.util.bootstrap;
 
 import static java.lang.Math.sqrt;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.nodes.Global;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
 
 public class LogNormalCI
 {

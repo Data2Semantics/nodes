@@ -1,9 +1,9 @@
 package org.nodes.compression;
 
 import static java.util.Arrays.asList;
+import static nl.peterbloem.kit.Functions.prefix;
 import static org.junit.Assert.*;
 import static org.nodes.compression.Functions.log2;
-import static org.nodes.util.Functions.prefix;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +14,8 @@ import org.nodes.DNode;
 import org.nodes.MapDTGraph;
 import org.nodes.motifs.MotifVar;
 import org.nodes.motifs.MotifVarTags;
-import org.nodes.util.Functions;
+
+import nl.peterbloem.kit.Functions;
 
 public class MotifVarTest
 {

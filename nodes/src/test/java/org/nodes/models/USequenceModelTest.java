@@ -2,15 +2,14 @@ package org.nodes.models;
 
 import static java.lang.Math.sqrt;
 import static java.util.Arrays.asList;
+import static nl.peterbloem.kit.Functions.exp2;
+import static nl.peterbloem.kit.Functions.tic;
+import static nl.peterbloem.kit.Functions.toc;
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
 import static org.nodes.models.USequenceEstimator.findMaxFailDegree;
 import static org.nodes.models.USequenceEstimator.isGraphical;
 import static org.nodes.models.USequenceEstimator.numZeroes;
-import static org.nodes.util.Functions.exp2;
-import static org.nodes.util.Functions.tic;
-import static org.nodes.util.Functions.toc;
-import static org.nodes.util.LogNumTest.l;
-import static org.nodes.util.Series.series;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,11 +25,11 @@ import org.nodes.Graphs;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.Functions;
-import org.nodes.util.LogNum;
-import org.nodes.util.LogNumTest;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.LogNum;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class USequenceModelTest
 {
@@ -40,7 +39,7 @@ public class USequenceModelTest
 	{
 		testIsGraphical(Graphs.jbc());
 		
-		for(int i : series(50))
+		for(int i : series(5))
 			testIsGraphical(RandomGraphs.random(100, 500));
 		
 		assertFalse(isGraphical(Arrays.asList(5, 3, 3, 3, 1, 1, 1))); // odd sum
@@ -77,7 +76,7 @@ public class USequenceModelTest
 	}
 	
 	
-	@Test
+	// @Test
 	public void testIsGraphicalSpeed()
 	{
 		Graph<?> graph = org.nodes.random.RandomGraphs.random(1000, 5000);
@@ -142,6 +141,10 @@ public class USequenceModelTest
 		
 	}
 	
+	/**
+	 * This is a lengthy test, but an important one. It reproduces results from 
+	 * the Diaconis paper. 
+	 */
 	@Test
 	public void testFoodWeb()
 	{
@@ -164,7 +167,7 @@ public class USequenceModelTest
 	public void testMulti()
 	{
 		int n = 20;
-		Graph<String> graph = RandomGraphs.random(200, 800);
+		Graph<String> graph = RandomGraphs.random(20, 80);
 		System.out.println("sampled");
 		
 		USequenceEstimator<String> model = new USequenceEstimator<String>(graph);
@@ -189,7 +192,7 @@ public class USequenceModelTest
 	
 	}
 	
-	@Test
+	// @Test
 	public void testBig()
 	{
 		Graph<String> graph = RandomGraphs.random(10000, 100000);
@@ -437,6 +440,16 @@ public class USequenceModelTest
 			return 0.0;
 		
 		return num / (6.0 * den);
+	}
+	
+	public static LogNum l(double value)
+	{
+		return LogNum.fromDouble(value, 2.0);
+	}
+	
+	public static LogNum l(double lMag, boolean pos)
+	{
+		return new LogNum(lMag, pos, 2.0);
 	}
 }
 

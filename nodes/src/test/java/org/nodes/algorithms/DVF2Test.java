@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.junit.Test;
-import org.nodes.Global;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.MapDTGraph;
@@ -17,6 +16,8 @@ import org.nodes.MapUTGraph;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
 import org.nodes.algorithms.UTVF2;
+
+import nl.peterbloem.kit.Global;
 
 public class DVF2Test
 {

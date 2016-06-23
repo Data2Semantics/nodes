@@ -1,6 +1,6 @@
 package org.nodes.algorithms;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,8 +13,9 @@ import org.nodes.Graph;
 import org.nodes.Node;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * VF2 Is an algorithm for graph isomorphism.

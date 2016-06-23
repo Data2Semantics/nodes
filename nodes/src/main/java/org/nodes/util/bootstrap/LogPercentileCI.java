@@ -1,15 +1,15 @@
 package org.nodes.util.bootstrap;
 
-import static org.nodes.util.LogNum.fromDouble;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.LogNum.fromDouble;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.nodes.util.Functions;
-import org.nodes.util.LogNum;
-import org.nodes.util.Pair;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.LogNum;
+import nl.peterbloem.kit.Pair;
 
 /**
  * Constructs a percentile bootstrap confidence interval for the estimate of the 

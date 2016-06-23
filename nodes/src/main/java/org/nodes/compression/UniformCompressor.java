@@ -1,7 +1,7 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Functions.prefix;
-import static org.nodes.util.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.prefix;
 
 import java.util.List;
 
@@ -11,8 +11,9 @@ import org.nodes.Graph;
 import org.nodes.Link;
 import org.nodes.Node;
 import org.nodes.UGraph;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
 
 
 /**

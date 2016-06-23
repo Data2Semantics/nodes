@@ -1,9 +1,9 @@
 package org.nodes.util.bootstrap;
 
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.log2Sum;
-import static org.nodes.util.Functions.minList;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2Sum;
+import static nl.peterbloem.kit.Functions.minList;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.List;

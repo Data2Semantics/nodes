@@ -1,6 +1,6 @@
 package org.nodes.walks;
 
-import static org.nodes.util.Functions.reverse;
+import static nl.peterbloem.kit.Functions.reverse;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,7 +12,8 @@ import java.util.Set;
 import org.nodes.Acyclic;
 import org.nodes.Graph;
 import org.nodes.Node;
-import org.nodes.util.Functions;
+
+import nl.peterbloem.kit.Functions;
 
 /**
  * <p>

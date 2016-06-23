@@ -1,6 +1,6 @@
 package org.nodes.boxing;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.AbstractList;
 import java.util.HashSet;
@@ -12,7 +12,8 @@ import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.Subgraph;
 import org.nodes.algorithms.FloydWarshall;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Series;
 
 /**
  * A clustering of a graph into boxes. 

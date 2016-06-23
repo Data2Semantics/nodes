@@ -1,6 +1,6 @@
 package org.nodes.algorithms;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,9 +28,10 @@ import org.nodes.TNode;
 import org.nodes.UGraph;
 import org.nodes.UNode;
 import org.nodes.UTGraph;
-import org.nodes.util.Functions;
-import org.nodes.util.Order;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Series;
 
 /**
  * This is a general implementation of the nauty algorithm, originally by
@@ -40,6 +41,7 @@ import org.nodes.util.Series;
  * TODO: Implement a separate refine for directed graphs. It should separate by
  * in and out degree. Behavior is still correct, but slower.
  * 
+ * TODO: Fix bug with tagged graphs
  * @author Peter
  *
  */
@@ -67,12 +69,24 @@ public class Nauty
 		return order(graph, comp, true, false);
 	}
 	
-	public static <L, T> Order order(UTGraph<L, T> graph, Comparator<L> comp)
+	/**
+	 * Not sure if this works yet
+	 * @param graph
+	 * @param comp
+	 * @return
+	 */
+	private static <L, T> Order order(UTGraph<L, T> graph, Comparator<L> comp)
 	{
 		return order(graph, comp, false, true);
 	}
 	
-	public static <L, T> Order order(DTGraph<L, T> graph, Comparator<L> comp)
+	/**
+	 * Doesn't work yet (see unit tests)
+	 * @param graph
+	 * @param comp
+	 * @return
+	 */
+	private static <L, T> Order order(DTGraph<L, T> graph, Comparator<L> comp)
 	{
 		return order(graph, comp, true, true);
 	}
@@ -276,6 +290,7 @@ public class Nauty
 	
 	/**
 	 * Re-orders the nodes in 'from' by their degree relative to 'to'
+	 * 
 	 * @param from
 	 * @param to
 	 * @return

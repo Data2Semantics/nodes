@@ -1,7 +1,7 @@
 package org.nodes.classification;
 
 import static java.lang.Math.max;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,14 +15,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.nodes.Global;
 import org.nodes.draw.Point;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * Static utility methods for the task of classification.

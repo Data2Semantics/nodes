@@ -9,15 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.nodes.Global;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
-import org.nodes.util.Functions;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
 
 public class RDF
 {

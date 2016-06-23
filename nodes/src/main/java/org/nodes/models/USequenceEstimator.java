@@ -6,15 +6,15 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
+import static nl.peterbloem.kit.Functions.choose;
+import static nl.peterbloem.kit.Functions.exp2;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2Min;
+import static nl.peterbloem.kit.Functions.log2Sum;
+import static nl.peterbloem.kit.LogNum.fromDouble;
+import static nl.peterbloem.kit.Pair.first;
+import static nl.peterbloem.kit.Series.series;
 import static org.nodes.models.USequenceEstimator.CIMethod.STANDARD;
-import static org.nodes.util.Functions.choose;
-import static org.nodes.util.Functions.exp2;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.log2Min;
-import static org.nodes.util.Functions.log2Sum;
-import static org.nodes.util.LogNum.fromDouble;
-import static org.nodes.util.Pair.first;
-import static org.nodes.util.Series.series;
 import static org.nodes.util.bootstrap.LogNormalCI.LN2;
 import static org.nodes.util.bootstrap.LogNormalCI.LOGE;
 
@@ -34,17 +34,18 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.nodes.DGraph;
 import org.nodes.DNode;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.UGraph;
-import org.nodes.util.Functions;
-import org.nodes.util.Generator;
-import org.nodes.util.LogNum;
-import org.nodes.util.MaxObserver;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Generator;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.LogNum;
+import nl.peterbloem.kit.MaxObserver;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 /**
  * Implementation of the Diaconis/Blitzstein sequential importance sampling 
@@ -95,7 +96,7 @@ public class USequenceEstimator<L>
 		{
 			nonuniform();
 			if(Functions.toc() > 10)
-				System.out.println("\r " + logSamples.size() + "samples completed");
+				System.out.println("\r " + logSamples.size() + " samples completed");
 		}
 	}
 	

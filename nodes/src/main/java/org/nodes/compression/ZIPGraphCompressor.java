@@ -1,6 +1,6 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,10 +11,11 @@ import org.nodes.Graph;
 import org.nodes.UTGraph;
 import org.nodes.UTLink;
 import org.nodes.UTNode;
-import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
 import org.nodes.util.GZIPCompressor;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.Series;
 
 /**
  * 

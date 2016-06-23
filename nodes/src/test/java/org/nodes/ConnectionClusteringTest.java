@@ -1,5 +1,6 @@
 package org.nodes;
 
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
@@ -9,14 +10,14 @@ import java.util.Random;
 
 import org.junit.Test;
 import static org.nodes.clustering.ConnectionClusterer.ConnectionClustering;
-import static org.nodes.util.Series.series;
 
-import org.nodes.Global;
 import org.nodes.classification.Classified;
 import org.nodes.algorithms.FloydWarshall;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.BitString;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class ConnectionClusteringTest
 {

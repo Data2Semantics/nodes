@@ -8,13 +8,14 @@ import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.Test;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.UGraph;
 import org.nodes.random.RandomGraphs;
-import org.nodes.util.BitString;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class FunctionsTest
 {

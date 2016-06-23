@@ -1,7 +1,7 @@
 package org.nodes.rdf;
 
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
-import static org.nodes.util.Series.series;
 
 import org.junit.Test;
 import org.nodes.DNode;
@@ -10,7 +10,8 @@ import org.nodes.MapDTGraph;
 import org.nodes.Node;
 import org.nodes.classification.Classification;
 import org.nodes.classification.Classified;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Series;
 
 public class InformedAvoidanceTest
 {

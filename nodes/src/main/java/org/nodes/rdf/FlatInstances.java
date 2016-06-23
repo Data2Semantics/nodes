@@ -12,7 +12,8 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
-import org.nodes.util.MaxObserver;
+
+import nl.peterbloem.kit.MaxObserver;
 
 public class FlatInstances implements Instances
 {

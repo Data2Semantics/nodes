@@ -1,19 +1,20 @@
 package org.nodes.clustering;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.nodes.Global;
 import org.nodes.classification.Classification;
 import org.nodes.classification.Classified;
 import org.nodes.draw.Point;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
 import org.nodes.util.Distance;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class KMedioids<P>
 {

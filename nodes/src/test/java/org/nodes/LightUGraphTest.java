@@ -15,10 +15,12 @@ import java.util.Set;
 import org.junit.Test;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class LightUGraphTest
 {
@@ -318,6 +320,34 @@ public class LightUGraphTest
 		assertEquals(5, graph.numLinks());
 		assertEquals(graph.numLinks(), numLinks);
 	}
+	
+	@Test
+	public void testRemove2()
+	{
+		LightUGraph<String> graph = new LightUGraph<String>();
+		
+		UNode<String> a = graph.add(null),
+		              b = graph.add(null),
+		              c = graph.add(null),
+		              d = graph.add(null);
+	
+		a.connect(b);
+		b.connect(c);
+		c.connect(d);
+		d.connect(a);
+				
+		b.remove();
+		
+		assertFalse(graph.get(0).connected(graph.get(0)));
+		assertFalse(graph.get(0).connected(graph.get(1)));
+		assertTrue (graph.get(0).connected(graph.get(2)));
+		assertFalse(graph.get(1).connected(graph.get(0)));
+		assertFalse(graph.get(1).connected(graph.get(1)));
+		assertTrue (graph.get(1).connected(graph.get(2)));
+		assertTrue (graph.get(2).connected(graph.get(0)));
+		assertTrue (graph.get(2).connected(graph.get(1)));
+		assertFalse(graph.get(2).connected(graph.get(2)));
+	}
 
 	@Test
 	public void testIndices2()
@@ -325,41 +355,48 @@ public class LightUGraphTest
 		// Note that light graphs have non-persistent nodes, so the indices 
 		// don't update after removal  
 		
-		UGraph<String> graph = Examples.yeast();
-		graph = LightUGraph.copy(graph);
+		UGraph<String> in = Examples.yeast();
 		
-		Node<String> node = graph.get(145);
-		assertEquals(145, node.index());
-		
-		graph.get(150).remove(); // edit causes an exception
-		
-		boolean exThrown = false;
-		try {
-			System.out.println(node.index());
-		} catch(Exception e)
+		for(int reps : Series.series(100))
 		{
-			exThrown = true;
-		}
-
-		assertTrue(exThrown);
-		
-		// * Do some random removals
-		for(int i : Series.series(10))
-		{
-			// - random node
-			graph.get(Global.random().nextInt(graph.size())).remove();
+			LightUGraph<String> graph = LightUGraph.copy(in);
 			
-			// - random link
-			Node<String> a = graph.get(Global.random().nextInt(graph.size()));
-			Node<String> b = Functions.choose(a.neighbors());
+			Node<String> node = graph.get(145);
+			assertEquals(145, node.index());
 			
-			Link<String> link = Functions.choose(a.links(b));
-			link.remove();
+			graph.get(150).remove(); // edit causes an exception
+			
+			boolean exThrown = false;
+			try {
+				System.out.println(node.index());
+			} catch(Exception e)
+			{
+				exThrown = true;
+			}
+	
+			assertTrue(exThrown);
+			
+			// * Do some random removals
+			for(int i : Series.series(10))
+			{
+				// - random node
+				graph.get(Global.random().nextInt(graph.size())).remove();
+				
+				// - random link
+				Node<String> a = graph.get(Global.random().nextInt(graph.size()));
+				if(! a.neighbors().isEmpty())
+				{
+					Node<String> b = Functions.choose(a.neighbors());
+				
+					Link<String> link = Functions.choose(a.links(b));
+					link.remove();
+				}
+			}
+			
+			int i = 0;
+			for(Node<String> n : graph.nodes())
+				assertEquals(i++, n.index());
 		}
-		
-		int i = 0;
-		for(Node<String> n : graph.nodes())
-			assertEquals(i++, n.index());
 	}
 	
 	@Test
@@ -483,7 +520,7 @@ public class LightUGraphTest
 		}
 	}
 	
-	@Test
+	// @Test
 	public void temp() throws IOException
 	{
 		UGraph<String> yeast = Data.edgeList(new File("/Users/Peter/Documents/datasets/graphs/yeast-lit/yeast-lit.txt"), false, false);

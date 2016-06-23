@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.nodes.DGraph;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.UGraph;
 import org.nodes.util.Fibonacci;
-import org.nodes.util.Pair;
+
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Pair;
 
 /**
  * A copy of the motif model that searches for a good subselection in the 
@@ -114,6 +115,13 @@ public class MotifSearchModel
 		public double size(G graph, G sub, List<List<Integer>> occurrences, boolean resetWiring);
 	}
 	
+	/** 
+	 * Fibonacci search: find the number of occurrences for which the compression is optimal.
+	 * 
+	 * @author Peter
+	 *
+	 * @param <G>
+	 */
 	private static class FindPhi<G extends Graph<? extends Object>> 
 	{
 		int maxDepth = -1;
@@ -143,6 +151,9 @@ public class MotifSearchModel
 			int n = occurrences.size();
 			int to = Fibonacci.isFibonacci(n) ? n : (int)Fibonacci.get((int) Math.ceil(Fibonacci.getIndexApprox(n)));
 
+			// always consider 0 occurrences
+			sample(0);
+			
 			find(0, to, 0);
 			
 			Global.log().info("Search finished. Samples taken: " + cache.size());
@@ -162,34 +173,17 @@ public class MotifSearchModel
 		{
 			int range = to - from;
 			
-			if(range <= 2)
+			if(range <= 2) // base case: from and to are neighbouring integers
 			{
 				// return the best of from, from +1 and to
 				int x0 = from, x1 = from + 1, x2 = to;
-				double y0 = sample(x0),
-					   y1 = sample(x1),
-					   y2 = sample(x2);
-				if(y0 < y1 && y0 < y2) 
-				{
-					cutoff = x0;
-					size = y0;
-					return;
-				}
-				              
-				if(y1 < y2) 
-				{
-					cutoff = x1;
-					size = y1;
-					return;
-				}
-				
-				cutoff = x2;
-				size = y2;
-				return;
+				sample(x0);
+				sample(x1);
+				sample(x2);
 			}
 			
-			if(maxDepth >= 0 && depth > maxDepth)
-			{
+			if( range <= 2 || (maxDepth >= 0 && depth > maxDepth)) 
+			{                                     // return best value found
 				size = Double.POSITIVE_INFINITY;
 				cutoff = -1;
 				
@@ -227,6 +221,8 @@ public class MotifSearchModel
 			{
 				double size = function.size(data, motif, occurrences.subList(0, Math.min(occurrences.size(), n)), resetWiring);
 				cache.put(n, size);
+				
+				Global.log().info("compression at " + n + " occurrences: " + size);
 				
 				return size;
 			}

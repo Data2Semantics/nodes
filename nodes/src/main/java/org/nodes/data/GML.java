@@ -1,6 +1,6 @@
 package org.nodes.data;
 
-import static org.nodes.util.Functions.toString;
+import static nl.peterbloem.kit.Functions.toString;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,8 +28,9 @@ import org.nodes.Node;
 import org.nodes.TGraph;
 import org.nodes.TLink;
 import org.nodes.UTGraph;
-import org.nodes.util.Functions;
 import org.openrdf.query.parser.sparql.StringEscapesProcessor;
+
+import nl.peterbloem.kit.Functions;
 
 /**
  * Methods for reading graph in GML format.

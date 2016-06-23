@@ -1,17 +1,18 @@
 package org.nodes.util.bootstrap;
 
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.log2Sum;
-import static org.nodes.util.LogNum.fromDouble;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.log2Sum;
+import static nl.peterbloem.kit.LogNum.fromDouble;
+import static nl.peterbloem.kit.Series.series;
 import static org.nodes.util.bootstrap.BCaCI.beta;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.nodes.util.Functions;
-import org.nodes.util.LogNum;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.LogNum;
 
 public class LogBCaCI extends LogPercentileCI
 {

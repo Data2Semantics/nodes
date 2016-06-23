@@ -2,6 +2,8 @@ package org.nodes.util;
 
 import java.util.Arrays;
 
+import nl.peterbloem.kit.Functions;
+
 public class Fibonacci
 {
 	public static final double PHI = 1.61803398874989484820;

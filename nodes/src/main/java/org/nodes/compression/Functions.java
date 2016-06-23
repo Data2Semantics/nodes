@@ -1,7 +1,7 @@
 package org.nodes.compression;
 
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Series.series;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -16,9 +16,10 @@ import org.nodes.DLink;
 import org.nodes.UGraph;
 import org.nodes.ULink;
 import org.nodes.draw.Draw;
-import org.nodes.util.BitString;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class Functions
 {

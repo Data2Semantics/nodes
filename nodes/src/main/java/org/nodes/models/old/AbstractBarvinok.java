@@ -1,9 +1,9 @@
 package org.nodes.models.old;
 
 import static java.lang.Math.log;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Functions.logFactorial;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Functions.logFactorial;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,7 +11,8 @@ import java.util.List;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.nodes.Global;
+
+import nl.peterbloem.kit.Global;
 
 /**
  * Abstract implementation of the L-BFGS search for the Barvinok bounds.

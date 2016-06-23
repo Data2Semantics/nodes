@@ -1,8 +1,8 @@
 package org.nodes.rdf;
 
 import static java.util.Collections.reverseOrder;
-import static org.nodes.util.Functions.log2;
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Functions.log2;
+import static nl.peterbloem.kit.Series.series;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,10 +21,11 @@ import org.nodes.DTLink;
 import org.nodes.DTNode;
 import org.nodes.Node;
 import org.nodes.classification.Classified;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.MaxObserver;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.MaxObserver;
+import nl.peterbloem.kit.Series;
 
 
 /**

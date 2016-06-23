@@ -1,6 +1,6 @@
 package org.nodes.motifs;
 
-import static org.nodes.util.Series.series;
+import static nl.peterbloem.kit.Series.series;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,7 +19,6 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
-import org.nodes.Global;
 import org.nodes.Graph;
 import org.nodes.Graphs;
 import org.nodes.MapDTGraph;
@@ -32,16 +31,16 @@ import org.nodes.compression.NeighborListCompressor;
 import org.nodes.compression.Functions.NaturalComparator;
 import org.nodes.random.SimpleSubgraphGenerator;
 import org.nodes.random.SubgraphGenerator;
-import org.nodes.util.AbstractGenerator;
-import org.nodes.util.BitString;
 import org.nodes.util.Compressor;
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Generator;
-import org.nodes.util.Order;
-import org.nodes.util.Series;
-
 
 import au.com.bytecode.opencsv.CSVWriter;
+import nl.peterbloem.kit.AbstractGenerator;
+import nl.peterbloem.kit.BitString;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Generator;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Order;
+import nl.peterbloem.kit.Series;
 
 /**
  * Extracts motifs from a DTGraph<String, String> by sampling.
@@ -199,7 +198,7 @@ public class DTMotifExtractor
 			System.out.println("\nfinished: best size " + currentTopBits);
 			System.out.println("          best motif " + currentTopMotif);
 
-			List<Integer> occChoice = org.nodes.util.Functions.choose(currentTopOccurrences);
+			List<Integer> occChoice = nl.peterbloem.kit.Functions.choose(currentTopOccurrences);
 			
 			List<String> lbs = labels(currentTopMotif);
 			

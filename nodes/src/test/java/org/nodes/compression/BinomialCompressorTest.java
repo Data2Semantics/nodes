@@ -1,7 +1,7 @@
 package org.nodes.compression;
 
+import static nl.peterbloem.kit.Functions.log2Choose;
 import static org.junit.Assert.*;
-import static org.nodes.util.Functions.log2Choose;
 
 import org.junit.Test;
 

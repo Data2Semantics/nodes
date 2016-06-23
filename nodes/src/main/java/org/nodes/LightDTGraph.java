@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.nodes.util.FrequencyModel;
-import org.nodes.util.Functions;
-import org.nodes.util.Pair;
-import org.nodes.util.Series;
+import nl.peterbloem.kit.FrequencyModel;
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Pair;
+import nl.peterbloem.kit.Series;
 
 public class LightDTGraph<L,T> implements DTGraph<L, T> {
 	// * the initial capacity reserved for neighbors

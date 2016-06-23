@@ -2,21 +2,22 @@ package org.nodes.models;
 
 import static java.lang.Math.pow;
 import static java.util.Arrays.asList;
+import static nl.peterbloem.kit.Functions.tic;
+import static nl.peterbloem.kit.Functions.toc;
 import static org.junit.Assert.*;
-import static org.nodes.util.Functions.tic;
-import static org.nodes.util.Functions.toc;
 
 import java.util.List;
 
 import org.junit.Test;
 import org.nodes.DGraph;
-import org.nodes.Global;
 import org.nodes.models.old.BarvinokUSimple;
 import org.nodes.random.RandomGraphs;
 
+import nl.peterbloem.kit.Global;
+
 public class BarvinokUSimpleTest
 {
-	@Test
+	// @Test
 	public void testFoodweb()
 	{
 		System.out.println("seed: " + Global.randomSeed());

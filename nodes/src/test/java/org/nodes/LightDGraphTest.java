@@ -1,5 +1,6 @@
 package org.nodes;
 
+import static nl.peterbloem.kit.Series.series;
 import static org.junit.Assert.*;
 
 import java.io.File;
@@ -15,8 +16,10 @@ import java.util.Set;
 import org.junit.Test;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
-import org.nodes.util.Functions;
-import org.nodes.util.Series;
+
+import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
+import nl.peterbloem.kit.Series;
 
 public class LightDGraphTest
 {
@@ -45,13 +48,13 @@ public class LightDGraphTest
 	@Test
 	public void starTest()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		LightDGraph<String> graph = new LightDGraph<String>();
 		
-		DNode<String> a = graph.add(null),
-		              b = graph.add(null),
-		              c = graph.add(null),
-		              d = graph.add(null),
-		              e = graph.add(null);
+		DNode<String> a = graph.add("a"),
+		              b = graph.add("b"),
+		              c = graph.add("c"),
+		              d = graph.add("d"),
+		              e = graph.add("e");
 	
 		b.connect(a);
 		c.connect(a);
@@ -59,14 +62,20 @@ public class LightDGraphTest
 		e.connect(a);
 		
 		System.out.println(graph);
+		System.out.println(e.index());
+
 		
 		e.disconnect(a);
 		
 		System.out.println(graph);
+		System.out.println(e.index());
+
 		
 		a.remove();
 		
 		System.out.println(graph);	
+		System.out.println(graph.node("e").index());
+
 	}
 	
 	@Test
@@ -94,6 +103,36 @@ public class LightDGraphTest
 		
 		assertEquals(0, graph.numLinks());
 		assertEquals(4, graph.size());
+	}
+	
+	@Test
+	public void testRemove2()
+	{
+		LightDGraph<String> graph = new LightDGraph<String>();
+		
+		DNode<String> a = graph.add(null),
+		              b = graph.add(null),
+		              c = graph.add(null),
+		              d = graph.add(null);
+	
+		a.connect(b);
+		b.connect(c);
+		c.connect(d);
+		d.connect(a);
+				
+		b.remove();
+		
+		assertFalse(graph.get(0).connectedTo(graph.get(0)));
+		assertFalse(graph.get(0).connectedTo(graph.get(1)));
+		assertFalse(graph.get(0).connectedTo(graph.get(2)));
+		assertFalse(graph.get(1).connectedTo(graph.get(0)));
+		assertFalse(graph.get(1).connectedTo(graph.get(1)));
+		assertTrue (graph.get(1).connectedTo(graph.get(2)));
+		assertTrue (graph.get(2).connectedTo(graph.get(0)));
+		assertFalse(graph.get(2).connectedTo(graph.get(1)));
+		assertFalse(graph.get(2).connectedTo(graph.get(2)));
+		
+		System.out.println(graph);
 	}
 	
 	@Test
@@ -281,47 +320,59 @@ public class LightDGraphTest
 		assertEquals(graph.numLinks(), numLinks);
 	}
 	
+	/**
+	 * 
+	 */
 	@Test
 	public void testIndices2()
 	{		
-		// Note that light graphs have non-persistent nodes, so the indices 
-		// don't update after removal  
-		
-		DGraph<String> graph = Examples.physicians();
-		graph = LightDGraph.copy(graph);
-		
-		Node<String> node = graph.get(145);
-		assertEquals(145, node.index());
-		
-		graph.get(150).remove(); // edit causes an exception
-		
-		boolean exThrown = false;
-		try {
-			System.out.println(node.index());
-		} catch(Exception e)
-		{
-			exThrown = true;
-		}
+		DGraph<String> in = Examples.physicians();
 
-		assertTrue(exThrown);
-		
-		// * Do some random removals
-		for(int i : Series.series(10))
+		for(int x : series(50))
 		{
-			// - random node
-			graph.get(Global.random().nextInt(graph.size())).remove();
+			// Note that light graphs have non-persistent nodes, so node.index() 
+			// doesn't update after removal  
 			
-			// - random link
-			Node<String> a = graph.get(Global.random().nextInt(graph.size()));
-			Node<String> b = Functions.choose(a.neighbors());
+			LightDGraph<String> graph = LightDGraph.copy(in);
 			
-			Link<String> link = Functions.choose(a.links(b));
-			link.remove();
+			Node<String> node = graph.get(145);
+			assertEquals(145, node.index());
+			
+			graph.get(150).remove(); // edit causes an exception
+			
+			boolean exThrown = false;
+			try {
+				System.out.println(node.index());
+			} catch(Exception e)
+			{
+				exThrown = true;
+			}
+	
+			assertTrue(exThrown);
+			
+			// * Do some random removals
+			for(int i : Series.series(10))
+			{
+				// - random node
+				graph.get(Global.random().nextInt(graph.size())).remove();
+				
+				// - random link
+				Node<String> a = graph.get(Global.random().nextInt(graph.size()));
+				
+				if(! a.neighbors().isEmpty())
+				{
+					Node<String> b = Functions.choose(a.neighbors());
+									
+					Link<String> link = Functions.choose(a.links(b));
+				
+					link.remove();
+				}
+			}
+			
+			int i = 0;
+			for(Node<String> n : graph.nodes())
+				assertEquals(i++, n.index());
 		}
-		
-		int i = 0;
-		for(Node<String> n : graph.nodes())
-			assertEquals(i++, n.index());
 	}
 	
 	@Test
