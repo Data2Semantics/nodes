@@ -100,9 +100,9 @@
      	<version>4.10</version>
      </dependency>
      <dependency>
-     	<groupId>peterbloem.nl</groupId>
+     	<groupId>com.github.pbloem</groupId>
      	<artifactId>kit</artifactId>
-     	<version>0.0.1-SNAPSHOT</version>
+     	<version>v0.1.1</version>
      </dependency>
   </dependencies>
    
