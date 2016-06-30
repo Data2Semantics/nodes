@@ -99,11 +99,11 @@
      	<artifactId>junit</artifactId>
      	<version>4.10</version>
      </dependency>
-	<dependency>
-	    <groupId>com.github.pbloem</groupId>
-	    <artifactId>kit</artifactId>
-	    <version>v0.1.0</version>
-	</dependency>     
+     <dependency>
+     	<groupId>peterbloem.nl</groupId>
+     	<artifactId>kit</artifactId>
+     	<version>0.0.1-SNAPSHOT</version>
+     </dependency>
   </dependencies>
    
    	<repositories>
