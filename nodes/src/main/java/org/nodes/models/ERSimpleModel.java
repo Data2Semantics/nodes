@@ -33,7 +33,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 			double t = n * (n - 1) / 2;
 			
 			try {
-				return (withPrior ? Functions.prefix((int)n) + log2(t): 0) + log2Choose(graph.numLinks(), t);	
+				return (withPrior ? Functions.prefix((int)n) + log2(t + 1): 0) + log2Choose(graph.numLinks(), t);	
 			} catch (RuntimeException e)
 			{
 				System.out.println(graph);
@@ -46,7 +46,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 			double n = graph.size();
 			double t = n * n - n;
 			
-			return (withPrior ? Functions.prefix(graph.size()) + log2(t) : 0) + log2Choose(graph.numLinks(), t);
+			return (withPrior ? Functions.prefix(graph.size()) + log2(t + 1) : 0) + log2Choose(graph.numLinks(), t);
 		}
 	}
 	
