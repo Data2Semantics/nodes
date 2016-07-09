@@ -1,7 +1,7 @@
 package org.nodes.models;
 
 /**
- * Marker Interface for models that are restricted to SimpleGraphs
+ * Marker Interface for models that can only encode simple graphs.
  * 
  * @author Peter
  */
