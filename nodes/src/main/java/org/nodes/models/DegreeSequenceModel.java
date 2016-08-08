@@ -16,6 +16,7 @@ import org.nodes.models.DegreeSequenceModel.Prior;
 import org.nodes.util.bootstrap.LogNormalCI;
 
 import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Global;
 import nl.peterbloem.kit.OnlineModel;
 
 public class DegreeSequenceModel implements StructureModel<Graph<? extends Object>>, RestrictedToSimple
@@ -73,7 +74,8 @@ public class DegreeSequenceModel implements StructureModel<Graph<? extends Objec
 	
 	private LogNormalCI directed(DGraph<?> graph)
 	{
-		int numThreads = Runtime.getRuntime().availableProcessors();
+		int numThreads = Global.numThreads();
+		
 		DSequenceEstimator<? extends Object> model = new DSequenceEstimator<Object>(graph);
 		model.nonuniform(iterations, numThreads);
 		return new LogNormalCI(model.logSamples());
