@@ -194,6 +194,9 @@ public class Data {
 	 * graph. Requires that the edges are represented using _consecutive_ 
 	 * integers.
 	 *  
+	 * While the return type is Graph<String> the nodes will all be labeled with
+	 * null. 
+	 *  
 	 * @param file
 	 * @return 
 	 * @throws IOException
@@ -248,7 +251,7 @@ public class Data {
 			nodeA.connect(nodeB);
 			
 			int links = graph.numLinks();
-			if(links%500000 == 0)
+			if(links%50000 == 0)
 				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
 			if(links%5000000 == 0)
 			{			
@@ -450,11 +453,38 @@ public class Data {
 	 * Only the structure is written and the labels and tags are discarded 
 	 */
 	public static <L> void writeEdgeList(Graph<L> graph, File file) 
-			throws IOException
+		throws IOException
+	{
+		writeEdgeList(graph, file, false);
+	}
+	
+	/**
+	 * 
+	 * @param graph
+	 * @param file
+	 * @param fromOne If true, the lowest index is 1, otherwise it's 0
+	 * @throws IOException
+	 */
+	public static <L> void writeEdgeList(Graph<L> graph, File file, boolean fromOne) 
+		throws IOException
 	{
 		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		int p = fromOne ? 1 : 0;
+		int max = -1;
+		
 		for(Link<L> link : graph.links())
-			writer.write(link.first().index() + "\t" + link.second().index() + "\n");
+		{
+			
+			int from = (link.first().index() + p);
+			int to = (link.second().index() + p);
+			
+			writer.write(from + "\t" + to + "\n");
+			
+			max = Math.max(from, max);
+			max = Math.max(to,  max);
+		}
+		
+		Global.log().info("Graph written. Largest index: " + max);
 		
 		writer.close();
 	}
