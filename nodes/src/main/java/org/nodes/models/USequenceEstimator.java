@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
@@ -602,6 +604,39 @@ public class USequenceEstimator<L>
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void nonuniform(final int samples, final int numThreads, ExecutorService executor)
+	{
+		if(executor == null)
+		{
+			nonuniform(samples, numThreads);
+			return;
+		}	
+		
+		final int perThread = samples/numThreads;
+		final int rem = samples - perThread * numThreads;
+		
+		List<Callable<Void>> todo = new ArrayList<Callable<Void>>(numThreads);
+		for(final int t : series(numThreads))
+		{
+			Callable<Void> thread = new Callable<Void>() {
+				public Void call()
+				{
+					for(int i : series(perThread + (t == 0 ? rem : 0)))
+						nonuniform();
+					
+					return null;
+				}
+			};
+			todo.add(thread);
+		}
+		
+		try {
+			executor.invokeAll(todo);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}	
 	
 	/**
 	 * Generates a random graph with the given degree  
