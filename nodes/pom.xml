@@ -102,7 +102,7 @@
      <dependency>
      	<groupId>com.github.pbloem</groupId>
      	<artifactId>kit</artifactId>
-     	<version>v0.1.1</version>
+     	<version>v0.1.2</version>
      </dependency>
   </dependencies>
    
