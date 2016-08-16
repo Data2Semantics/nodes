@@ -35,7 +35,7 @@ public class KMedioids<P>
 		this.distance = distance;
 		this.numClusters = numClusters;
 		
-		medioids = Functions.sample(numClusters, n);
+		medioids = Functions.sampleInts(numClusters, n);
 		
 		Global.log().info("Calculating distances");
 		

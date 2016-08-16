@@ -30,4 +30,9 @@ public class RandomGraphsTest {
 		System.out.println(Graphs.shuffle(graph));
 	}	
 	
+	@Test
+	public void testBig() {
+		RandomGraphs.randomFast(100000, 2000000);
+	}	
+	
 }

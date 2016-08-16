@@ -130,7 +130,7 @@ public class Examples
 	 * A small citations graph extracted from the larger KDD Cup 2003 dataset:
 	 *   http://www.cs.cornell.edu/projects/kddcup/datasets.html
 	 *   
-	 * Includes only papers from before 1994, citation into the future are 
+	 * Includes only papers from before 1994, citations into the future are 
 	 * removed.
 	 * 
 	 * @return

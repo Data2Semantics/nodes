@@ -8,8 +8,10 @@ import java.util.List;
 
 import org.nodes.DTGraph;
 import org.nodes.Graph;
+import org.nodes.LightUGraph;
 import org.nodes.MapDTGraph;
 import org.nodes.MapUTGraph;
+import org.nodes.UGraph;
 import org.nodes.UTGraph;
 import org.nodes.UTNode;
 
@@ -75,9 +77,32 @@ public class RandomGraphs
 		for(int i : series(n))
 			graph.add("x");
 		
-		List<Integer> indices = Functions.sample(m, (n*n - n)/2);
+		long ln = (long)n;
+		long total = (ln*ln - ln) / (long)2;
+		System.out.println(".");
+		List<Long> indices = Functions.sample(m, total);
+		System.out.println("x");
 		
-		for(int index : indices)
+		for(long index : indices)
+		{
+			Pair<Integer, Integer> ij = toPairUndirected(index, false);
+			graph.nodes().get(ij.first()).connect(graph.nodes().get(ij.second()));
+		}
+		
+		return graph;
+	}
+	
+	public static UGraph<String> randomFast(int n, int m)
+	{		
+		UGraph<String> graph = new LightUGraph<String>();
+		for(int i : series(n))
+			graph.add("x");
+		
+		long ln = (long)n;
+		long total = (ln*ln - ln) / (long)2;
+		List<Long> indices = Functions.sample(m, total);
+		
+		for(long index : indices)
 		{
 			Pair<Integer, Integer> ij = toPairUndirected(index, false);
 			graph.nodes().get(ij.first()).connect(graph.nodes().get(ij.second()));
@@ -118,10 +143,17 @@ public class RandomGraphs
 		return gen.graph();
 	}
 	
-	public static Pair<Integer, Integer> toPairUndirected(int index, boolean self)
+	/**
+	 * NB: may overflow if the resulting indices are too big. 
+	 * 
+	 * @param index
+	 * @param self
+	 * @return
+	 */
+	public static Pair<Integer, Integer> toPairUndirected(long index, boolean self)
 	{
 		double iDouble;
-		int i, j;
+		long i, j;
 		
 		if(self)
 		{
@@ -134,6 +166,6 @@ public class RandomGraphs
 			j = index - ((i * (i - 1)) / 2);	
 		}
 		
-		return new Pair<Integer, Integer>(i, j);
+		return new Pair<Integer, Integer>((int)i, (int)j);
 	}
 }
