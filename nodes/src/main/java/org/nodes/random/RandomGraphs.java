@@ -6,8 +6,10 @@ import static nl.peterbloem.kit.Series.series;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.nodes.DGraph;
 import org.nodes.DTGraph;
 import org.nodes.Graph;
+import org.nodes.LightDGraph;
 import org.nodes.LightUGraph;
 import org.nodes.MapDTGraph;
 import org.nodes.MapUTGraph;
@@ -79,9 +81,8 @@ public class RandomGraphs
 		
 		long ln = (long)n;
 		long total = (ln*ln - ln) / (long)2;
-		System.out.println(".");
+
 		List<Long> indices = Functions.sample(m, total);
-		System.out.println("x");
 		
 		for(long index : indices)
 		{
@@ -105,7 +106,30 @@ public class RandomGraphs
 		for(long index : indices)
 		{
 			Pair<Integer, Integer> ij = toPairUndirected(index, false);
-			graph.nodes().get(ij.first()).connect(graph.nodes().get(ij.second()));
+			graph.get(ij.first()).connect(graph.get(ij.second()));
+		}
+		
+		return graph;
+	}
+	
+	public static DGraph<String> randomDirectedFast(int n, int m)
+	{		
+		DGraph<String> graph = new LightDGraph<String>();
+		for(int i : series(n))
+			graph.add("x");
+		
+		long ln = (long)n;
+		long total = (ln*ln - ln);
+		List<Long> indices = Functions.sample(m, total);
+		
+		for(long index : indices)
+		{
+			int i = (int) (index / (n-1));
+			int j = (int) (index % (n-1)); 
+			if(j >= i)
+				j++;
+			
+			graph.get(i).connect(graph.get(j));
 		}
 		
 		return graph;
@@ -144,6 +168,9 @@ public class RandomGraphs
 	}
 	
 	/**
+	 * Returns the pair of indicesencoded by the given index.
+	 * 
+	 * 
 	 * NB: may overflow if the resulting indices are too big. 
 	 * 
 	 * @param index
