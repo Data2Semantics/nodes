@@ -41,8 +41,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 			}
 			
 		} else
-		{
-		
+		{		
 			double n = graph.size();
 			double t = n * n - n;
 			
@@ -50,5 +49,19 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 		}
 	}
 	
+	public static double undirected(int size, int numLinks, boolean withPrior)
+	{
+		double n = size;
+		double t = n * (n - 1) / 2;
+		return (withPrior ? Functions.prefix(size) + log2(t + 1) : 0) + log2Choose(numLinks, t);	
+	}
+	
+	
+	public static double directed(int size, int numLinks, boolean withPrior)
+	{
+		double n = size;
+		double t = n * n - n;
+		return (withPrior ? Functions.prefix(size) + log2(t + 1) : 0) + log2Choose(numLinks, t);
+	}
 
 }
