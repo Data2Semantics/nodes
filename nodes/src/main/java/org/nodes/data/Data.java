@@ -14,6 +14,7 @@ import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
+import org.nodes.DiskDGraph;
 import org.nodes.Graph;
 import org.nodes.LightDGraph;
 import org.nodes.LightUGraph;
@@ -204,8 +205,20 @@ public class Data {
 	public static DGraph<String> edgeListDirectedUnlabeled(File file, boolean clean)
 			throws IOException
 	{
+		return edgeListDirectedUnlabeled(file, clean, null);
+	}
+		
+	public static DGraph<String> edgeListDirectedUnlabeled(
+			File file, boolean clean, File store)
+		throws IOException
+	{
 		BufferedReader reader = new BufferedReader(new FileReader(file));
-		LightDGraph<String> graph = new LightDGraph<String>();
+		
+		DGraph<String> graph;
+		if(store == null)
+			graph = new LightDGraph<String>();
+		else
+			graph = new DiskDGraph(store);
 				
 		String line;
 		int i = 0;
@@ -256,7 +269,10 @@ public class Data {
 			if(links%5000000 == 0)
 			{			
 				Global.log().info("Compacting");
-				graph.compact(5);
+				if(store == null)
+					((LightDGraph<?>)graph).compact(5);
+				else
+					((DiskDGraph)graph).compact(5);
 				Global.log().info("Done");
 			}
 			
@@ -265,12 +281,18 @@ public class Data {
 		Global.log().info("Graph loaded (n="+graph.size()+", l="+graph.numLinks()+").");
 
 		Global.log().info("Sorting");
-		graph.sort();
+		if(store == null)
+			((LightDGraph<?>)graph).sort();
+		else
+			((DiskDGraph)graph).sort();
 		
 		if(clean)
 		{
 			Global.log().info("Compacting");
-			graph.compact(0);
+			if(store == null)
+				((LightDGraph<?>)graph).compact(0);
+			else
+				((DiskDGraph)graph).compact(0);
 			Global.log().info("Done");
 		}
 		

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,28 +14,33 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Test;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
+import org.omg.Messaging.SyncScopeHelper;
 
+import nl.peterbloem.kit.FileIO;
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Global;
 import nl.peterbloem.kit.Series;
 
-public class LightDGraphTest
+public class DiskDGraphTest 
 {
-
+	public static File DIR = new File("./tmp/");
 
 	@Test
-	public void testMapDTGraph()
+	public void testDiskDGraph()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 	}
 
 	@Test
 	public void testToString()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add("a"),
 		              b = graph.add("b");
@@ -44,11 +50,12 @@ public class LightDGraphTest
 		
 		System.out.println(graph);
 	}
-
+	
 	@Test
 	public void starTest()
 	{
-		LightDGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add("a"),
 		              b = graph.add("b"),
@@ -63,14 +70,12 @@ public class LightDGraphTest
 		
 		System.out.println(graph);
 		System.out.println(e.index());
-
 		
 		e.disconnect(a);
 		
 		System.out.println(graph);
 		System.out.println(e.index());
 
-		
 		a.remove();
 		
 		System.out.println(graph);	
@@ -80,7 +85,8 @@ public class LightDGraphTest
 	@Test
 	public void testRemove()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add(null),
 		              b = graph.add(null),
@@ -92,9 +98,7 @@ public class LightDGraphTest
 		c.connect(a);
 		d.connect(a);
 		e.connect(a);
-		
-		System.out.println(graph.numLinks() + " " + graph.size());
-		
+				
 		assertEquals(4, graph.numLinks());
 		assertEquals(5, graph.size());
 		
@@ -107,7 +111,8 @@ public class LightDGraphTest
 	@Test
 	public void testRemove2()
 	{
-		LightDGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add(null),
 		              b = graph.add(null),
@@ -137,7 +142,8 @@ public class LightDGraphTest
 	@Test
 	public void testConnected()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add(null),
 		              b = graph.add(null),
@@ -171,7 +177,8 @@ public class LightDGraphTest
 	@Test
 	public void testLinks()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add(null),
 		              b = graph.add(null),
@@ -187,12 +194,46 @@ public class LightDGraphTest
 		assertEquals(1, b.links(a).size());
 		assertEquals(2, a.links(c).size());
 		assertEquals(2, c.links(a).size());
+		
+		System.out.println(graph.links());
+	}
+	
+	@Test
+	public void testLinks2()
+	{
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
+
+		DNode<String> 	a = graph.add(null),
+	              		b = graph.add(null),
+	              		c = graph.add(null),
+	              		d = graph.add(null),
+	              		e = graph.add(null),
+	              		f = graph.add(null);
+		
+		a.connect(b);
+		b.connect(c);
+		c.connect(a);
+		
+		b.connect(e);
+		c.connect(e);
+		c.connect(d);
+		
+		e.connect(d);
+		f.connect(d);
+		e.connect(f);
+		
+		assertEquals(9, new ArrayList<DLink<String>>(graph.links()).size());
+		
+		System.out.println(graph.links());
 	}	
 	
 	@Test
 	public void testEquals()
 	{
-		DGraph<String> g1 = new LightDGraph<String>();
+		Global.randomSeed();
+		
+		DGraph<String> g1 = new DiskDGraph(DIR);
 		g1.add("a");
 		g1.add("b");
 		g1.add("c");
@@ -200,7 +241,7 @@ public class LightDGraphTest
 		g1.node("a").connect(g1.node("b"));
 		g1.node("b").connect(g1.node("c"));
 		
-		DGraph<String> g2 = new LightDGraph<String>();
+		DGraph<String> g2 = new DiskDGraph(DIR);
 		g2.add("a");
 		g2.add("b");
 		g2.add("c");
@@ -218,7 +259,8 @@ public class LightDGraphTest
 	@Test
 	public void testNotEquals()
 	{
-		DGraph<String> g1 = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> g1 = new DiskDGraph(DIR);
 		
 		DTGraph<String, String> g2 = new MapDTGraph<String, String>();
 		
@@ -226,18 +268,53 @@ public class LightDGraphTest
 		assertFalse(g2.equals(g1));	
 	}
 	
+	@Test
 	public void testImportBig()
 			throws IOException
 	{
-		DGraph<String> graph = Data.edgeListDirectedUnlabeled(new File("/Users/Peter/Documents/datasets/graphs/p2p/p2p.30.txt"), true);
+		Global.randomSeed();
+		DGraph<String> graph = DiskDGraph.fromFile(new File("/Users/Peter/Documents/datasets/graphs/wikipedia-nl/wikipedia-nl-simple.txt"), DIR);
+
 		System.out.println(graph.size());
 		System.out.println(graph.numLinks());
+	}
+	
+	@Test
+	public void testImport()
+			throws IOException
+	{
+		Global.randomSeed();
 
+		FileIO.copy("graphs/citations/citations.txt", DIR);
+		
+		DGraph<String> diskGraph = DiskDGraph.fromFile(new File(DIR, "citations.txt"), DIR);
+		assertEquals(diskGraph.size(), new ArrayList<DNode<String>>(diskGraph.nodes()).size());
+		assertEquals(diskGraph.numLinks(), new ArrayList<DLink<String>>(diskGraph.links()).size());
+
+		DGraph<String> memGraph  = Data.edgeListDirectedUnlabeled(new File(DIR, "citations.txt"), true);
+		
+		// diskGraph = LightDGraph.copy(diskGraph);
+		
+		for(int i : series(memGraph.size()))
+		{
+			String a = diskGraph.get(i).out() + " " + diskGraph.get(i).in();
+			String b = memGraph.get(i).out() + " " + memGraph.get(i).in();
+			
+			if(! a.equals(b))
+			{
+				System.out.println("d " + a);
+				System.out.println("m " + b);
+			}
+				
+		}
+
+		assertEquals(memGraph, diskGraph);
 	}
 	
 	@Test
 	public void testCopy()
 	{
+		Global.randomSeed();
 		DGraph<String> graph = new MapDTGraph<String, String>();
 		
 		DNode<String> a = graph.add("a");
@@ -259,7 +336,7 @@ public class LightDGraphTest
 			assertEquals(graph.numLinks(), numLinks);
 		}
 
-		graph = LightDGraph.copy(graph);
+		graph = DiskDGraph.copy(graph, DIR);
 
 		{
 			int numLinks = 0;
@@ -274,6 +351,7 @@ public class LightDGraphTest
 	@Test
 	public void testCopy2()
 	{
+		Global.randomSeed();
 		DGraph<String> graph = Examples.physicians();
 		{
 			int numLinks = 0;
@@ -284,7 +362,7 @@ public class LightDGraphTest
 			assertEquals(graph.numLinks(), numLinks);
 		}
 
-		graph = LightDGraph.copy(graph);
+		graph = DiskDGraph.copy(graph, DIR);
 		
 		{
 			int numLinks = 0;
@@ -299,7 +377,8 @@ public class LightDGraphTest
 	@Test
 	public void testNumLinks2()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add("a");
 		DNode<String> b = graph.add("b");
@@ -319,21 +398,19 @@ public class LightDGraphTest
 		assertEquals(graph.numLinks(), numLinks);
 	}
 	
-	/**
-	 * 
-	 */
 	@Test
 	public void testIndices2()
-	{		
+	{	
+		Global.randomSeed();
 		DGraph<String> in = Examples.physicians();
 
-		for(int x : series(50))
+		for(int x : series(5))
 		{
 			// Note that light graphs have non-persistent nodes, so node.index() 
 			// doesn't update after removal  
 			
-			LightDGraph<String> graph = LightDGraph.copy(in);
-			
+			DiskDGraph graph = DiskDGraph.copy(in, DIR);
+			System.out.println(".");
 			Node<String> node = graph.get(145);
 			assertEquals(145, node.index());
 			
@@ -367,18 +444,21 @@ public class LightDGraphTest
 					link.remove();
 				}
 			}
+			System.out.println(".");
 			
 			int i = 0;
 			for(Node<String> n : graph.nodes())
 				assertEquals(i++, n.index());
+			System.out.println('_');
 		}
 	}
 	
 	@Test
 	public void testNodeLinks()
 	{
+		Global.randomSeed();
 		DGraph<String> graph = Examples.physicians();
-		graph = LightDGraph.copy(graph);
+		graph = DiskDGraph.copy(graph, DIR);
 	
 		for(Node<String> node : graph.nodes())
 		{
@@ -392,7 +472,8 @@ public class LightDGraphTest
 	@Test
 	public void testNodeLinks2()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add("");
 		DNode<String> b = graph.add("");
@@ -438,7 +519,8 @@ public class LightDGraphTest
 	@Test
 	public void testNeighbors()
 	{
-		DGraph<String> graph = new LightDGraph<String>();
+		Global.randomSeed();
+		DGraph<String> graph = new DiskDGraph(DIR);
 		
 		DNode<String> a = graph.add("a");
 		DNode<String> b = graph.add("b");
@@ -466,8 +548,9 @@ public class LightDGraphTest
 	@Test
 	public void testNeighborsFast()
 	{
+		Global.randomSeed();
 		DGraph<String> graph = Examples.physicians();
-		graph = LightDGraph.copy(graph);
+		graph = DiskDGraph.copy(graph, DIR);
 	
 		assertTrue(graph instanceof FastWalkable);
 		
@@ -493,5 +576,12 @@ public class LightDGraphTest
 			
 			assertEquals(nbsList, nbsFastList);			
 		}
+	}
+	
+	@After
+	public void cleanup()
+	{
+		for(File file : DIR.listFiles())
+			file.delete();
 	}
 }

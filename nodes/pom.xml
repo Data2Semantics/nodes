@@ -109,6 +109,16 @@
   	  <artifactId>kit</artifactId>
   	  <version>0.0.1-SNAPSHOT</version>
     </dependency>  -->
+  <dependency>
+  	<groupId>org.mapdb</groupId>
+  	<artifactId>mapdb</artifactId>
+  	<version>3.0.1</version>
+  </dependency>
+  <dependency>
+  	<groupId>com.google.code.externalsortinginjava</groupId>
+  	<artifactId>externalsortinginjava</artifactId>
+  	<version>0.1.10-SNAPSHOT</version>
+  </dependency>
   </dependencies>
    
    	<repositories>
