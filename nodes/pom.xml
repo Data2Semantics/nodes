@@ -114,11 +114,11 @@
   	<artifactId>mapdb</artifactId>
   	<version>3.0.1</version>
   </dependency>
-  <dependency>
-  	<groupId>com.google.code.externalsortinginjava</groupId>
-  	<artifactId>externalsortinginjava</artifactId>
-  	<version>0.1.10-SNAPSHOT</version>
-  </dependency>
+	<dependency>
+	    <groupId>com.github.pbloem</groupId>
+	    <artifactId>externalsortinginjava</artifactId>
+	    <version>v0.1.0</version>
+	</dependency>
   </dependencies>
    
    	<repositories>
