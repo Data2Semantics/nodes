@@ -18,6 +18,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.nodes.data.Data;
 import org.nodes.data.Examples;
+import org.nodes.random.RandomGraphs;
 import org.omg.Messaging.SyncScopeHelper;
 
 import nl.peterbloem.kit.FileIO;
@@ -279,34 +280,38 @@ public class DiskDGraphTest
 		System.out.println(graph.numLinks());
 	}
 	
+	
+	/**
+	 * Run with low heap space...
+	 * 
+	 * @throws IOException
+	 */
 	@Test
 	public void testImport()
 			throws IOException
 	{
 		Global.randomSeed();
 
-		FileIO.copy("graphs/citations/citations.txt", DIR);
+		FileIO.copy("graphs/p2p/p2p.txt", DIR);
 		
-		DGraph<String> diskGraph = DiskDGraph.fromFile(new File(DIR, "citations.txt"), DIR);
+		DGraph<String> diskGraph = DiskDGraph.fromFile(new File(DIR, "p2p.txt"), DIR);
 		assertEquals(diskGraph.size(), new ArrayList<DNode<String>>(diskGraph.nodes()).size());
 		assertEquals(diskGraph.numLinks(), new ArrayList<DLink<String>>(diskGraph.links()).size());
 
-		DGraph<String> memGraph  = Data.edgeListDirectedUnlabeled(new File(DIR, "citations.txt"), true);
-		
-		// diskGraph = LightDGraph.copy(diskGraph);
-		
-		for(int i : series(memGraph.size()))
-		{
-			String a = diskGraph.get(i).out() + " " + diskGraph.get(i).in();
-			String b = memGraph.get(i).out() + " " + memGraph.get(i).in();
-			
-			if(! a.equals(b))
-			{
-				System.out.println("d " + a);
-				System.out.println("m " + b);
-			}
+		DGraph<String> memGraph  = Data.edgeListDirectedUnlabeled(new File(DIR, "p2p.txt"), true);
 				
-		}
+//		for(int i : series(memGraph.size()))
+//		{
+//			String a = diskGraph.get(i).out() + " " + diskGraph.get(i).in();
+//			
+//			String b = memGraph.get(i).out() + " " + memGraph.get(i).in();
+//			
+//			if(! a.equals(b))
+//			{
+//				System.out.println("d " + a);
+//				System.out.println("m " + b);
+//			}	
+//		}
 
 		assertEquals(memGraph, diskGraph);
 	}
@@ -578,7 +583,26 @@ public class DiskDGraphTest
 		}
 	}
 	
-	@After
+	/**
+	 * Test subgraph extraction
+	 * 
+	 */
+	@Test
+	public void testJBC()
+	{
+		DGraph<String> graph = Graphs.jbcDirected();
+		graph = DiskDGraph.copy(graph, DIR);
+		
+		List<Integer> nodes = Arrays.asList(13, 15, 16);
+		
+		DGraph<String> subgraph = Subgraph.dSubgraphIndices(graph, nodes);
+		System.out.println(subgraph);
+		
+		assertEquals(3, subgraph.size());
+		assertEquals(2, subgraph.numLinks());
+	}
+	
+	// @After
 	public void cleanup()
 	{
 		for(File file : DIR.listFiles())

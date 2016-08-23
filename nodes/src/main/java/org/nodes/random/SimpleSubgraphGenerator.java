@@ -63,6 +63,7 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 			
 			result.clear();
 			result.add(Global.random().nextInt(graph.size()));
+			
 			restarts ++;
 			if(restarts > RESTARTS)
 				checkLCC(depth);

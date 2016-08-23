@@ -148,4 +148,24 @@ public class Examples
 			throw new RuntimeException("Could not load the file for the citations graph from the classpath.", e);
 		}
 	}
+	
+	/**
+	 * A snapshot of part of the Gnutella P2P network. Source:
+	 * http://snap.stanford.edu/data/p2p-Gnutella30.html
+	 *   
+	 * @return
+	 */
+	public static DGraph<String> p2p()
+	{
+		ClassLoader classLoader = Examples.class.getClassLoader();
+		File file = new File(classLoader.getResource("graphs/p2p/p2p.txt").getFile());
+		
+		try
+		{
+			return Data.edgeListDirected(file);
+		} catch (IOException e)
+		{
+			throw new RuntimeException("Could not load the file for the P2P graph from the classpath.", e);
+		}
+	}
 }

@@ -94,6 +94,8 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	 */
 	public DiskDGraph(File dir, boolean nullLabels)
 	{
+		this.nullLabels = nullLabels;
+		
 		dir.mkdirs();
 		File dbFile = new File(dir, "graph."+id+".db");
 		
@@ -523,11 +525,11 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			
 			List<DLink<String>> list = new ArrayList<DLink<String>>(degree());
 			
-			for(int neighbor : out.get(index))
+			for(int neighbor : out.get((int)index))
 				list.add(new DiskDLink(index, neighbor));
 			
-			for(int neighbor : in.get(index))
-				if(neighbor != index) // no double reflexive links
+			for(int neighbor : in.get((int)index))
+				if(neighbor != ((int)index)) // no double reflexive links
 					list.add(new DiskDLink(neighbor, index));	
 			
 			return list;
@@ -539,7 +541,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			check();
 			
 			List<DLink<String>> list = new ArrayList<DLink<String>>(outDegree());
-			for(int neighbor : out.get(index))
+			for(int neighbor : out.get((int)index))
 				list.add(new DiskDLink(index, neighbor));
 			
 			return list;
@@ -551,7 +553,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			check();
 			
 			List<DLink<String>> list = new ArrayList<DLink<String>>(inDegree());
-			for(int neighbor : in.get(index))
+			for(int neighbor : in.get((int)index))
 				list.add(new DiskDLink(neighbor, index));
 			
 			return list;
@@ -565,12 +567,12 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			List<DLink<String>> list = new ArrayList<DLink<String>>();
 			
 			int o = other.index();
-			for(int neighbor : out.get(index))
+			for(int neighbor : out.get((int)index))
 				if(neighbor == o)
 					list.add(new DiskDLink(index, neighbor));
 			
 			if(index != o)
-				for(int neighbor : in.get(index))
+				for(int neighbor : in.get((int)index))
 					if(neighbor == o)
 						list.add(new DiskDLink(neighbor, index));
 			
@@ -585,8 +587,8 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			List<DLink<String>> list = new ArrayList<DLink<String>>(outDegree());
 			
 			int o = other.index();
-			for(int neighbor : out.get(index))
-				if(neighbor == o)
+			for(int neighbor : out.get((int)index))
+				if(((int)neighbor) == ((int)o))
 					list.add(new DiskDLink(index, neighbor));
 			
 			return list;
@@ -600,7 +602,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			List<DLink<String>> list = new ArrayList<DLink<String>>(inDegree());
 			
 			int o = other.index();
-			for(int neighbor : in.get(index))
+			for(int neighbor : in.get((int)index))
 				if(neighbor == o)
 					list.add(new DiskDLink(neighbor, index));
 			
@@ -611,7 +613,6 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	private class DiskDLink implements DLink<String>
 	{
 		private DNode<String> from, to;
-		
 		
 		private long nodeModState = nodeModCount;
 		
@@ -901,7 +902,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	public DNode<String> add(String label)
 	{
 
-		if(!nullLabels && label != null)
+		if(nullLabels && label != null)
 			throw new IllegalArgumentException("Graph is set to null labels only.");
 		
 		if(! nullLabels)
@@ -1169,11 +1170,12 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		// * sort the input file by first element
         File forward = new File(dir, "forward.edgelist");
         
-        ExternalSort.mergeSortedFiles(
-        	ExternalSort.sortInBatch(
+        
+        List<File> files = ExternalSort.sortInBatch(
         		file, 
         		new LComp(true), ExternalSort.DEFAULTMAXTEMPFILES, 
-        		Charset.defaultCharset(), dir, false), forward);
+        		Charset.defaultCharset(), dir, false);
+        ExternalSort.mergeSortedFiles(files, forward, new LComp(true), Charset.defaultCharset());
         
         System.out.println("Forward sort finished");
         
@@ -1184,11 +1186,11 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
         forward.delete();
         File backward = new File(dir, "backward.edgelist");
         
-        ExternalSort.mergeSortedFiles(
-        	ExternalSort.sortInBatch(
+        files = ExternalSort.sortInBatch(
         		file, 
         		new LComp(false), ExternalSort.DEFAULTMAXTEMPFILES, 
-        		Charset.defaultCharset(), dir, false), backward);
+        		Charset.defaultCharset(), dir, false);
+        ExternalSort.mergeSortedFiles(files, backward, new LComp(false), Charset.defaultCharset());
         
         System.out.println("Backward sort finished");
         
@@ -1272,8 +1274,16 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			
 			if(a != (int) current)
 			{
-				list.add(neighbors);
+				try {
+					list.add(neighbors);
+				} catch(AssertionError e)
+				{
+					throw new AssertionError("Failed to add list to IndexTreeList. current list size: "+list.size()+", list to be added "+neighbors);
+				}
 				neighbors.clear();
+				
+				if(a < list.size())
+					throw new IllegalStateException("Next index is "+a+", while list size is already " + list.size() + ". It seems like the sorting ot the file went wrong.");
 				
 				while(list.size() < a)
 					list.add(Collections.EMPTY_LIST);
