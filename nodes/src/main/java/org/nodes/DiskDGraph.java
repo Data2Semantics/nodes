@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 
 import javax.management.RuntimeErrorException;
@@ -49,6 +50,10 @@ import nl.peterbloem.kit.Series;
 /**
  * A version of the LightDGraph which stores all data on disk. Ie. it's slower, 
  * but can store much bigger graphs.
+ * 
+ * 
+ * The db file can be stored and re-used later. Make sure to close the graph with 
+ * close().
  * 
  * @author Peter
  *
@@ -88,16 +93,14 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	
 	/**
 	 * 
-	 * @param dir
+	 * @param dbFile The file containing the graph structure. If the file doesn't exist, 
+	 *   it will be created. IF it does exist, the graph it contains will be loaded.
 	 * @param nullLabels If true, all labels will be null (saving some space). 
 	 *    Adding a node with a nonnull label will result in an exception.
 	 */
-	public DiskDGraph(File dir, boolean nullLabels)
+	public DiskDGraph(File dbFile, boolean nullLabels)
 	{
 		this.nullLabels = nullLabels;
-		
-		dir.mkdirs();
-		File dbFile = new File(dir, "graph."+id+".db");
 		
 		db = DBMaker.fileDB(dbFile).make();
 		
@@ -105,7 +108,17 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		 
 		in  = db.indexTreeList("in",  new SerializerIntList()).createOrOpen();
 		out = db.indexTreeList("out", new SerializerIntList()).createOrOpen();
+		
+		if(!nullLabels && labels.size() != in.size())
+			throw new IllegalStateException("labels list has size "+ labels.size() + ", should be " + in.size() + ".");
+		
+		if(db.exists("numLinks"))
+			numLinks = db.atomicInteger("numLinks").createOrOpen().get();
+		else
+			for(List<Integer> list : in)
+				numLinks += list.size();
 	}
+	
 	
 	@Override
 	public int size()
@@ -163,7 +176,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 						
 			for(int i : series(in.size()))
 			{
-				List<Integer> neighbors = in.get(i);
+				List<Integer> neighbors = new ArrayList<Integer>(in.get(i));
 				
 				Iterator<Integer> it = neighbors.iterator();
 				while(it.hasNext())
@@ -174,7 +187,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			}
 			for(int i : series(out.size()))
 			{
-				List<Integer> neighbors = out.get(i);
+				List<Integer> neighbors = new ArrayList<Integer>(out.get(i));
 								
 				Iterator<Integer> it = neighbors.iterator();
 				while(it.hasNext())
@@ -188,7 +201,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			//   is higher than the one we just removed.  
 			for(int i : series(in.size()))
 			{
-				List<Integer> neighbors = in.get(i);
+				List<Integer> neighbors = new ArrayList<Integer>(in.get(i));
 
 				for(int j : series(neighbors.size()))
 				{
@@ -201,7 +214,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			}
 			for(int i : series(out.size()))
 			{
-				List<Integer> neighbors = out.get(i);
+				List<Integer> neighbors = new ArrayList<Integer>(out.get(i));
 
 				for(int j : series(neighbors.size()))
 				{
@@ -390,21 +403,21 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			
 			int links = 0;
 			
-			List<Integer> myOut = out.get(mine);
+			List<Integer> myOut = new ArrayList<Integer>(out.get(mine));
 			while(myOut.remove((Integer)his))
 				links++;
 			out.set(mine, myOut);
 			
-			List<Integer> hisOut = out.get(his);
+			List<Integer> hisOut = new ArrayList<Integer>(out.get(his));
 			while(hisOut.remove((Integer)mine))
 				links++;
 			out.set(his, hisOut);
 			
-			List<Integer> myIn = in.get(mine);
+			List<Integer> myIn = new ArrayList<Integer>(in.get(mine));
 			while(myIn.remove((Integer)his));
 			in.set(mine, myIn);
 				
-			List<Integer> hisIn = in.get(his);
+			List<Integer> hisIn = new ArrayList<Integer>(in.get(his));
 			while(hisIn.remove((Integer)mine));
 			in.set(his, hisIn);
 
@@ -651,8 +664,14 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		public void remove()
 		{
 			check();
-			in.get(to.index()).remove((Integer)from.index());
-			out.get(from.index()).remove((Integer)to.index());
+			
+			List<Integer> list = new ArrayList<Integer>(in.get(to.index()));
+			list.remove((Integer)from.index());
+			in.set(to.index(), list);
+			
+			list = new ArrayList<Integer>(out.get(from.index()));
+			list.remove((Integer)to.index());
+			out.set(from.index(), list);
 			
 			modCount++;
 			dead = true;
@@ -1156,6 +1175,28 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	}
 	
 	/**
+	 * Loads a previous converted graph.
+	 * 
+	 * @param dbFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static DiskDGraph fromDB(File dbFile)
+			throws IOException
+	{
+		DB db = DBMaker.fileDB(dbFile).make();
+
+		if(db.exists("labels"))
+		{
+			db.close();
+			return new DiskDGraph(dbFile, false);
+		}
+		
+		db.close();
+		return new DiskDGraph(dbFile, true);
+	}
+	
+	/**
 	 * Reads a (large) edgelist-encoded file into a DiskDGraph. 
 	 *  
 	 * @param file
@@ -1165,16 +1206,23 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	public static DiskDGraph fromFile(File file, File dir)
 		throws IOException
 	{
-		DiskDGraph graph = new DiskDGraph(dir, true);
+		int id = (new Random()).nextInt(10000000);
+
+		return fromFile(file, dir, new File("graph."+id+".db"));	
+	}
+	public static DiskDGraph fromFile(File file, File tmpDir, File dbFile)
+			throws IOException
+		{
+		DiskDGraph graph = new DiskDGraph(dbFile, true);
 
 		// * sort the input file by first element
-        File forward = new File(dir, "forward.edgelist");
+        File forward = new File(tmpDir, "forward.edgelist");
         
         
         List<File> files = ExternalSort.sortInBatch(
         		file, 
         		new LComp(true), ExternalSort.DEFAULTMAXTEMPFILES, 
-        		Charset.defaultCharset(), dir, false);
+        		Charset.defaultCharset(), tmpDir, false);
         ExternalSort.mergeSortedFiles(files, forward, new LComp(true), Charset.defaultCharset());
         
         System.out.println("Forward sort finished");
@@ -1184,12 +1232,12 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
         System.out.println("Forward list read");
 
         forward.delete();
-        File backward = new File(dir, "backward.edgelist");
+        File backward = new File(tmpDir, "backward.edgelist");
         
         files = ExternalSort.sortInBatch(
         		file, 
         		new LComp(false), ExternalSort.DEFAULTMAXTEMPFILES, 
-        		Charset.defaultCharset(), dir, false);
+        		Charset.defaultCharset(), tmpDir, false);
         ExternalSort.mergeSortedFiles(files, backward, new LComp(false), Charset.defaultCharset());
         
         System.out.println("Backward sort finished");
@@ -1214,6 +1262,12 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		Global.log().info("Graph loaded and sorted.");
 
 		return graph;
+	}
+	
+	public void close()
+	{
+		db.atomicInteger("numLinks").createOrOpen().set(numLinks);
+		db.close();
 	}
 	
 	private static long readSorted(List<List<Integer>> list, File file, boolean forward)
