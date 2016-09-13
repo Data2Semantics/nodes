@@ -19,12 +19,12 @@ import java.util.regex.Pattern;
 import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
-import org.nodes.classification.Classified;
 
 import nl.peterbloem.kit.FrequencyModel;
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.MaxObserver;
 import nl.peterbloem.kit.Series;
+import nl.peterbloem.kit.data.classification.Classified;
 
 
 /**

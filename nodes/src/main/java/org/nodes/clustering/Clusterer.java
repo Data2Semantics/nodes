@@ -1,8 +1,9 @@
 package org.nodes.clustering;
 
-import org.nodes.classification.Classified;
 import org.nodes.Graph;
 import org.nodes.Node;
+
+import nl.peterbloem.kit.data.classification.Classified;
 
 public interface Clusterer<L>
 {

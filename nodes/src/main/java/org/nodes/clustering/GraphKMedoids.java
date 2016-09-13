@@ -2,10 +2,10 @@ package org.nodes.clustering;
 
 import java.util.List;
 
-import org.nodes.classification.Classified;
 import org.nodes.clustering.KMedioids;
 
 import nl.peterbloem.kit.Series;
+import nl.peterbloem.kit.data.classification.Classified;
 
 import org.nodes.Graph;
 import org.nodes.Node;

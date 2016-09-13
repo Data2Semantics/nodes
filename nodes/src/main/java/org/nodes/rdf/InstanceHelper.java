@@ -9,8 +9,9 @@ import org.nodes.DTGraph;
 import org.nodes.DTNode;
 import org.nodes.Node;
 import org.nodes.Subgraph;
-import org.nodes.classification.Classification;
-import org.nodes.classification.Classified;
+
+import nl.peterbloem.kit.data.classification.Classification;
+import nl.peterbloem.kit.data.classification.Classified;
 
 /**
  * Utility class for extracting instances from RDF graphs

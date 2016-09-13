@@ -11,7 +11,6 @@ import java.util.Random;
 import org.junit.Test;
 import static org.nodes.clustering.ConnectionClusterer.ConnectionClustering;
 
-import org.nodes.classification.Classified;
 import org.nodes.algorithms.FloydWarshall;
 import org.nodes.random.RandomGraphs;
 

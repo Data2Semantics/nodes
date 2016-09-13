@@ -13,12 +13,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.nodes.classification.Classification;
-import org.nodes.classification.Classified;
-
 import nl.peterbloem.kit.BitString;
 import nl.peterbloem.kit.FrequencyModel;
 import nl.peterbloem.kit.Series;
+import nl.peterbloem.kit.data.classification.Classification;
+import nl.peterbloem.kit.data.classification.Classified;
 
 import org.nodes.Graph;
 import org.nodes.Node;
@@ -234,7 +233,6 @@ public class ConnectionClusterer<N> implements Clusterer<N>
 				Set<Integer> set = new HashSet<Integer>(members);
 				System.out.println(set.size() + " " + members.size());
 			}
-			
 			
 			if(mask != null && c != mask.numOnes())
 				throw new RuntimeException("..." + c + " " + mask.numOnes());

@@ -8,10 +8,9 @@ import org.nodes.DNode;
 import org.nodes.DTGraph;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
-import org.nodes.classification.Classification;
-import org.nodes.classification.Classified;
-
 import nl.peterbloem.kit.Series;
+import nl.peterbloem.kit.data.classification.Classification;
+import nl.peterbloem.kit.data.classification.Classified;
 
 public class InformedAvoidanceTest
 {

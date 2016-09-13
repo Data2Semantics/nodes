@@ -7,14 +7,14 @@ import java.util.List;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.nodes.classification.Classification;
-import org.nodes.classification.Classified;
 import org.nodes.draw.Point;
 import org.nodes.util.Distance;
 
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Global;
 import nl.peterbloem.kit.Series;
+import nl.peterbloem.kit.data.classification.Classification;
+import nl.peterbloem.kit.data.classification.Classified;
 
 public class KMedioids<P>
 {
