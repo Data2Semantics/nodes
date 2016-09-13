@@ -2,9 +2,15 @@ package org.nodes.data;
 
 import static org.nodes.data.RDF.simplify;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -12,16 +18,79 @@ import java.util.regex.Pattern;
 import org.nodes.DTGraph;
 import org.nodes.DTLink;
 import org.nodes.DTNode;
+import org.nodes.LightUGraph;
 import org.nodes.MapDTGraph;
 import org.nodes.Node;
+import org.nodes.UGraph;
+import org.nodes.UNode;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.Rio;
+import org.openrdf.rio.helpers.RDFHandlerBase;
+import org.openrdf.rio.turtle.TurtleParser;
+import org.rdfhdt.hdt.exceptions.NotFoundException;
+import org.rdfhdt.hdt.hdt.HDT;
+import org.rdfhdt.hdt.hdt.HDTManager;
+import org.rdfhdt.hdt.triples.IteratorTripleString;
+import org.rdfhdt.hdt.triples.TripleString;
 
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Global;
 
 public class RDF
 {
+	public static MapDTGraph<String, String> readHDT(File file) 
+		throws FileNotFoundException, IOException
+	{
+		MapDTGraph<String, String> graph = new MapDTGraph<String, String>();
+		
+		// Load HDT file. NOTE: Use loadHDT() if you don't need ?P?, ?PO or ??O queries
+		HDT hdt = HDTManager.loadHDT(
+				new BufferedInputStream(new FileInputStream(file)), null);
+
+		int i = 0;
+		try {
+			// Search pattern: Empty string means "any"
+			IteratorTripleString it = hdt.search("", "", "");
+			DTNode<String, String> node1, node2;
+						
+			while(it.hasNext()) {
+				TripleString ts = it.next();
+
+				String subject = ts.getSubject().toString(), 
+				       predicate = ts.getPredicate().toString(),
+				       object = ts.getObject().toString();
+				
+				node1 = graph.node(subject);
+				node2 = graph.node(object);
+			
+				if (node1 == null) 
+					node1 = graph.add(subject);
+		
+				
+				if (node2 == null) 
+					node2 = graph.add(object);
+								
+				node1.connect(node2, predicate);
+				
+				Functions.dot(i, (int)it.estimatedNumResults());
+				i++;
+			}
+		} catch (NotFoundException e) 
+		{
+			// File must be empty, return empty graph
+		} finally 
+		{
+			// IMPORTANT: Free resources
+			hdt.close();
+		}
+		
+		return graph;
+	}
+	
+	
 	/**
 	 * Reads the given file into a graph.
 	 * 
@@ -30,12 +99,22 @@ public class RDF
 	 */
 	public static MapDTGraph<String, String> read(File file)
 	{
-		return read(file, null);
+		return read(file, RDFFormat.RDFXML);
+	}
+	
+	public static MapDTGraph<String, String> read(File file, RDFFormat format)
+	{
+		return read(file, null, format);
 	}
 	
 	public static MapDTGraph<String, String> read(File file, List<String> linkWhitelist)
 	{
-		RDFDataSet testSet = new RDFFileDataSet(file, RDFFormat.RDFXML);
+		return read(file, null, RDFFormat.RDFXML);
+	}
+	
+	public static MapDTGraph<String, String> read(File file, List<String> linkWhitelist, RDFFormat format)
+	{
+		RDFDataSet testSet = new RDFFileDataSet(file, format);
 
 		List<Statement> triples = testSet.getStatements(null, null, null, false);	
 		
@@ -82,8 +161,9 @@ public class RDF
 		MapDTGraph<String, String> graph = new MapDTGraph<String, String>();
 		DTNode<String, String> node1, node2;
 		
-		Global.log().info("Constructing graph");
+		Global.log().info("Constructing graph (size: "+sesameGraph.size()+")");
 		
+		int i = 0;
 		for (Statement statement : sesameGraph) 
 		{
 			
@@ -119,6 +199,9 @@ public class RDF
 				node2 = graph.add(object);
 							
 			node1.connect(node2, predicate);
+			
+			Functions.dot(i, sesameGraph.size());
+			i++;
 		}	
 		
 		return graph;
@@ -179,5 +262,53 @@ public class RDF
 			out.get(link.first().index()).connect(out.get(link.second().index()), simplify(link.tag()));
 	
 		return out;
+	}
+	
+	/**
+	 * Reads a simple graph: no self-loops, no multiple edges. Two resources
+	 * have an edge if they are connected in either direction by one or more predicates
+	 * 
+	 * @param file
+	 * @return
+	 */
+	public static UGraph<String> readSimple(File file)
+		throws IOException
+	{		
+		RDFFormat format = RDFFormat.forFileName(file.getName());
+		
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		RDFParser parser = Rio.createParser(format);
+				
+		final UGraph<String> graph = new LightUGraph<String>();
+		final Map<String, UNode<String>> nodes = new HashMap<String, UNode<String>>();
+		
+		parser.setRDFHandler(new RDFHandlerBase()
+		{
+			  @Override
+			  public void handleStatement(Statement statement) 
+			  {
+				String subject = statement.getSubject().toString();
+				String object = statement.getObject().toString();
+					
+				if(! nodes.containsKey(subject))
+					nodes.put(subject, graph.add(subject));
+				if(! nodes.containsKey(object))
+					nodes.put(object, graph.add(object));
+					
+				UNode<String> subNode = nodes.get(subject); 
+				UNode<String> obNode = nodes.get(object);
+				
+				if( (!subNode.connected(obNode)) &&  subNode.index() != obNode.index() )
+					subNode.connect(obNode);
+			  }
+		});
+		
+		try {
+			   parser.parse(in, "local://");
+		} catch (Exception e) 
+		{
+				throw new RuntimeException("Error parsing file ("+file.getAbsolutePath()+").", e);
+		}
+		return graph;
 	}
 }

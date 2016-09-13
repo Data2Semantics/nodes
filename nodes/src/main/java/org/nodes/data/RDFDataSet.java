@@ -50,7 +50,8 @@ public class RDFDataSet
 	/**
 	 * Wrapper for the Sesame connection getStatements, to avoid try-catch statements. 
 	 */	
-	public List<Statement> getStatements(Resource subject, URI predicate, Value object, boolean allowInference) {
+	public List<Statement> getStatements(Resource subject, URI predicate, Value object, boolean allowInference) 
+	{
 		List<Statement> resGraph = new ArrayList<Statement>();
 
 		try {
