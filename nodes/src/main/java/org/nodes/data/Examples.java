@@ -5,6 +5,10 @@ import java.io.IOException;
 
 import org.nodes.DGraph;
 import org.nodes.UGraph;
+import org.nodes.UTGraph;
+
+import nl.peterbloem.kit.FileIO;
+import nl.peterbloem.kit.data.classification.Classified;
 
 public class Examples
 {
@@ -166,6 +170,62 @@ public class Examples
 		} catch (IOException e)
 		{
 			throw new RuntimeException("Could not load the file for the P2P graph from the classpath.", e);
+		}
+	}
+	
+	/**
+	 * The MUTAG dataset. See:
+	 * 
+	 * https://figshare.com/articles/MUTAG_and_ENZYMES_DataSet/899875
+	 * 
+	 * http://jmlr.org/papers/v12/shervashidze11a.html
+	 *   
+	 * @return
+	 */
+	public static Classified<UTGraph<Integer, Integer>> mutag()
+	{
+		File tmp = new File("./tmp/");
+		tmp.mkdirs();
+		
+		try {
+			FileIO.copy("graphs/mutag/", tmp);
+		
+			Classified<UTGraph<Integer, Integer>> result = MUTAG.read(tmp);
+		
+			FileIO.rDelete(tmp);
+			
+			return result;
+		} catch(IOException e)
+		{
+			throw new RuntimeException("Could not load the MUTAG data from the classpath.", e);
+		}
+	}
+	
+	
+	/**
+	 * The ENZYMES dataset. See:
+	 * 
+	 * https://figshare.com/articles/MUTAG_and_ENZYMES_DataSet/899875
+	 *   
+	 * http://jmlr.org/papers/v12/shervashidze11a.html
+	 * @return
+	 */
+	public static Classified<UTGraph<Integer, Integer>> enzymes()
+	{
+		File tmp = new File("./tmp/");
+		tmp.mkdirs();
+		
+		try {
+			FileIO.copy("graphs/enzymes/", tmp);
+		
+			Classified<UTGraph<Integer, Integer>> result = MUTAG.read(tmp);
+		
+			FileIO.rDelete(tmp);
+			
+			return result;
+		} catch(IOException e)
+		{
+			throw new RuntimeException("Could not load the ENZYMES data from the classpath.", e);
 		}
 	}
 }
