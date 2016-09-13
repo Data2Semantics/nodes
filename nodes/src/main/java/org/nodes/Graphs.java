@@ -952,7 +952,7 @@ public class Graphs
 	
 	/**
 	 * Returns all graphs, of the given size, up to isomorphism: for each 
-	 * isomorphism class, only the canonical example is included. Note generated 
+	 * isomorphism class, only the canonical example is included. Not generated 
 	 * on the fly, and n larger than 6 is not recommended. 
 	 * 
 	 * @param n
