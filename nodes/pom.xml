@@ -102,19 +102,23 @@
     <dependency>
      	<groupId>com.github.pbloem</groupId>
      	<artifactId>kit</artifactId>
-     	<version>v0.1.6</version>
-     </dependency>   
-  <!--   <dependency>
-  	  <groupId>peterbloem.nl</groupId>
-  	  <artifactId>kit</artifactId>
-  	  <version>0.0.1-SNAPSHOT</version>
-    </dependency>  -->
+     	<version>v0.1.8</version>
+    </dependency>   
+<!--     <dependency> -->
+<!--   	  <groupId>peterbloem.nl</groupId> -->
+<!--   	  <artifactId>kit</artifactId> -->
+<!--   	  <version>0.0.1-SNAPSHOT</version> -->
+<!--     </dependency>  -->
   <dependency>
   	<groupId>org.mapdb</groupId>
   	<artifactId>mapdb</artifactId>
   	<version>3.0.1</version>
   </dependency>
-  
+	<dependency>
+ 		<groupId>org.rdfhdt</groupId>
+ 		<artifactId>hdt-java-core</artifactId>
+ 		<version>1.1</version>
+ 	</dependency>  
   <dependency>
   	<groupId>com.github.pbloem</groupId>
   	<artifactId>externalsortinginjava</artifactId>
