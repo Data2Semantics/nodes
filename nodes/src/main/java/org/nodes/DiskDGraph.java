@@ -119,7 +119,6 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 				numLinks += list.size();
 	}
 	
-	
 	@Override
 	public int size()
 	{
