@@ -7,10 +7,12 @@ import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static nl.peterbloem.kit.Functions.choose;
+import static nl.peterbloem.kit.Functions.concat;
 import static nl.peterbloem.kit.Functions.exp2;
 import static nl.peterbloem.kit.Functions.log2;
 import static nl.peterbloem.kit.Functions.log2Min;
 import static nl.peterbloem.kit.Functions.log2Sum;
+import static nl.peterbloem.kit.Functions.sampleInts;
 import static nl.peterbloem.kit.LogNum.fromDouble;
 import static nl.peterbloem.kit.Pair.first;
 import static nl.peterbloem.kit.Series.series;
@@ -24,7 +26,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -32,15 +36,21 @@ import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.commons.math3.distribution.BinomialDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.nodes.DGraph;
 import org.nodes.DNode;
 import org.nodes.Graph;
+import org.nodes.LightUGraph;
+import org.nodes.Link;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
 import org.nodes.UGraph;
+import org.nodes.ULink;
+import org.nodes.UNode;
 
+import nl.peterbloem.kit.AbstractGenerator;
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Generator;
 import nl.peterbloem.kit.Global;
@@ -82,7 +92,12 @@ public class USequenceEstimator<L>
 	
 	public USequenceEstimator(Graph<?> data)
 	{
-
+		this(data, null);
+	}
+		
+	public USequenceEstimator(Graph<?> data, L label)
+	{
+		this.label = label;
 		sequence = new ArrayList<Integer>(data.size());
 		
 		for(Node<?> node : data.nodes())
@@ -97,8 +112,8 @@ public class USequenceEstimator<L>
 		for(int i : series(samples))
 		{
 			nonuniform();
-			if(Functions.toc() > 10)
-				System.out.println("\r " + logSamples.size() + " samples completed");
+			if(Functions.toc() > 10 && i % (samples/100) == 0)
+				Global.log().info(logSamples.size() + " samples completed");
 		}
 	}
 	
@@ -1085,12 +1100,179 @@ public class USequenceEstimator<L>
 			return graph + ", (c=" + c + ", sigma=" + sigma
 					+ ")";
 		}
-		
-		
 	}
 	
-	public Generator<UGraph<L>> uniform()
+	/**
+	 * Returns a generator for uniform samples.
+	 * 
+	 * Uses the curveball algorithm for undirected simple graphs, see
+	 * 		https://researchbank.rmit.edu.au/view/rmit:161573
+	 * 		(chapter 4.2)
+	 * 
+	 * @return
+	 */
+	public Generator<UGraph<L>> uniform(int mixingTime)
 	{
-		return null;
-	}	
+		return new UniformGenerator(nonuniform().graph(), mixingTime);
+	}
+	
+	private class UniformGenerator extends AbstractGenerator<UGraph<L>>
+	{
+		private List<Set<Integer>> adjacencies;
+		public int mixTime;
+		
+		public UniformGenerator(UGraph<L> start, int mixingTime)
+		{
+			// * Extract an adjacency-list representation from the starting graph
+			adjacencies = adjacencies(start);
+			this.mixTime = mixingTime;
+		}
+
+		@Override
+		public UGraph<L> generate() 
+		{			
+
+			for(int i : series(mixTime))
+			{
+				step(adjacencies);
+			}
+			
+			return graph();			
+		}
+		
+		/**
+		 * Convert the adjacency lists to a graph
+		 * @return
+		 */
+		private UGraph<L> graph()
+		{
+			// TODO: We can speed this up by filling the adjacency lists
+			//       inside the LightUGraph directly
+			UGraph<L> graph = new LightUGraph<L>(adjacencies.size());
+			
+			for(int i : series(adjacencies.size()))
+				graph.add(label);
+			
+			for(int i : series(adjacencies.size()))
+			{
+				UNode<L> node = graph.get(i);
+				Set<Integer> indices  = adjacencies.get(i);
+				
+				for(int ind : indices)
+					if(ind > i)
+						node.connect(graph.get(ind));
+			}
+
+			return graph;
+		}
+	}
+	
+	
+	/**
+	 * Perturbation score 
+	 * @param one
+	 * @param two
+	 * @return
+	 */
+	public static double perturbation(List<Set<Integer>> one, List<Set<Integer>> two)
+	{
+		int total = 0;
+		int m = 0;
+		
+		for(int i : series(one.size()))
+		{
+			total += Functions.overlap(one.get(i), two.get(i));
+			m += one.get(i).size();
+		}
+			
+		return 1.0 - (total/2)/(double)(m/2);
+	}
+	
+	public static void step(List<Set<Integer>> adjacencies)
+	{
+		// * Randomly select two (distinct) sets
+		List<Integer> ind = sampleInts(2, adjacencies.size());
+		int oneInd = ind.get(0),
+		    twoInd = ind.get(1);
+		
+		Set<Integer> one = adjacencies.get(oneInd),
+		             two = adjacencies.get(twoInd);
+					
+		// * Filter out candidate swaps
+		List<Integer> oneCand = new ArrayList<Integer>(),
+		              twoCand = new ArrayList<Integer>();
+		
+		Iterator<Integer> itOne = one.iterator();
+		while(itOne.hasNext())
+		{
+			int index = itOne.next();
+			if(twoInd != index && ! two.contains(index))
+			{
+				oneCand.add(index);
+				itOne.remove();	
+			}
+		}
+							
+		Iterator<Integer> itTwo = two.iterator();
+		while(itTwo.hasNext())
+		{
+			int index = itTwo.next();
+			if(oneInd != index && ! one.contains(index))
+			{
+				twoCand.add(index);
+				itTwo.remove();
+			}
+		}
+					
+		List<Integer> candidates = concat(oneCand, twoCand);
+		
+		// - Remember the swaps 
+		List<Integer> toOne = new ArrayList<Integer>(twoCand.size());  // came from two, went to one 
+		List<Integer> toTwo = new ArrayList<Integer>(oneCand.size());  // came from one went to two
+		
+		// * Add back randomly
+		Set<Integer> forOne = new LinkedHashSet<Integer>(sampleInts(oneCand.size(), candidates.size()));
+
+		for(int i : series(candidates.size()))
+			if(forOne.contains(i))
+			{
+				one.add(candidates.get(i));
+				if(i >= oneCand.size()) // swap, remember
+					toOne.add(candidates.get(i));
+			} else {
+				two.add(candidates.get(i));
+				if(i < oneCand.size()) // swap, remember
+					toTwo.add(candidates.get(i));
+			}
+		
+		assert(toOne.size() == toTwo.size());
+		
+		// * For each swap, perform the dual swap
+		for(int j : toOne)
+		{
+			adjacencies.get(j).remove(twoInd);
+			adjacencies.get(j).add(oneInd);
+		}
+		for(int k : toTwo)
+		{
+			adjacencies.get(k).remove(oneInd);
+			adjacencies.get(k).add(twoInd);
+		}
+	}
+	
+	public static <L> List<Set<Integer>> adjacencies(UGraph<L> graph) 
+	{
+		List<Set<Integer>> adjacencies = new ArrayList<Set<Integer>>(graph.size());
+		for(UNode<L> node : graph.nodes())
+		{
+			Set<Integer> set = new LinkedHashSet<Integer>();
+			
+			for(UNode<L> neighbor : node.neighbors())
+				set.add(neighbor.index());
+			
+			adjacencies.add(set);
+		}
+		
+		return adjacencies;
+	}
 }

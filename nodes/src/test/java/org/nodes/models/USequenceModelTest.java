@@ -2,6 +2,7 @@ package org.nodes.models;
 
 import static java.lang.Math.sqrt;
 import static java.util.Arrays.asList;
+import static nl.peterbloem.kit.Functions.dot;
 import static nl.peterbloem.kit.Functions.exp2;
 import static nl.peterbloem.kit.Functions.tic;
 import static nl.peterbloem.kit.Functions.toc;
@@ -24,9 +25,12 @@ import org.nodes.Graph;
 import org.nodes.Graphs;
 import org.nodes.MapUTGraph;
 import org.nodes.Node;
+import org.nodes.UGraph;
 import org.nodes.random.RandomGraphs;
 
+import nl.peterbloem.kit.FrequencyModel;
 import nl.peterbloem.kit.Functions;
+import nl.peterbloem.kit.Generator;
 import nl.peterbloem.kit.LogNum;
 import nl.peterbloem.kit.Pair;
 import nl.peterbloem.kit.Series;
@@ -450,6 +454,37 @@ public class USequenceModelTest
 	public static LogNum l(double lMag, boolean pos)
 	{
 		return new LogNum(lMag, pos, 2.0);
+	}
+	
+	@Test
+	public void testUniform()
+	{
+		final int SAMPLES = 6000;
+		List<Integer> degrees = Arrays.asList(3,2,2,2,1);
+		USequenceEstimator<String> model = new USequenceEstimator<String>(degrees, 10000);
+		
+		// - the number of graphs
+		double n = Math.round(Math.pow(2.0, model.logNormalMean()));
+		
+		Generator<UGraph<String>> gen = model.uniform(1000);
+		
+		FrequencyModel<UGraph<String>> fm = new FrequencyModel<UGraph<String>>();
+		
+		
+		for(int i : series(SAMPLES))
+		{
+			fm.add(gen.generate());
+			dot(i, SAMPLES);
+		}
+		
+		assertEquals(fm.distinct(), n, 0.00000000001);
+		
+		for(UGraph<String> token : fm.tokens())
+		{
+			System.out.println(token + " " + fm.probability(token));
+			assertEquals(1.0/n, fm.probability(token), 0.1);
+			assertEquals(degrees, Graphs.degrees(token));
+		}
 	}
 }
 
