@@ -55,6 +55,9 @@ import nl.peterbloem.kit.Series;
  * The db file can be stored and re-used later. Make sure to close the graph with 
  * close().
  * 
+ * The graph supports more than Integer.MAX_VALUE links in total, however, the 
+ * in- and outdegrees of each node need to be below that value.
+ * 
  * @author Peter
  *
  * @param <L>
@@ -63,7 +66,6 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 {
 	// * the initial capacity reserved for neighbors
 	public static final int NEIGHBOR_CAPACITY = 5;
-	private int id = Global.random().nextInt(10000000);
 	
 	private DB db;
 	
@@ -113,7 +115,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 			throw new IllegalStateException("labels list has size "+ labels.size() + ", should be " + in.size() + ".");
 		
 		if(db.exists("numLinks"))
-			numLinks = db.atomicInteger("numLinks").createOrOpen().get();
+			numLinks = db.atomicLong("numLinks").createOrOpen().get();
 		else
 			for(List<Integer> list : in)
 				numLinks += list.size();
@@ -827,13 +829,6 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		return new NodeList(Series.series(size()));
 	}
 	
-	/**
-	 * NOTE: If hasLongNumLinks is true and the graph has more links than 
-	 * Integer.MAX_VALUE, the {size()} of the returned collection
-	 * will be -1.
-	 * 
-	 * @return
-	 */
 	@Override
 	public Iterable<? extends DLink<String>> links()
 	{
@@ -841,9 +836,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	}
 	
 	/**
-	 * A collection of all links in this graph.
-	 * The iterator it returns can be safely used.
-	 * 
+	 * A collection of all links in this graph.	 
 	 * @author Peter
 	 *
 	 */
@@ -1217,6 +1210,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 
 		return fromFile(file, dir, new File("graph."+id+".db"));	
 	}
+	
 	public static DiskDGraph fromFile(File file, File tmpDir, File dbFile)
 			throws IOException
 		{
