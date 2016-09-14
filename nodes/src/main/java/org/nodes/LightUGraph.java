@@ -49,7 +49,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 	
 	List<List<Integer>> neighbors;
 	
-	private int numLinks = 0;
+	private long numLinks = 0;
 	private long modCount = 0;
 	
 	// * changes for any edit which causes the node indices to change 
@@ -81,7 +81,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 	}
 
 	@Override
-	public int numLinks()
+	public long numLinks()
 	{
 		return numLinks;
 	}
@@ -529,7 +529,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 	}
 	
 	@Override
-	public Collection<? extends ULink<L>> links()
+	public Iterable<? extends ULink<L>> links()
 	{
 		return new LinkCollection();
 	}
@@ -551,7 +551,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 		@Override
 		public int size()
 		{
-			return numLinks;
+			return (int)numLinks;
 		}
 		
 		private class LLIterator implements Iterator<ULink<L>>

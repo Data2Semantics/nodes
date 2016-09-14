@@ -54,7 +54,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 	protected List<MapDTNode> nodeList = new ArrayList<MapDTNode>();
 	protected Map<L, Set<MapDTNode>> nodes = new LinkedHashMap<L, Set<MapDTNode>>();
 
-	protected int numEdges = 0;
+	protected long numLinks = 0;
 	protected long modCount = 0;
 	
 	protected int hash;
@@ -242,7 +242,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 			neighborsTo.add(mdtOther);
 			mdtOther.neighborsFrom.add(this);
 			
-			numEdges++;
+			numLinks++;
 			modCount++;
 			
 			return link;
@@ -790,7 +790,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 			
 			dead = true;
 			
-			numEdges--;
+			numLinks--;
 			modCount++;
 		}
 
@@ -937,9 +937,9 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 	}
 
 	@Override
-	public int numLinks()
+	public long numLinks()
 	{
-		return numEdges;
+		return numLinks;
 	}
 
 	@Override
@@ -955,7 +955,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 	}
 
 	@Override
-	public Collection<MapDTLink> links()
+	public Iterable<MapDTLink> links()
 	{
 		return new LinkCollection();
 	}
@@ -971,7 +971,7 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 		@Override
 		public int size()
 		{
-			return numLinks();
+			return (int)numLinks();
 		}
 		
 		private class LCIterator implements Iterator<MapDTLink>

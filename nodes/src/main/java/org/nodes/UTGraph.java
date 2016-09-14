@@ -30,15 +30,13 @@ public interface UTGraph<L, T> extends TGraph<L, T>, UGraph<L>
 	@Override
 	public UTNode<L, T> get(int i);
 	
-	public Collection<? extends UTLink<L, T>> links();	
+	public Iterable<? extends UTLink<L, T>> links();	
 	
 	/**
 	 * Adds a new node with the given label 
 	 */
 	public UTNode<L, T> add(L label);
-	
-	public int numLinks();
-	
+		
 	/**
 	 * Returns the node labels
 	 * @return

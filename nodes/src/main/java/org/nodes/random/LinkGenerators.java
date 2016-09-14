@@ -32,7 +32,9 @@ public class LinkGenerators
 
 		public LinkGenerator(Graph<T> graph)
 		{
-			links = new ArrayList<Link<T>>(graph.links());
+			links = new ArrayList<Link<T>>((int)graph.numLinks());
+			for(Link<T> link : graph.links())
+				links.add(link);
 		}
 
 		@Override

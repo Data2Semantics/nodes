@@ -73,7 +73,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	private List<List<Integer>> in;
 	private List<List<Integer>> out;
 	
-	private int numLinks = 0;
+	private long numLinks = 0;
 	private long modCount = 0;
 	
 	// * changes for any edit which causes the node indices to change 
@@ -85,7 +85,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	private Long hashMod = null;
 	
 	private boolean sorted = false;
-	
+		
 	public DiskDGraph(File dir)
 	{
 		this(dir, false);
@@ -94,7 +94,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	/**
 	 * 
 	 * @param dbFile The file containing the graph structure. If the file doesn't exist, 
-	 *   it will be created. IF it does exist, the graph it contains will be loaded.
+	 *   it will be created. If it does exist, the graph it contains will be loaded.
 	 * @param nullLabels If true, all labels will be null (saving some space). 
 	 *    Adding a node with a nonnull label will result in an exception.
 	 */
@@ -126,7 +126,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	}
 
 	@Override
-	public int numLinks()
+	public long numLinks()
 	{
 		return numLinks;
 	}
@@ -827,14 +827,22 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		return new NodeList(Series.series(size()));
 	}
 	
+	/**
+	 * NOTE: If hasLongNumLinks is true and the graph has more links than 
+	 * Integer.MAX_VALUE, the {size()} of the returned collection
+	 * will be -1.
+	 * 
+	 * @return
+	 */
 	@Override
-	public Collection<? extends DLink<String>> links()
+	public Iterable<? extends DLink<String>> links()
 	{
 		return new LinkCollection();
 	}
 	
 	/**
 	 * A collection of all links in this graph.
+	 * The iterator it returns can be safely used.
 	 * 
 	 * @author Peter
 	 *
@@ -850,7 +858,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		@Override
 		public int size()
 		{
-			return numLinks;
+			return (int)numLinks();
 		}
 		
 		private class LLIterator implements Iterator<DLink<String>>
@@ -1265,7 +1273,8 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	
 	public void close()
 	{
-		db.atomicInteger("numLinks").createOrOpen().set(numLinks);
+		db.atomicLong("numLinks").createOrOpen().set(numLinks);
+		
 		db.close();
 	}
 	

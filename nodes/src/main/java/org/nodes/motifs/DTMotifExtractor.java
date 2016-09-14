@@ -158,7 +158,7 @@ public class DTMotifExtractor
 		for (DGraph<String> sub : tokens)
 		{
 			System.out.println("Starting motif (" + fm.frequency(sub) + ")" + sub);
-			int nMask = sub.size() + sub.numLinks();
+			int nMask = sub.size() + (int)sub.numLinks();
 			
 			if(fm.frequency(sub) < MIN_OCCURRENCES)
 				break;

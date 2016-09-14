@@ -21,7 +21,7 @@ public interface DGraph<L> extends Graph<L>
 	@Override
 	public DNode<L> get(int i);
 	
-	public Collection<? extends DLink<L>> links();
+	public Iterable<? extends DLink<L>> links();
 	
 	/**
 	 * Adds a new node with the given label 

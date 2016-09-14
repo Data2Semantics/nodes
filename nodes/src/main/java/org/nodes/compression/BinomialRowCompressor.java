@@ -34,8 +34,8 @@ public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public double undirected(Graph<N> graph, List<Integer> order)
 	{
-		int n = graph.size();		
-		int k = graph.numLinks();
+		long n = graph.size();		
+		long k = graph.numLinks();
 
 		List<Integer> inv = Draw.inverse(order);
 		
@@ -43,7 +43,7 @@ public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 		
 		bits+= Functions.prefix(n);
 		
-		int entries = (n * (n + 1)) / 2;
+		long entries = (n * (n + 1)) / 2;
 		bits += log2(entries); // Encode total number of ones (k)
 		
 		int row = 0;
@@ -65,8 +65,8 @@ public class BinomialRowCompressor<N> extends AbstractGraphCompressor<N>
 	
 	public double directed(DGraph<N> graph, List<Integer> order)
 	{
-		int n = graph.size();
-		int k = graph.numLinks();
+		long n = graph.size();
+		long k = graph.numLinks();
 				
 		double sizeBits = Functions.prefix(n);
 		sizeBits += 2 * log2(n);

@@ -20,10 +20,6 @@ import java.util.Set;
  * API level.</li>
  * </ul>
  * 
- * TODO: Create a separate UGraph & UTGraph. Undirected graphs behave differently than 
- * directed graphs. Letting Graph be the interface for undirected graphs violates
- * LSP.
- * 
  * <h2>A note on equality and inheritance</h2>
  * <p>
  * Our choice to use inheritance in the definition of graphs presents a problem
@@ -42,7 +38,7 @@ import java.util.Set;
  * graphs to be equal, their level must match.
  * </p>
  *        
- * 
+ * TODO: Make numLinks() return a long, and make {links()} return an iterable.
  * 
  * 
  * @param <L>
@@ -67,7 +63,7 @@ public interface Graph<L>
 	 * behavior.
 	 * @return
 	 */
-	public Collection<? extends Link<L>> links();
+	public Iterable<? extends Link<L>> links();
 	
 	/**
 	 * @return The graph's size in nodes.
@@ -79,7 +75,7 @@ public interface Graph<L>
 	 */
 	public Node<L> add(L label);
 	
-	public int numLinks();
+	public long numLinks();
 	
 	/**
 	 * Returns the node labels

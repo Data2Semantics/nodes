@@ -52,7 +52,9 @@ public class FractalGenerator
 	{
 		
 		// * Copy the links to avoid concurrent modification
-		List<UTLink<String, String>> links = new ArrayList<UTLink<String,String>>(graph.links());
+		List<UTLink<String, String>> links = new ArrayList<UTLink<String,String>>((int)graph.numLinks());
+		for(UTLink<String, String> link : graph.links())
+			links.add(link);
 		
 		for(UTLink<String, String> link : links)
 		{

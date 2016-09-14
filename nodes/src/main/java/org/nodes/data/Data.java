@@ -263,7 +263,7 @@ public class Data {
 
 			nodeA.connect(nodeB);
 			
-			int links = graph.numLinks();
+			long links = graph.numLinks();
 			if(links%50000 == 0)
 				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
 			if(links%5000000 == 0)
@@ -361,7 +361,7 @@ public class Data {
 					nodeA.connect(nodeB);
 			}
 			
-			int links = graph.numLinks();
+			long links = graph.numLinks();
 			if(links%500000 == 0)
 				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
 			if(links%5000000 == 0)
@@ -443,7 +443,7 @@ public class Data {
 
 			nodeA.connect(nodeB);
 			
-			int links = graph.numLinks();
+			long links = graph.numLinks();
 			if(links%100000 == 0)
 				Global.log().info("Loaded " + links + " links (n="+graph.size()+", l="+graph.numLinks()+")");
 			

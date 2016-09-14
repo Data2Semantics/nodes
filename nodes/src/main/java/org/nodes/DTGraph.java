@@ -30,15 +30,13 @@ public interface DTGraph<L, T> extends DGraph<L>, TGraph<L, T>
 	@Override
 	public DTNode<L, T> get(int i);
 	
-	public Collection<? extends DTLink<L, T>> links();	
+	public Iterable<? extends DTLink<L, T>> links();	
 	
 	/**
 	 * Adds a new node with the given label 
 	 */
 	public DTNode<L, T> add(L label);
-	
-	public int numLinks();
-	
+		
 	/**
 	 * Returns the node labels
 	 * @return

@@ -46,7 +46,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 	private List<List<Integer>> out;
 	private List<List<Integer>> in;	
 	
-	private int numLinks = 0;
+	private long numLinks = 0;
 	private long modCount = 0;
 	
 	// * changes for any edit which causes the node indices to change 
@@ -79,7 +79,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 	}
 
 	@Override
-	public int numLinks()
+	public long numLinks()
 	{
 		return numLinks;
 	}
@@ -712,7 +712,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 	}
 	
 	@Override
-	public Collection<? extends DLink<L>> links()
+	public Iterable<? extends DLink<L>> links()
 	{
 		return new LinkCollection();
 	}
@@ -734,7 +734,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 		@Override
 		public int size()
 		{
-			return numLinks;
+			return (int)numLinks;
 		}
 		
 		private class LLIterator implements Iterator<DLink<L>>

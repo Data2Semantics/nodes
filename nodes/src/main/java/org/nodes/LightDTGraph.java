@@ -31,7 +31,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 	private List<List<T>> outTags;
 	private List<List<T>> inTags;
 
-	private int numLinks = 0;
+	private long numLinks = 0;
 	private long modCount = 0;
 
 	// * changes for any edit which causes the node indices to change 
@@ -121,7 +121,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 	}
 
 	@Override
-	public Collection<? extends DTLink<L, T>> links() {
+	public Iterable<? extends DTLink<L, T>> links() {
 		return new LinkCollection();
 	}
 
@@ -140,7 +140,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 	}
 
 	@Override
-	public int numLinks() {
+	public long numLinks() {
 		return numLinks;
 	}
 
@@ -960,7 +960,7 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		@Override
 		public int size()
 		{
-			return numLinks;
+			return (int)numLinks;
 		}
 
 		private class LLIterator implements Iterator<DTLink<L,T>>

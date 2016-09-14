@@ -20,7 +20,7 @@ public interface UGraph<L> extends Graph<L>
 	public UNode<L> get(int i);
 	
 	@Override
-	public Collection<? extends ULink<L>> links();
+	public Iterable<? extends ULink<L>> links();
 	
 	@Override
 	public UNode<L> add(L label);

@@ -27,14 +27,14 @@ public interface TGraph<L, T> extends Graph<L>
 	
 	public List<? extends TNode<L, T>> nodes();
 	
-	public Collection<? extends TLink<L, T>> links();
+	public Iterable<? extends TLink<L, T>> links();
 
 	/**
 	 * Adds a new node with the given label 
 	 */
 	public TNode<L, T> add(L label);
 	
-	public int numLinks();
+	public long numLinks();
 		
 	public Set<T> tags();
 	

@@ -54,7 +54,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 	protected Map<L, Set<MapUTNode>> nodes = new LinkedHashMap<L, Set<MapUTNode>>();
 	protected Set<T> tags = new LinkedHashSet<T>();
 
-	protected int numEdges = 0;
+	protected long numLinks = 0;
 	protected long modCount = 0;
 	
 	protected int hash;
@@ -222,7 +222,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 			neighbors.add(mutOther);
 			mutOther.neighbors.add(this);
 			
-			numEdges++;
+			numLinks++;
 			modCount++;
 			
 			return link;
@@ -571,7 +571,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 			
 			dead = true;
 			
-			numEdges --;
+			numLinks --;
 			modCount++;
 		}
 
@@ -712,9 +712,9 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 	}
 
 	@Override
-	public int numLinks()
+	public long numLinks()
 	{
-		return numEdges;
+		return numLinks;
 	}
 
 	@Override
@@ -730,7 +730,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 	}
 
 	@Override
-	public Collection<MapUTLink> links()
+	public Iterable<MapUTLink> links()
 	{
 		return new LinkCollection();
 	}
@@ -747,7 +747,7 @@ public class MapUTGraph<L, T> implements UTGraph<L, T>, HasPersistentNodes, HasP
 		@Override
 		public int size()
 		{
-			return numLinks();
+			return (int)numLinks();
 		}
 		
 		private class LCIterator implements Iterator<MapUTLink>

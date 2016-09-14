@@ -231,7 +231,11 @@ public class DiskDGraphTest
 		f.connect(d);
 		e.connect(f);
 		
-		assertEquals(9, new ArrayList<DLink<String>>(graph.links()).size());
+		List<DLink<String>> links = new ArrayList<DLink<String>>((int)graph.numLinks());
+		for(DLink<String> link : graph.links())
+			links.add(link);
+		
+		assertEquals(9, links.size());
 		
 		System.out.println(graph.links());
 	}	
@@ -334,7 +338,12 @@ public class DiskDGraphTest
 		
 		DGraph<String> diskGraph = DiskDGraph.fromFile(new File(DIR, "p2p.txt"), DIR);
 		assertEquals(diskGraph.size(), new ArrayList<DNode<String>>(diskGraph.nodes()).size());
-		assertEquals(diskGraph.numLinks(), new ArrayList<DLink<String>>(diskGraph.links()).size());
+		
+		List<DLink<String>> links = new ArrayList<DLink<String>>((int)diskGraph.numLinks());
+		for(DLink<String> link : diskGraph.links())
+			links.add(link);
+		
+		assertEquals(diskGraph.numLinks(), links.size());
 
 		DGraph<String> memGraph  = Data.edgeListDirectedUnlabeled(new File(DIR, "p2p.txt"), true);
 				
