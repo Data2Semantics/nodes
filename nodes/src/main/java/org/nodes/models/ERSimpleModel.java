@@ -49,7 +49,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 		}
 	}
 	
-	public static double undirected(int size, int numLinks, boolean withPrior)
+	public static double undirected(long size, long numLinks, boolean withPrior)
 	{
 		double n = size;
 		double t = n * (n - 1) / 2;
@@ -57,7 +57,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 	}
 	
 	
-	public static double directed(int size, int numLinks, boolean withPrior)
+	public static double directed(long size, long numLinks, boolean withPrior)
 	{
 		double n = size;
 		double t = n * n - n;
