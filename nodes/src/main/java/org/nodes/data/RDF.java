@@ -97,9 +97,48 @@ public class RDF
 	 * @param file
 	 * @return
 	 */
-	public static MapDTGraph<String, String> read(File file)
-	{
-		return read(file, RDFFormat.RDFXML);
+	public static DTGraph<String, String> read(File file) 
+			throws IOException
+	{		
+		RDFFormat format = RDFFormat.forFileName(file.getName());
+
+		InputStream in = new BufferedInputStream(new FileInputStream(file));
+		RDFParser parser = Rio.createParser(format);
+				
+		final DTGraph<String, String> graph = new MapDTGraph<String, String>();
+		
+		parser.setRDFHandler(new RDFHandlerBase()
+		{
+			int i = 0;
+			@Override
+			public void handleStatement(Statement statement) 
+			{
+				String subject = statement.getSubject().toString();
+				String object = statement.getObject().toString();
+				String verb = statement.getPredicate().toString();
+					
+				if(graph.node(subject) == null)
+					graph.add(subject);
+				if(graph.node(object) == null)
+					graph.add(object);
+					
+				DTNode<String, String> subNode = graph.node(subject); 
+				DTNode<String, String> obNode = graph.node(object);
+				
+				subNode.connect(obNode, verb);
+				
+				if(++i % 2000 == 0)
+					System.out.println(i + " statements read.");
+			}
+		});
+		
+		try {
+			parser.parse(in, "local://");
+		} catch (Exception e) 
+		{
+			throw new RuntimeException("Error parsing file ("+file.getAbsolutePath()+").", e);
+		}
+		return graph;
 	}
 	
 	public static MapDTGraph<String, String> read(File file, RDFFormat format)
