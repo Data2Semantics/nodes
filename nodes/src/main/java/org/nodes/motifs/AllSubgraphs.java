@@ -50,8 +50,8 @@ public class AllSubgraphs implements Iterable<Set<Integer>>
 	
 	/**
 	 * Returns an iterator over lists indices of the original graph. Each 
-	 * returned list represents a (weakly) connected subgraph, and all such 
-	 * subgraphs are returned once.  
+	 * returned list represents a (weakly) connected subgraph, and any such 
+	 * subgraph is returned only once.  
 	 * 
 	 * @return
 	 */
@@ -98,7 +98,8 @@ public class AllSubgraphs implements Iterable<Set<Integer>>
 				State next = buffer.pop();
 				
 				if(probs == null || Global.random().nextDouble() < probs.get(next.indices().size() - 1))
-					buffer.addAll(0, next.children());
+					for(State state : next.children())
+						buffer.add(0, state);
 				
 				if(buffer.isEmpty())
 					return;
@@ -109,6 +110,8 @@ public class AllSubgraphs implements Iterable<Set<Integer>>
 		
 		private class State
 		{
+			// * The first integer added
+			int start;
 			Set<Integer> current = new LinkedHashSet<Integer>();
 			Set<Integer> neighbors = new LinkedHashSet<Integer>();
 			
@@ -117,48 +120,72 @@ public class AllSubgraphs implements Iterable<Set<Integer>>
 				
 			}
 			
+			/**
+			 * Create an initial node 
+			 * @param start
+			 */
 			public State(int start)
 			{
+				this.start = start;
 				current.add(start);
-				initNeighbors();
-			}
-			
-			private void initNeighbors()
-			{
-				if(isLeaf()) 
-					return;
-				
-				int max = Functions.max(current);
-				
-				for(int index : current)
-					for(Node<?> neighbor : data.get(index).neighbors())
-						if(neighbor.index() > max && ! current.contains(neighbor.index()))
+								
+				for(Node<?> neighbor : data.get(start).neighbors())
+						if(neighbor.index() > start)
 							neighbors.add(neighbor.index());
 			}
 			
 			/**
-			 * Adds all children of the state to the given list.
+			 * Returns a list of children of this state
 			 * 
 			 * @param list
 			 */
-			public List<State> children()
+			public Iterable<State> children()
 			{
-				// * TODO: we can generate this list on the fly
-				List<State> children = new ArrayList<State>(neighbors.size());
-				
-				for(int neighbor : neighbors)
+				return new Iterable<State>() 
 				{
-					State state = new State();
+					@Override
+					public Iterator<State> iterator()
+					{
+						return new Iterator<State>() 
+						{
+							LinkedList<Integer> oldNeighbors = new LinkedList<Integer>(neighbors);
+
+
+							@Override
+							public State next()
+							{
+								int choice = oldNeighbors.pop();
+								
+								State state = new State();
+								
+								state.start = start;
+								
+								state.current.addAll(current);
+								
+								state.neighbors.addAll(oldNeighbors);
+								// * add all neighbors of the new node provided that:
+								// - their index is higher than start
+								// - they are not neighbors to any nodes in current 
+								for(Node<?> node : data.get(choice).neighbors())
+									if(node.index() > start && ! inNeighborhood(node, current))
+										state.neighbors.add(node.index());
+								
+								state.current.add(choice);
+
+								return state;
+							}
+							
+							@Override
+							public boolean hasNext()
+							{
+								return ! oldNeighbors.isEmpty();
+							}
+
+						
+						};
+					}
 					
-					state.current.addAll(this.current);
-					state.current.add(neighbor);
-					
-					state.initNeighbors();
-					
-					children.add(state);
-				}
-				
-				return children;
+				};
 			}
 			
 			/**
@@ -183,4 +210,13 @@ public class AllSubgraphs implements Iterable<Set<Integer>>
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
+	private boolean inNeighborhood(Node<?> node, Set<Integer> current)
+	{
+		Set<Integer> n = new LinkedHashSet<Integer>();
+		for(Node<?> neighb : node.neighbors())
+			n.add(neighb.index());
+
+		return Functions.overlap(n, current) > 0;
+	}
 }
