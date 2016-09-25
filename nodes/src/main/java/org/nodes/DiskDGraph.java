@@ -1255,9 +1255,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
         while(graph.out.size() < max)
         	graph.out.add(Collections.EMPTY_LIST);
 
-        if(links > Integer.MAX_VALUE)
-        	throw new RuntimeException("Too many links ("+links+"). nodes currently only supports links up to Integer.MAX_VALUE. Please create an issue on github if you run into this problem.");
-        graph.numLinks = (int) links;
+        graph.numLinks = links;
         graph.nullLabels = true;
         
 		Global.log().info("Graph loaded and sorted.");
