@@ -12,14 +12,13 @@
 	      <directory>src/main/resources</directory>
 	    </resource>
 	  </resources>
-	  <pluginManagement>
 	    <plugins>
 	      <plugin>
 	        <artifactId>maven-compiler-plugin</artifactId>
 	        <version>2.3.2</version>
 	        <configuration>
-	    		<source>1.6</source>
-	    		<target>1.6</target>
+	    		<source>1.8</source>
+	    		<target>1.8</target>
 	    		<encoding>UTF-8</encoding>
 	 		</configuration>
 	        <executions>
@@ -39,9 +38,20 @@
 	          </execution>
 	        </executions>
 	      </plugin>
-	      
-	    </plugins>
-	  </pluginManagement>
+	     
+	  <plugin>  <!-- Create sources.jar -->
+        <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>attach-sources</id>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                </execution>
+            </executions>
+  	 </plugin>
+	</plugins>
   </build>  
   <dependencies>
     <dependency>
@@ -102,7 +112,7 @@
     <dependency>
      	<groupId>com.github.pbloem</groupId>
      	<artifactId>kit</artifactId>
-     	<version>v0.1.10</version>
+     	<version>v0.1.11</version>
     </dependency>   
 <!--     <dependency> -->
 <!--   	  <groupId>peterbloem.nl</groupId> -->

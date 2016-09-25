@@ -81,7 +81,7 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 				break;
 			case COMPLETE:
 				bits += Functions.prefix(degrees.size());
-				bits += Functions.prefix(Functions.max(degrees));
+				bits += Functions.prefix((long)Functions.max(degrees));
 				bits += OnlineModel.storeIntegers(degrees);
 				break;
 		}
@@ -115,10 +115,10 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 			case COMPLETE:
 				bits += Functions.prefix(degreesIn.size());
 				
-				bits += Functions.prefix(Functions.max(degreesIn));
+				bits += Functions.prefix((long)Functions.max(degreesIn));
 				bits += OnlineModel.storeIntegers(degreesIn);
 				
-				bits += Functions.prefix(Functions.max(degreesOut));
+				bits += Functions.prefix((long)Functions.max(degreesOut));
 				bits += OnlineModel.storeIntegers(degreesOut);
 				break;
 		}
