@@ -2,6 +2,7 @@ package org.nodes.models;
 
 import static nl.peterbloem.kit.Functions.log2;
 import static nl.peterbloem.kit.Functions.log2Choose;
+import static nl.peterbloem.kit.Functions.prefix;
 
 import org.nodes.DGraph;
 import org.nodes.Graph;
@@ -33,7 +34,7 @@ public class ERSimpleModel implements StructureModel<Graph<? extends Object>>, R
 			double t = n * (n - 1) / 2;
 			
 			try {
-				return (withPrior ? Functions.prefix((int)n) + log2(t + 1): 0) + log2Choose(graph.numLinks(), t);	
+				return (withPrior ? prefix((long)n) + log2(t + 1) : 0.0) + log2Choose(graph.numLinks(), t);	
 			} catch (RuntimeException e)
 			{
 				System.out.println(graph);
