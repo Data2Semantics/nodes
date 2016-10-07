@@ -92,7 +92,7 @@ public class EdgeListModel implements StructureModel<Graph<? extends Object>>, R
 	public static double directed(List<Integer> degreesIn, List<Integer> degreesOut, DegreeSequenceModel.Prior prior)
 	{
 		// * number of links
-		int m = 0;
+		long m = 0;
 		for(int degree : degreesIn)
 			m += degree;
 		
