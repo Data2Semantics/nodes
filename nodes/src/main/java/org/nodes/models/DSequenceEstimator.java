@@ -1,12 +1,14 @@
 package org.nodes.models;
 
 import static java.lang.Math.E;
+import static java.lang.Math.abs;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static nl.peterbloem.kit.Functions.choose;
+import static nl.peterbloem.kit.Functions.dot;
 import static nl.peterbloem.kit.Functions.exp2;
 import static nl.peterbloem.kit.Functions.log2;
 import static nl.peterbloem.kit.Functions.log2Min;
@@ -811,8 +813,19 @@ public class DSequenceEstimator<L>
 	public static <L> List<D> sequence(DGraph<L> graph)
 	{
 		List<D> list = new ArrayList<D>(graph.size());
+		
+		long t0 = System.currentTimeMillis();
+				
 		for(DNode<L> node : graph.nodes())
+		{			
 			list.add(new D(node.inDegree(), node.outDegree()));
+			
+			if(System.currentTimeMillis() - t0 > 600000) // give an update every ten minutes
+			{
+				Global.log().info("Reading degree sequence. " + node.index() + " nodes of " + graph.size() + " processed");
+				t0 = System.currentTimeMillis();
+			}
+		}
 		
 		return list;
 	}
