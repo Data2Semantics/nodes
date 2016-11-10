@@ -1280,7 +1280,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		
 		long links = 0;
 		
-		Integer current = null;
+		Integer current = 0;
 		List<Integer> neighbors = new ArrayList<Integer>();
 		
 		do

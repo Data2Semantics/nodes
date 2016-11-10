@@ -649,6 +649,30 @@ public class DiskDGraphTest
 		assertEquals(2, subgraph.numLinks());
 	}
 	
+	@Test
+	public void degrees()
+		throws IOException
+	{
+		DGraph<String> disk = DiskDGraph.fromFile(new File("/Users/Peter/Documents/Datasets/graphs/wikipedia-nl/wikipedia-nl-simple.txt"), new File("./tmp/"));
+		
+		DGraph<String> mem = Data.edgeListDirectedUnlabeled(new File("/Users/Peter/Documents/Datasets/graphs/wikipedia-nl/wikipedia-nl-simple.txt"), true);
+		
+		assertEquals(disk.size(), mem.size());
+		assertEquals(disk.numLinks(), mem.numLinks());
+		
+		for(int i : series(disk.size()))
+		{
+			try {
+				assertEquals(mem.get(i).inDegree(), disk.get(i).inDegree());
+				assertEquals(mem.get(i).outDegree(), disk.get(i).outDegree());
+			} catch(AssertionError e)
+			{
+				System.out.println(i + " mem: " + mem.get(i).inDegree() + " " + mem.get(i).outDegree() + " disk:" + disk.get(i).inDegree() + " " + disk.get(i).outDegree() );
+			}
+		}
+	}
+
+	
 	@After
 	public void cleanup()
 	{
