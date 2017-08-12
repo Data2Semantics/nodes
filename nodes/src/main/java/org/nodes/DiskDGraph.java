@@ -48,7 +48,7 @@ import nl.peterbloem.kit.Pair;
 import nl.peterbloem.kit.Series;
 
 /**
- * A version of the LightDGraph which stores all data on disk. Ie. it's slower, 
+ * A version of the LightDGraph which stores all data on disk. It's slower, 
  * but can store much bigger graphs.
  * 
  * 
@@ -88,9 +88,9 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	
 	private boolean sorted = false;
 		
-	public DiskDGraph(File dir)
+	public DiskDGraph(File dbFile)
 	{
-		this(dir, false);
+		this(dbFile, false);
 	}	
 	
 	/**
@@ -138,8 +138,8 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	{
 		int i = labels.indexOf(label);
 		if(i == -1)
-			throw new NoSuchElementException("Graph does not contain node with label "+label+"");
-		
+			return null;
+			
 		return new DiskDNode(i);
 	}
 	
@@ -242,7 +242,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		private void check()
 		{
 			if(dead)
-				throw new IllegalStateException("Node is dead (index was "+index+")");
+				throw new IllegalStateException("Node is dead (index was "+index+").");
 			
 			if(nodeModCount != nodeModState)
 				throw new IllegalStateException("Graph was modified since node creation. The node objects should be re-requested from the graph object.");
@@ -1008,32 +1008,16 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 		return sb.toString();
 	}
 	
-	/**
-	 * Resets all neighbour list to their current capacity, plus the 
-	 * given margin. 
-	 * 
-	 * @param margin
-	 */
-	public void compact(int margin)
-	{
-		for(int i : Series.series(in.size()))
-		{
-			List<Integer> old = in.get(i);
-			List<Integer> nw = new ArrayList<Integer>(old.size() + margin);
-			nw.addAll(old);
-			
-			in.set(i, nw);
-		}
-		
-		for(int i : Series.series(out.size()))
-		{
-			List<Integer> old = out.get(i);
-			List<Integer> nw = new ArrayList<Integer>(old.size() + margin);
-			nw.addAll(old);
-			
-			out.set(i, nw);
-		}
-	}
+//	/**
+//	 * Resets all neighbour list to their current capacity, plus the 
+//	 * given margin. 
+//	 * 
+//	 * @param margin
+//	 */
+//	public void compact(int margin)
+//	{
+//		// Not necessary,
+//	}
 	
 	/**
 	 * Sorts all neighbour lists
@@ -1074,17 +1058,15 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	 * @param graph
 	 * @return
 	 */
-	public static DiskDGraph copy(Graph<String> graph, File dir)
+	public static DiskDGraph copy(Graph<String> graph, File db)
 	{
-		DiskDGraph copy = new DiskDGraph(dir);
+		DiskDGraph copy = new DiskDGraph(db);
 		for(Node<String> node : graph.nodes())
 			copy.add(node.label());
 		
 		for(Link<String> link : graph.links())
 			copy.get(link.first().index()).connect(copy.get(link.second().index()));
-		
-		copy.compact(0);
-		
+				
 		return copy;
 	}
 	
@@ -1396,7 +1378,7 @@ public class DiskDGraph implements DGraph<String>, FastWalkable<String, DNode<St
 	/** 
 	 * Copy of the INT_ARRAY serializer that takes an integer list as argument instead
 	 */
-	private static class SerializerIntList extends GroupSerializerObjectArray<List<Integer>> {
+	public static class SerializerIntList extends GroupSerializerObjectArray<List<Integer>> {
 
 	    @Override
 	    public void serialize(DataOutput2 out, List<Integer> value) 

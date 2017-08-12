@@ -91,7 +91,7 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 	{
 		int i = labels.indexOf(label);
 		if(i == -1)
-			throw new NoSuchElementException("Graph does not contain node with label "+label+"");
+			return null;
 		
 		return new LightUNode(i);
 	}
@@ -239,11 +239,13 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 			check();
 			
 			int mine = index, his = other.index();
+			int removed = 0;
 		
 			while(neighbors.get(mine).remove((Integer)his))
-				numLinks--;
-			while(neighbors.get(his).remove((Integer)mine))
-				numLinks--;
+				removed ++;
+			while(neighbors.get(his).remove((Integer)mine));
+			
+			numLinks -= removed;
 			
 			modCount++;
 		}
@@ -394,9 +396,11 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 		public void remove()
 		{
 			check();
-			neighbors.get(to.index()).remove((Integer)from.index());
+			boolean removed = 
+				neighbors.get(to.index()).remove((Integer)from.index());
 			neighbors.get(from.index()).remove((Integer)to.index());
 			
+			assert(removed);
 			
 			numLinks--;
 			modCount++;
@@ -408,7 +412,6 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 		@Override
 		public boolean dead()
 		{
-			check();
 			return dead;
 		}
 
@@ -452,10 +455,10 @@ public class LightUGraph<L> implements UGraph<L>, FastWalkable<L, UNode<L>>
 			if (dead != other.dead)
 				return false;
 			
-			if(from == other.from && to == other.to)
+			if(from.equals(other.from) && to.equals(other.to))
 				return true;
 			
-			if(from == other.to && to == other.from)
+			if(from.equals(other.to) && to.equals(other.from))
 				return true;
 
 			return false;

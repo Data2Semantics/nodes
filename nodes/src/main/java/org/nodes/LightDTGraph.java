@@ -19,6 +19,12 @@ import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Pair;
 import nl.peterbloem.kit.Series;
 
+/**
+ * NOTE: Buggy implementation. Do not use until tested more thoroughly.
+ * 
+ * @param <L>
+ * @param <T>
+ */
 public class LightDTGraph<L,T> implements DTGraph<L, T> {
 	// * the initial capacity reserved for neighbors
 	public static final int NEIGHBOR_CAPACITY = 5;
@@ -194,11 +200,11 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		}
 
 
-		@Override
+		@Override @Deprecated 
 		/**
 		 * remove this node form the graph. This is an expensive operation.
 		 * 
-		 * 
+		 * BUG IN IMPLEMENTATION, BEWARE
 		 */
 		public void remove()
 		{
@@ -391,6 +397,8 @@ public class LightDTGraph<L,T> implements DTGraph<L, T> {
 		@Override
 		public void disconnect(Node<L> other)
 		{
+			check();
+			
 			int mine = index, his = other.index();
 
 			int links = 0;

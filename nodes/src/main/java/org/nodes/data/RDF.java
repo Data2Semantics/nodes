@@ -1,5 +1,7 @@
 package org.nodes.data;
 
+import static nl.peterbloem.kit.Functions.tic;
+import static nl.peterbloem.kit.Functions.toc;
 import static org.nodes.data.RDF.simplify;
 
 import java.io.BufferedInputStream;
@@ -9,10 +11,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.nodes.DTGraph;
@@ -35,6 +40,7 @@ import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.hdt.HDTManager;
 import org.rdfhdt.hdt.triples.IteratorTripleString;
 import org.rdfhdt.hdt.triples.TripleString;
+import org.rdfhdt.hdt.util.UnicodeEscape;
 
 import nl.peterbloem.kit.Functions;
 import nl.peterbloem.kit.Global;
@@ -46,7 +52,6 @@ public class RDF
 	{
 		MapDTGraph<String, String> graph = new MapDTGraph<String, String>();
 		
-		// Load HDT file. NOTE: Use loadHDT() if you don't need ?P?, ?PO or ??O queries
 		HDT hdt = HDTManager.loadHDT(
 				new BufferedInputStream(new FileInputStream(file)), null);
 
@@ -312,7 +317,18 @@ public class RDF
 	 */
 	public static UGraph<String> readSimple(File file)
 		throws IOException
-	{		
+	{	
+		return readSimple(file, null);
+	}	
+	
+	public static UGraph<String> readSimple(File file, List<String> whiteList)
+		throws IOException
+	{
+		if(file.getAbsolutePath().endsWith("hdt"))
+			return readSimpleHDT(file, whiteList);
+		
+		List<Pattern> patterns = whiteList != null ? toPatterns(whiteList) : null;
+		
 		RDFFormat format = RDFFormat.forFileName(file.getName());
 		
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
@@ -326,19 +342,24 @@ public class RDF
 			  @Override
 			  public void handleStatement(Statement statement) 
 			  {
-				String subject = statement.getSubject().toString();
-				String object = statement.getObject().toString();
-					
-				if(! nodes.containsKey(subject))
-					nodes.put(subject, graph.add(subject));
-				if(! nodes.containsKey(object))
-					nodes.put(object, graph.add(object));
-					
-				UNode<String> subNode = nodes.get(subject); 
-				UNode<String> obNode = nodes.get(object);
+				String predicate = statement.getPredicate().toString();
 				
-				if( (!subNode.connected(obNode)) &&  subNode.index() != obNode.index() )
-					subNode.connect(obNode);
+				if(patterns == null || matches(predicate, patterns))
+				{
+    				String subject = statement.getSubject().toString();
+    				String object = statement.getObject().toString();
+    					
+    				if(! nodes.containsKey(subject))
+    					nodes.put(subject, graph.add(subject));
+    				if(! nodes.containsKey(object))
+    					nodes.put(object, graph.add(object));
+    					
+    				UNode<String> subNode = nodes.get(subject); 
+    				UNode<String> obNode = nodes.get(object);
+    				
+    				if( (!subNode.connected(obNode)) &&  subNode.index() != obNode.index() )
+    					subNode.connect(obNode);
+				}
 			  }
 		});
 		
@@ -349,5 +370,107 @@ public class RDF
 				throw new RuntimeException("Error parsing file ("+file.getAbsolutePath()+").", e);
 		}
 		return graph;
+	}
+	
+	/**
+	 * Reads a simple graph: no self-loops, no multiple edges. Two resources
+	 * have an edge if they are connected in either direction by one or more predicates
+	 * 
+	 * @param file
+	 * @return
+	 */
+	public static UGraph<String> readSimpleHDT(File file)
+		throws IOException
+	{	
+		return readSimple(file, null); 
+	}
+	
+	public static UGraph<String> readSimpleHDT(File file, List<String> whiteList)
+			throws IOException
+	{	
+		List<Pattern> patterns = whiteList != null ? toPatterns(whiteList) : null;
+		
+		final UGraph<String> graph = new LightUGraph<String>();
+		final Map<String, UNode<String>> nodes = new HashMap<String, UNode<String>>();
+		
+		HDT hdt = HDTManager.loadHDT(
+				new BufferedInputStream(new FileInputStream(file)), null);
+
+		// Search pattern: Empty string means "any"
+		IteratorTripleString it;
+		try
+		{
+			it = hdt.search("", "", "");
+		} catch (NotFoundException e)
+		{
+			throw new RuntimeException(e);
+		}
+	
+		DTNode<String, String> node1, node2;
+				
+		
+		Global.log().info("Start loading graph: " + it.estimatedNumResults() + " triples (estimated).");
+		
+		long read = 0;
+		tic();
+		while(it.hasNext()) 
+		{
+			TripleString ts = it.next();
+
+			String predicate = ts.getPredicate().toString();
+			
+			if(patterns == null || matches(predicate, patterns))
+			{
+    			String subject = ts.getSubject().toString();
+    			String object = ts.getObject().toString();
+    			
+    			subject = UnicodeEscape.unescapeString(subject);
+    			if(! object.startsWith("\""))
+    				object  = UnicodeEscape.unescapeString(object);
+    				
+    			if(! nodes.containsKey(subject))
+    				nodes.put(subject, graph.add(subject));
+    			if(! nodes.containsKey(object))
+    				nodes.put(object, graph.add(object));
+    				
+    			UNode<String> subNode = nodes.get(subject); 
+    			UNode<String> obNode = nodes.get(object);
+    			
+    			if( (!subNode.connected(obNode)) &&  subNode.index() != obNode.index() )
+    				subNode.connect(obNode);
+			}
+			
+			if(toc() > 600)
+			{
+				Global.log().info("Reading graph in progress: " + graph.size() + " nodes, " + graph.numLinks() + " links added so far. " + read + " triples read.");
+				tic();
+			}
+			read++;
+		}
+		
+		Global.log().info("Graph read.");
+
+		return graph;
+	}
+
+
+	private static boolean matches(String predicate, List<Pattern> patterns)
+	{
+		for(Pattern pattern : patterns)
+			if(pattern.matcher(predicate).matches())
+				return true;
+		
+		return false;
+	}
+
+
+	private static List<Pattern> toPatterns(List<String> whiteList)
+	{
+		List<Pattern> res = new ArrayList<Pattern>(whiteList.size());
+		
+		for(String str : whiteList)
+			res.add(Pattern.compile(str));
+			
+		return res;
 	}
 }

@@ -20,7 +20,8 @@ public interface Link<L>
 	public Graph<L> graph();
 	
 	/**
-	 * Removes this link from the network.
+	 * Removes this link from the network. If multiple links exist between the 
+	 * two nodes of this link, only one should be removed.
 	 * 
 	 * If this method is called during an iteration through the links of this 
 	 * network (including walks), it may lead to a ConcurrentModificationException 

@@ -151,6 +151,34 @@ public class LightUGraphTest
 	}	
 	
 	@Test
+	public void testLinkRemove()
+	{
+		UGraph<String> graph = new LightUGraph<String>();
+		
+		UNode<String> a = graph.add(null),
+		              b = graph.add(null),
+		              c = graph.add(null);
+	
+		
+		a.connect(b);
+		
+		a.connect(c);
+		a.connect(c);
+		
+		ULink<String> link = a.links(c).iterator().next();
+		link.remove();
+		
+		assertEquals(2, graph.numLinks());
+		assertEquals(1, a.links(c).size());
+		assertTrue(link.dead());
+
+		int n = 0;
+		for(ULink<String> l : graph.links())
+			n++;
+		assertEquals(2, n);
+	}
+	
+	@Test
 	public void testEquals()
 	{
 		UGraph<String> g1 = new LightUGraph<String>();

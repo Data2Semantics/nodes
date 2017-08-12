@@ -10,7 +10,8 @@ public interface DGraph<L> extends Graph<L>
 	 * Returns the first node in the Graph which has the given label 
 	 * 
 	 * @param label
-	 * @return
+	 * @returnThe first node (by index) with the given label. null if no nodes 
+	 * 	in the graph have the given label.
 	 */
 	public DNode<L> node(L label);
 	

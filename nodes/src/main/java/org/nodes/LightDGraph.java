@@ -89,7 +89,7 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 	{
 		int i = labels.indexOf(label);
 		if(i == -1)
-			throw new NoSuchElementException("Graph does not contain node with label "+label+"");
+			return null;
 		
 		return new LightDNode(i);
 	}
@@ -561,9 +561,15 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 		public void remove()
 		{
 			check();
-			in.get(to.index()).remove((Integer)from.index());
+			
+			boolean removed;
+			
+			removed = in.get(to.index()).remove((Integer)from.index());
 			out.get(from.index()).remove((Integer)to.index());
 			
+			assert(removed);
+			
+			numLinks--;
 			modCount++;
 			dead = true;
 			
@@ -573,7 +579,6 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 		@Override
 		public boolean dead()
 		{
-			check();
 			return dead;
 		}
 

@@ -45,7 +45,6 @@ public class Data {
 		return edgeList(file, false);
 	}
 	
-	
 	public static UTGraph<String, String> edgeList(File file, boolean bipartite)
 				throws IOException
 	{
@@ -271,8 +270,7 @@ public class Data {
 				Global.log().info("Compacting");
 				if(store == null)
 					((LightDGraph<?>)graph).compact(5);
-				else
-					((DiskDGraph)graph).compact(5);
+				
 				Global.log().info("Done");
 			}
 			
@@ -291,8 +289,7 @@ public class Data {
 			Global.log().info("Compacting");
 			if(store == null)
 				((LightDGraph<?>)graph).compact(0);
-			else
-				((DiskDGraph)graph).compact(0);
+
 			Global.log().info("Done");
 		}
 		
@@ -506,7 +503,7 @@ public class Data {
 			max = Math.max(to,  max);
 		}
 		
-		Global.log().info("Graph written. Largest index: " + max);
+		// Global.log().info("Graph written. Largest index: " + max);
 		
 		writer.close();
 	}

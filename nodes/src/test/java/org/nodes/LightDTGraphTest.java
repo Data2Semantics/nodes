@@ -7,7 +7,34 @@ import org.junit.Test;
 public class LightDTGraphTest
 {
 
+	@Test
+	public void testLinkRemove()
+	{
+		DTGraph<String, String> graph = new LightDTGraph<String, String>();
+		
+		DNode<String> a = graph.add(null),
+		              b = graph.add(null),
+		              c = graph.add(null);
+	
+		
+		a.connect(b);
+		
+		a.connect(c);
+		a.connect(c);
+		
+		DLink<String> link = a.links(c).iterator().next();
+		link.remove();
+		
+		assertEquals(2, graph.numLinks());
+		assertEquals(1, a.links(c).size());
+		assertTrue(link.dead());
 
+		int n = 0;
+		for(DTLink<String, String> l : graph.links())
+			n++;
+		assertEquals(2, n);
+	}
+	
 	@Test
 	public void testMapDTGraph()
 	{
