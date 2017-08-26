@@ -1163,6 +1163,9 @@ public class MapDTGraph<L, T> implements DTGraph<L, T>, HasPersistentNodes, HasP
 					for(DTLink<Object, Object> otherLink : otherLinks)
 						otherModel.add(otherLink.tag());
 					
+					if(! model.tokens().equals(otherModel.tokens()))
+						return false;
+					
 					for(T token : model.tokens())
 						if(otherModel.frequency(token) != model.frequency(token))
 							return false;

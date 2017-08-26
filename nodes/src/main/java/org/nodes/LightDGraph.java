@@ -926,8 +926,6 @@ public class LightDGraph<L> implements DGraph<L>, FastWalkable<L, DNode<L>>
 		sorted = true;
 	}
 	
-	
-	
 	/**
 	 * Creates a copy of the given graph as a LightDGraph object. 
 	 * 
