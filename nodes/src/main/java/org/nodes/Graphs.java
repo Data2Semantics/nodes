@@ -1018,6 +1018,34 @@ public class Graphs
 		return visited.size() == graph.size();
 	}
 	
+	/**
+	 * Test if a graph is weakly connected
+	 * @param graph
+	 * @return
+	 */
+	public static <L> boolean connected(Graph<L> graph)
+	{
+		if(graph.size() == 0)
+			return true;
+		
+		Set<Integer> visited = new HashSet<Integer>();
+		
+		LinkedList<Node<L>> buffer = new LinkedList<Node<L>>();
+		buffer.add(graph.get(0));
+		
+		while(! buffer.isEmpty())
+		{
+			Node<L> node = buffer.poll();
+			visited.add(node.index());
+			
+			for(Node<L> neighbor : node.neighbors())
+				if(! visited.contains(neighbor.index()))
+					buffer.add(neighbor);
+		}
+		
+		return visited.size() == graph.size();
+	}
+	
 	public static UGraph<String> fromBits(BitString bits, String label)
 	{
 		int n = numNodes(bits.size());

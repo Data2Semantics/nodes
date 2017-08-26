@@ -40,6 +40,7 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 	private static final int RESTARTS = 1000;
 
 	private Generator<Integer> ints;
+	private Integer size;
 	
 	private Graph<?> graph;
 	
@@ -48,13 +49,19 @@ public class SimpleSubgraphGenerator extends AbstractGenerator<List<Integer>>
 		this.graph = graph;
 		this.ints = ints;
 	}
+	
+	public SimpleSubgraphGenerator(Graph<?> graph, int size)
+	{
+		this.graph = graph;
+		this.size = size;
+	}
 
 	@Override
 	public List<Integer> generate()
 	{
 		int restarts = 0;
 		
-		int depth = ints.generate();
+		int depth = ints == null ? size : ints.generate();
 		List<Integer> result = new ArrayList<Integer>(depth);
 		
 		boolean success;

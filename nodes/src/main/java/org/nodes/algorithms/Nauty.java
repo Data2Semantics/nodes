@@ -471,9 +471,7 @@ public class Nauty
 	 * @return
 	 */
 	private static <T> String toString(List<List<Node<T>>> partition, boolean directed)
-	{		
-//System.out.println(partition);
-		
+	{				
 		StringBuffer buffer = new StringBuffer();
 				
 		int[] order = new int[partition.size()];
