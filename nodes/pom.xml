@@ -115,9 +115,9 @@
 <!--      	<version>v0.1.12</version> -->
 <!--     </dependency>    -->
     <dependency>
-  	  <groupId>peterbloem.nl</groupId>
+  	  <groupId>com.github.pbloem</groupId>
   	  <artifactId>kit</artifactId>
-  	  <version>0.0.1-SNAPSHOT</version>
+  	  <version>v0.1.13</version>
     </dependency> 
   <dependency>
   	<groupId>org.mapdb</groupId>
